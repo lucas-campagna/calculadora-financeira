@@ -4,6 +4,8 @@
 	import { formatInputValue } from '$lib/calculator';
 	import { SWIPE_TICK_PERCENT } from '$lib/constants';
 
+	const TICK_PX = 30;
+
 	let {
 		class: className = '',
 		id = '',
@@ -27,6 +29,7 @@
 	} = $props();
 
 	let touchStartY = 0;
+	let lastTickY = 0;
 	let isSwiping = $state(false);
 	let swipeDirection = $state<'up' | 'down' | null>(null);
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
@@ -68,23 +71,32 @@
 
 	function handleTouchStart(e: TouchEvent) {
 		touchStartY = e.touches[0].clientY;
+		lastTickY = touchStartY;
 		isSwiping = true;
 		swipeDirection = null;
 	}
 
 	function handleTouchMove(e: TouchEvent) {
 		if (!isSwiping) return;
-		const diff = touchStartY - e.touches[0].clientY;
-		if (Math.abs(diff) > 20) {
-			swipeDirection = diff > 0 ? 'up' : 'down';
+		const currentY = e.touches[0].clientY;
+		const totalDiff = touchStartY - currentY;
+		if (Math.abs(totalDiff) > 10) {
+			swipeDirection = totalDiff > 0 ? 'up' : 'down';
 			e.preventDefault();
+		}
+		const ticksY = lastTickY - currentY;
+		const ticksCount = Math.trunc(ticksY / TICK_PX);
+		if (ticksCount !== 0) {
+			lastTickY -= ticksCount * TICK_PX;
+			const dir = ticksCount > 0 ? 'up' : 'down';
+			const count = Math.abs(ticksCount);
+			for (let i = 0; i < count; i++) {
+				applyTick(dir);
+			}
 		}
 	}
 
 	function handleTouchEnd() {
-		if (swipeDirection) {
-			applyTick(swipeDirection);
-		}
 		isSwiping = false;
 		swipeDirection = null;
 	}
@@ -118,7 +130,7 @@
 	let displayValue = $derived(decimal ? value : formatInputValue(value));
 
 	let swipeIndicator = $derived(
-		isSwiping && swipeDirection === 'up' ? '+' : isSwiping && swipeDirection === 'down' ? '-' : ''
+		isSwiping && swipeDirection === 'up' ? '▲' : isSwiping && swipeDirection === 'down' ? '▼' : ''
 	);
 
 	onMount(() => {
