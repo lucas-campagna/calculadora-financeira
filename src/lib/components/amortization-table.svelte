@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { formatCurrency } from '$lib/calculator';
 	import { allResultsStore } from '$lib/stores/calculator-store';
-	import type { AmortizationSystem } from '$lib/calculator/types';
+	import type { AmortizationSystem, Installment } from '$lib/calculator/types';
 
 	let {
 		system = 'price' as AmortizationSystem,
@@ -39,7 +39,7 @@
 						<th class="px-3 py-3 text-right font-medium">Amortizacao</th>
 						<th class="px-3 py-3 text-right font-medium">Juros</th>
 						<th class="px-3 py-3 text-right font-medium">Saldo</th>
-						{#if currentResult.installments.some((i: any) => i.extraPayment)}
+						{#if currentResult.installments.some((i: Installment) => i.extraPayment)}
 							<th class="px-3 py-3 text-right font-medium">Aporte Extra</th>
 						{/if}
 					</tr>
@@ -58,7 +58,7 @@
 							<td class="px-3 py-2.5 text-right">{formatCurrency(installment.principal)}</td>
 							<td class="px-3 py-2.5 text-right text-destructive">{formatCurrency(installment.interest)}</td>
 							<td class="px-3 py-2.5 text-right">{formatCurrency(installment.balance)}</td>
-							{#if currentResult.installments.some((inst: any) => inst.extraPayment)}
+							{#if currentResult.installments.some((inst: Installment) => inst.extraPayment)}
 								<td class="px-3 py-2.5 text-right">
 									{installment.extraPayment ? formatCurrency(installment.extraPayment) : '—'}
 								</td>

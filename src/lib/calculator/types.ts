@@ -1,7 +1,5 @@
 export type AmortizationSystem = 'price' | 'sac' | 'sam' | 'americano';
 
-export type FinancingType = 'imobiliario' | 'veiculos' | 'pessoal';
-
 export interface Installment {
 	number: number;
 	payment: number;
@@ -18,7 +16,6 @@ export interface ExtraPayment {
 }
 
 export interface FinancingInput {
-	type: FinancingType;
 	system: AmortizationSystem;
 	principal: number;
 	annualRate: number;
@@ -39,22 +36,9 @@ export interface FinancingResult {
 	effectiveRate: number;
 }
 
-export interface ComparisonResult {
-	price: FinancingResult;
-	sac: FinancingResult;
-	system: AmortizationSystem;
-	input: FinancingInput;
-}
-
 export const SYSTEM_LABELS: Record<AmortizationSystem, string> = {
 	price: 'PRICE (Parcelas Fixas)',
-	sac: 'SAC (Amortizações Fixas)',
+	sac: 'SAC (Amortizacoes Fixas)',
 	sam: 'SAM (Misto)',
 	americano: 'Americano'
-};
-
-export const FINANCING_TYPE_LABELS: Record<FinancingType, string> = {
-	imobiliario: 'Financiamento Imobiliário',
-	veiculos: 'Financiamento de Veículos',
-	pessoal: 'Empréstimo Pessoal'
 };

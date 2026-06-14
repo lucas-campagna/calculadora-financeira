@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import CalculatorForm from '$lib/components/calculator-form.svelte';
 	import ResultsSummary from '$lib/components/results-summary.svelte';
 	import AmortizationTable from '$lib/components/amortization-table.svelte';
@@ -6,17 +7,17 @@
 	import ExportButtons from '$lib/components/export-buttons.svelte';
 	import AdInterstitial from '$lib/components/ads/ad-interstitial.svelte';
 	import ExtraPaymentModal from '$lib/components/extra-payment-modal.svelte';
-	import { allResultsStore, isMobile } from '$lib/stores/calculator-store';
+	import { allResultsStore, isMobile, calculateAll } from '$lib/stores/calculator-store';
 	import type { AmortizationSystem } from '$lib/calculator/types';
 
-	let showInterstitial = $state(false);
-	let showResults = $state(false);
-	let selectedSystem: AmortizationSystem = 'price';
-	let previousResultHash = $state('');
-	let activeTab: 'chart' | 'table' = 'chart';
+	let selectedSystem: AmortizationSystem = $state('price');
+	let activeTab: 'chart' | 'table' = $state('chart');
 	let extraPaymentModalOpen = $state(false);
 	let extraPaymentMonth = $state(1);
-
+	let showInterstitial = $state(false);
+	let showResults = $state(false);
+	let previousResultHash = $state('');
+	let userHasInteracted = $state(false);
 	let touchStartX = 0;
 
 	const systemLabels: Record<AmortizationSystem, string> = {
@@ -55,7 +56,7 @@
 			const hash = $allResultsStore.price.totalPaid.toString();
 			if (hash !== previousResultHash) {
 				previousResultHash = hash;
-				if ($isMobile) {
+				if (userHasInteracted && $isMobile) {
 					showInterstitial = true;
 					showResults = false;
 				} else {
@@ -69,17 +70,21 @@
 		showInterstitial = false;
 		showResults = true;
 	}
+
+	onMount(() => {
+		calculateAll();
+	});
 </script>
 
 <div class="max-w-4xl mx-auto">
 	<div class="mb-6">
 		<h1 class="text-3xl sm:text-4xl font-bold">Calculadora de Financiamento</h1>
 		<p class="text-lg text-muted-foreground mt-2">
-			Simule PRICE, SAC, SAM e Americano. Compare todos os sistemas ao mesmo tempo.
+			Simule PRICE, SAC, SAM e Americano. Ajuste os valores e veja o resultado automaticamente.
 		</p>
 	</div>
 
-	<CalculatorForm />
+	<CalculatorForm onchange={() => (userHasInteracted = true)} />
 
 	{#if $allResultsStore.price && showResults}
 		<div class="mt-6">

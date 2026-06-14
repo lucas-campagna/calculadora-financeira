@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { allResultsStore } from '$lib/stores/calculator-store';
+	import type { Installment } from '$lib/calculator/types';
 
 	let canvasEl: HTMLCanvasElement = $state(undefined as unknown as HTMLCanvasElement);
-	let chartInstance: any = $state(null);
+	let chartInstance: InstanceType<typeof import('chart.js').Chart> | null = $state(null);
 	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
 
 	let {
@@ -22,7 +23,7 @@
 			chartInstance.destroy();
 		}
 
-		const datasets: any[] = [];
+		const datasets: import('chart.js').ChartDataset[] = [];
 		const colors: Record<string, { border: string; bg: string }> = {
 			price: { border: '#3b82f6', bg: '#3b82f620' },
 			sac: { border: '#22c55e', bg: '#22c55e20' },
@@ -55,10 +56,10 @@
 		for (const sys of systems) {
 			const result = $allResultsStore[sys.key];
 			if (!result) continue;
-			const filtered = result.installments.filter((_: any, i: number) => i % showEvery === 0 || i === 0 || i === result.installments.length - 1);
+			const filtered = result.installments.filter((_: Installment, i: number) => i % showEvery === 0 || i === 0 || i === result.installments.length - 1);
 			datasets.push({
 				label: sys.label,
-				data: filtered.map((i: any) => i.balance),
+				data: filtered.map((i: Installment) => i.balance),
 				borderColor: colors[sys.key].border,
 				backgroundColor: colors[sys.key].bg,
 				fill: false,
@@ -79,8 +80,8 @@
 					},
 					tooltip: {
 						callbacks: {
-							label: (ctx: any) => {
-								return `${ctx.dataset.label}: R$ ${ctx.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+							label: (ctx: import('chart.js').TooltipItem<'line'>) => {
+								return `${ctx.dataset.label}: R$ ${(ctx.parsed.y ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 							}
 						}
 					}
@@ -93,7 +94,7 @@
 					y: {
 						title: { display: true, text: 'Saldo (R$)', font: { size: 14 } },
 						ticks: {
-							callback: (value: any) => `R$ ${(value / 1000).toFixed(0)}k`,
+							callback: (value: string | number) => `R$ ${(Number(value) / 1000).toFixed(0)}k`,
 							font: { size: 12 }
 						}
 					}
@@ -108,8 +109,10 @@
 				const activeElements = chartInstance.getActiveElements();
 				if (activeElements.length > 0) {
 					const idx = activeElements[0].index;
-					const showEvery = Math.max(...Object.values($allResultsStore).map((r: any) => r?.installments?.length ?? 0)) > 60
-						? Math.ceil(Math.max(...Object.values($allResultsStore).map((r: any) => r?.installments?.length ?? 0)) / 30) : 1;
+					const results = Object.values($allResultsStore) as (import('$lib/calculator/types').FinancingResult | null)[];
+					const maxLen = Math.max(...results.map((r) => r?.installments?.length ?? 0));
+					const showEvery = maxLen > 60
+						? Math.ceil(maxLen / 30) : 1;
 					const month = idx * showEvery + 1;
 					onlongpress(month);
 				}

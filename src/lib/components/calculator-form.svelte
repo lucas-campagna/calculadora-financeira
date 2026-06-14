@@ -1,23 +1,31 @@
 <script lang="ts">
-	import { calculatorStore } from '$lib/stores/calculator-store';
-	import { calculateAll } from '$lib/stores/calculator-store';
+	import { calculatorStore, calculateAll } from '$lib/stores/calculator-store';
 	import Card from '$lib/components/ui/card.svelte';
 	import CardHeader from '$lib/components/ui/card-header.svelte';
 	import CardTitle from '$lib/components/ui/card-title.svelte';
 	import CardContent from '$lib/components/ui/card-content.svelte';
 	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 	import Label from '$lib/components/ui/label.svelte';
-	import Button from '$lib/components/ui/button.svelte';
 	import ExtraPaymentsEditor from '$lib/components/extra-payments-editor.svelte';
+
+	let {
+		onchange: handleFormChange = () => {}
+	}: {
+		onchange?: () => void;
+	} = $props();
 
 	let showExtras = $state(false);
 
 	function updateField(field: 'principal' | 'downPayment' | 'termMonths', raw: string) {
 		$calculatorStore[field] = raw;
+		calculateAll();
+		handleFormChange();
 	}
 
 	function updateRate(raw: string) {
 		$calculatorStore.annualRate = raw;
+		calculateAll();
+		handleFormChange();
 	}
 </script>
 
@@ -95,10 +103,6 @@
 					<ExtraPaymentsEditor />
 				{/if}
 			</div>
-
-			<Button variant="default" size="lg" class="w-full text-lg h-14" onclick={calculateAll}>
-				Calcular
-			</Button>
 		</div>
 	</CardContent>
 </Card>

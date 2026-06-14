@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { calculatorStore, calculateAll } from '$lib/stores/calculator-store';
+	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 
 	let {
 		open = $bindable(false),
@@ -11,55 +12,28 @@
 		onclose?: () => void;
 	} = $props();
 
-	let extraMonth = $state(String(month));
+	let extraMonth = $state('1');
 	let extraAmount = $state('');
 	let extraType = $state<'reduce_term' | 'reduce_installment'>('reduce_term');
-	let amountEl: HTMLInputElement | undefined = $state(undefined);
-
-	let touchStartY = 0;
-	let isSwiping = false;
-	let swipeDir: 'up' | 'down' | null = null;
 
 	$effect(() => {
 		if (open) {
 			extraMonth = String(month);
 			extraAmount = '';
 			extraType = 'reduce_term';
-			setTimeout(() => amountEl?.focus(), 100);
+			setTimeout(() => {
+				const el = document.getElementById('extra-modal-amount');
+				el?.focus();
+			}, 100);
 		}
 	});
 
-	function handleSwipeStart(e: TouchEvent) {
-		touchStartY = e.touches[0].clientY;
-		isSwiping = true;
-		swipeDir = null;
+	function updateMonth(raw: string) {
+		extraMonth = raw;
 	}
 
-	function handleSwipeMove(e: TouchEvent) {
-		if (!isSwiping) return;
-		const diff = touchStartY - e.touches[0].clientY;
-		if (Math.abs(diff) > 20) {
-			swipeDir = diff > 0 ? 'up' : 'down';
-		}
-	}
-
-	function handleSwipeEnd() {
-		if (swipeDir && extraAmount) {
-			const cur = parseInt(extraAmount.replace(/[^\d]/g, '')) || 0;
-			if (cur > 0) {
-				const tick = Math.max(1, Math.round(cur * 0.01));
-				const next = swipeDir === 'up' ? cur + tick : Math.max(0, cur - tick);
-				extraAmount = String(next);
-			}
-		}
-		isSwiping = false;
-		swipeDir = null;
-	}
-
-	function formatDisplay(raw: string): string {
-		const digits = raw.replace(/[^\d]/g, '');
-		if (!digits) return '';
-		return parseInt(digits, 10).toLocaleString('pt-BR');
+	function updateAmount(raw: string) {
+		extraAmount = raw;
 	}
 
 	function handleSave() {
@@ -100,31 +74,27 @@
 			<div class="space-y-4">
 				<div>
 					<label for="extra-modal-month" class="text-base font-medium">Mes</label>
-					<input
+					<SwipeInput
 						id="extra-modal-month"
-						type="text"
 						inputmode="numeric"
 						placeholder="Mes"
 						value={extraMonth}
-						oninput={(e) => { extraMonth = (e.target as HTMLInputElement).value.replace(/[^\d]/g, ''); }}
-						class="flex h-12 w-full rounded-lg border border-input bg-background px-4 py-3 text-base mt-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						onchange={updateMonth}
+						min="1"
+						class="mt-1.5"
 					/>
 				</div>
 
 				<div>
 					<label for="extra-modal-amount" class="text-base font-medium">Valor (R$)</label>
-					<input
-						bind:this={amountEl}
+					<SwipeInput
 						id="extra-modal-amount"
-						type="text"
 						inputmode="numeric"
 						placeholder="Ex: 5.000"
-						value={formatDisplay(extraAmount)}
-						oninput={(e) => { extraAmount = (e.target as HTMLInputElement).value.replace(/[^\d]/g, ''); }}
-						ontouchstart={handleSwipeStart}
-						ontouchmove={handleSwipeMove}
-						ontouchend={handleSwipeEnd}
-						class="flex h-12 w-full rounded-lg border border-input bg-background px-4 py-3 text-base mt-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						value={extraAmount}
+						onchange={updateAmount}
+						min="0"
+						class="mt-1.5"
 					/>
 					<p class="text-xs text-muted-foreground mt-1">Arraste para cima/baixo para ajustar o valor</p>
 				</div>

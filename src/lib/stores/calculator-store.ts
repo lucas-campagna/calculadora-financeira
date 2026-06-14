@@ -9,7 +9,6 @@ interface CalculatorState {
 	termMonths: string;
 	downPayment: string;
 	extraPayments: ExtraPayment[];
-	calculated: boolean;
 }
 
 interface AllResults {
@@ -24,8 +23,7 @@ const initialState: CalculatorState = {
 	annualRate: '10',
 	termMonths: '360',
 	downPayment: '0',
-	extraPayments: [],
-	calculated: false
+	extraPayments: []
 };
 
 function createCalculatorStore() {
@@ -48,41 +46,55 @@ export const allResultsStore = writable<AllResults>({
 	americano: null
 });
 
-export function calculateAll() {
-	const state = getStoreValue();
-	const principal = parseFloat(state.principal) || 0;
-	const annualRate = parseFloat(state.annualRate) || 0;
-	const termMonths = parseInt(state.termMonths) || 0;
-	const downPayment = parseFloat(state.downPayment) || 0;
-
-	if (principal <= 0 || annualRate <= 0 || termMonths <= 0) return;
-
-	const input = {
-		type: 'imobiliario' as const,
-		principal,
-		annualRate,
-		termMonths,
-		downPayment: downPayment > 0 ? downPayment : undefined,
-		extraPayments: state.extraPayments
-	};
-
-	allResultsStore.set({
-		price: calculate({ ...input, system: 'price' }),
-		sac: calculate({ ...input, system: 'sac' }),
-		sam: calculate({ ...input, system: 'sam' }),
-		americano: calculate({ ...input, system: 'americano' })
-	});
-}
+let calculateVersion = 0;
+let throttleTimer: ReturnType<typeof setTimeout> | null = null;
+const THROTTLE_MS = 300;
 
 let currentStoreValue: CalculatorState = initialState;
-
-function getStoreValue() {
-	return currentStoreValue;
-}
 
 calculatorStore.subscribe((v) => {
 	currentStoreValue = v;
 });
+
+export function calculateAll() {
+	const version = ++calculateVersion;
+
+	if (throttleTimer) {
+		clearTimeout(throttleTimer);
+	}
+
+	throttleTimer = setTimeout(() => {
+		throttleTimer = null;
+		if (version !== calculateVersion) return;
+
+		const principal = parseFloat(currentStoreValue.principal) || 0;
+		const annualRate = parseFloat(currentStoreValue.annualRate) || 0;
+		const termMonths = parseInt(currentStoreValue.termMonths) || 0;
+		const downPayment = parseFloat(currentStoreValue.downPayment) || 0;
+
+		if (principal <= 0 || annualRate <= 0 || termMonths <= 0) {
+			allResultsStore.set({ price: null, sac: null, sam: null, americano: null });
+			return;
+		}
+
+		const input = {
+			principal,
+			annualRate,
+			termMonths,
+			downPayment: downPayment > 0 ? downPayment : undefined,
+			extraPayments: currentStoreValue.extraPayments
+		};
+
+		if (version !== calculateVersion) return;
+
+		allResultsStore.set({
+			price: calculate({ ...input, system: 'price' }),
+			sac: calculate({ ...input, system: 'sac' }),
+			sam: calculate({ ...input, system: 'sam' }),
+			americano: calculate({ ...input, system: 'americano' })
+		});
+	}, THROTTLE_MS);
+}
 
 export const isMobile = writable(false);
 

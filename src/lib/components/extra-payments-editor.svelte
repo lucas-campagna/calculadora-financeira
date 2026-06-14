@@ -1,9 +1,8 @@
 <script lang="ts">
 	import type { ExtraPayment } from '$lib/calculator/types';
-	import { calculatorStore } from '$lib/stores/calculator-store';
-	import { formatInputValue } from '$lib/calculator';
+	import { calculatorStore, calculateAll } from '$lib/stores/calculator-store';
+	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 	import Button from '$lib/components/ui/button.svelte';
-	import Input from '$lib/components/ui/input.svelte';
 
 	function addExtraPayment() {
 		$calculatorStore.extraPayments = [
@@ -14,27 +13,30 @@
 
 	function removeExtraPayment(index: number) {
 		$calculatorStore.extraPayments = $calculatorStore.extraPayments.filter((_, i) => i !== index);
+		calculateAll();
 	}
 
-	function updateExtraPayment(index: number, field: keyof ExtraPayment, value: number | string) {
+	function updateMonth(index: number, raw: string) {
+		const month = parseInt(raw) || 1;
 		const updated = [...$calculatorStore.extraPayments];
-		if (field === 'type') {
-			updated[index] = { ...updated[index], type: value as 'reduce_installment' | 'reduce_term' };
-		} else {
-			updated[index] = { ...updated[index], [field]: Number(value) };
-		}
+		updated[index] = { ...updated[index], month };
 		$calculatorStore.extraPayments = updated;
+		calculateAll();
 	}
 
-	function handleAmountInput(e: Event, index: number) {
-		const target = e.target as HTMLInputElement;
-		const raw = target.value.replace(/[^\d]/g, '');
-		updateExtraPayment(index, 'amount', Number(raw));
+	function updateAmount(index: number, raw: string) {
+		const amount = parseInt(raw.replace(/[^\d]/g, '')) || 0;
+		const updated = [...$calculatorStore.extraPayments];
+		updated[index] = { ...updated[index], amount };
+		$calculatorStore.extraPayments = updated;
+		calculateAll();
 	}
 
-	function handleMonthInput(e: Event, index: number) {
-		const target = e.target as HTMLInputElement;
-		updateExtraPayment(index, 'month', Number(target.value));
+	function updateType(index: number, type: 'reduce_installment' | 'reduce_term') {
+		const updated = [...$calculatorStore.extraPayments];
+		updated[index] = { ...updated[index], type };
+		$calculatorStore.extraPayments = updated;
+		calculateAll();
 	}
 </script>
 
@@ -42,38 +44,40 @@
 	{#each $calculatorStore.extraPayments as ep, i}
 		<div class="flex flex-wrap gap-2 items-end border rounded-md p-3">
 			<div class="flex-1 min-w-[80px]">
-				<label for="extra-month-{i}" class="text-xs text-muted-foreground">Mês</label>
-				<Input
+				<label for="extra-month-{i}" class="text-xs text-muted-foreground">Mes</label>
+				<SwipeInput
 					id="extra-month-{i}"
-					type="number"
+					inputmode="numeric"
 					value={String(ep.month)}
+					onchange={(v) => updateMonth(i, v)}
 					min="1"
-					oninput={(e: Event) => handleMonthInput(e, i)}
+					class="mt-1"
 				/>
 			</div>
 			<div class="flex-1 min-w-[100px]">
 				<label for="extra-amount-{i}" class="text-xs text-muted-foreground">Valor (R$)</label>
-				<Input
+				<SwipeInput
 					id="extra-amount-{i}"
-					type="text"
 					inputmode="numeric"
-					value={formatInputValue(String(ep.amount))}
-					oninput={(e: Event) => handleAmountInput(e, i)}
+					value={String(ep.amount)}
+					onchange={(v) => updateAmount(i, v)}
+					min="0"
+					class="mt-1"
 				/>
 			</div>
 			<div class="flex-1 min-w-[120px]">
 				<label for="extra-type-{i}" class="text-xs text-muted-foreground">Tipo</label>
 				<select
 					id="extra-type-{i}"
-					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+					class="flex h-12 w-full rounded-lg border border-input bg-background px-3 py-3 text-base mt-1"
 					value={ep.type}
-					onchange={(e: Event) => updateExtraPayment(i, 'type', (e.target as HTMLSelectElement).value)}
+					onchange={(e: Event) => updateType(i, (e.target as HTMLSelectElement).value as 'reduce_installment' | 'reduce_term')}
 				>
 					<option value="reduce_term">Reduzir prazo</option>
 					<option value="reduce_installment">Reduzir parcela</option>
 				</select>
 			</div>
-			<Button variant="destructive" size="sm" onclick={() => removeExtraPayment(i)}>✕</Button>
+			<Button variant="destructive" size="sm" onclick={() => removeExtraPayment(i)}>X</Button>
 		</div>
 	{/each}
 	<Button variant="outline" size="sm" onclick={addExtraPayment}>+ Adicionar pagamento extra</Button>

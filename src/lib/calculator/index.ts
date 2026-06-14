@@ -2,8 +2,8 @@ export { calculatePrice } from './price';
 export { calculateSac } from './sac';
 export { calculateSam } from './sam';
 export { calculateAmericano } from './americano';
-export type { AmortizationSystem, FinancingType, Installment, ExtraPayment, FinancingInput, FinancingResult, ComparisonResult } from './types';
-export { SYSTEM_LABELS, FINANCING_TYPE_LABELS } from './types';
+export type { AmortizationSystem, Installment, ExtraPayment, FinancingInput, FinancingResult } from './types';
+export { SYSTEM_LABELS } from './types';
 
 import { calculatePrice } from './price';
 import { calculateSac } from './sac';
