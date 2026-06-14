@@ -1,1 +1,1 @@
-export const SWIPE_TICK_PERCENT = 1;
+export const SWIPE_TICK_PERCENT = 5;
