@@ -11,7 +11,7 @@
 		inputmode = 'numeric' as 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none',
 		decimal = false,
 		onchange: handleChange = (_v: string) => {},
-		class: labelClass = ''
+		this: inputRef = undefined as HTMLInputElement | undefined
 	}: {
 		class?: string;
 		id?: string;
@@ -20,7 +20,7 @@
 		inputmode?: 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none';
 		decimal?: boolean;
 		onchange?: (v: string) => void;
-		labelClass?: string;
+		this?: HTMLInputElement | undefined;
 	} = $props();
 
 	let touchStartY = 0;
@@ -47,8 +47,7 @@
 			next = Math.max(0, current - tick);
 		}
 		if (decimal) {
-			const str = next.toFixed(2).replace('.', ',');
-			handleChange(str);
+			handleChange(next.toFixed(2).replace('.', ','));
 		} else {
 			handleChange(String(next));
 		}
@@ -85,9 +84,7 @@
 		}
 	}
 
-	let displayValue = $derived(
-		decimal ? value : formatInputValue(value)
-	);
+	let displayValue = $derived(decimal ? value : formatInputValue(value));
 
 	let swipeIndicator = $derived(
 		isSwiping && swipeDirection === 'up' ? '+' : isSwiping && swipeDirection === 'down' ? '-' : ''
@@ -96,6 +93,7 @@
 
 <div class="relative">
 	<input
+		bind:this={inputRef}
 		{id}
 		type="text"
 		{placeholder}

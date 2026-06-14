@@ -4,6 +4,13 @@
 
 	let canvasEl: HTMLCanvasElement = $state(undefined as unknown as HTMLCanvasElement);
 	let chartInstance: any = $state(null);
+	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+
+	let {
+		onlongpress = (_month: number) => {}
+	}: {
+		onlongpress?: (month: number) => void;
+	} = $props();
 
 	async function renderChart() {
 		if (!$allResultsStore.price) return;
@@ -23,7 +30,6 @@
 			americano: { border: '#a855f7', bg: '#a855f720' }
 		};
 
-		const labels: string[] = [];
 		const maxLen = Math.max(
 			$allResultsStore.price?.installments.length ?? 0,
 			$allResultsStore.sac?.installments.length ?? 0,
@@ -32,6 +38,7 @@
 		);
 		const showEvery = maxLen > 60 ? Math.ceil(maxLen / 30) : 1;
 
+		const labels: string[] = [];
 		for (let i = 1; i <= maxLen; i++) {
 			if (i % showEvery === 0 || i === 1 || i === maxLen) {
 				labels.push(`${i}`);
@@ -80,7 +87,7 @@
 				},
 				scales: {
 					x: {
-						title: { display: true, text: 'Mês', font: { size: 14 } },
+						title: { display: true, text: 'Mes', font: { size: 14 } },
 						ticks: { font: { size: 12 } }
 					},
 					y: {
@@ -93,6 +100,28 @@
 				}
 			}
 		});
+	}
+
+	function handleCanvasTouchStart() {
+		longPressTimer = setTimeout(() => {
+			if (chartInstance && canvasEl) {
+				const activeElements = chartInstance.getActiveElements();
+				if (activeElements.length > 0) {
+					const idx = activeElements[0].index;
+					const showEvery = Math.max(...Object.values($allResultsStore).map((r: any) => r?.installments?.length ?? 0)) > 60
+						? Math.ceil(Math.max(...Object.values($allResultsStore).map((r: any) => r?.installments?.length ?? 0)) / 30) : 1;
+					const month = idx * showEvery + 1;
+					onlongpress(month);
+				}
+			}
+		}, 600);
+	}
+
+	function handleCanvasTouchEnd() {
+		if (longPressTimer) {
+			clearTimeout(longPressTimer);
+			longPressTimer = null;
+		}
 	}
 
 	$effect(() => {
@@ -113,8 +142,12 @@
 {#if $allResultsStore.price}
 	<div class="border rounded-lg p-3 sm:p-4">
 		<h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Evolucao do Saldo Devedor</h2>
-		<p class="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Clique na legenda para mostrar/ocultar sistemas.</p>
-		<div class="h-56 sm:h-80">
+		<p class="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Clique na legenda para mostrar/ocultar. Segure no grafico para adicionar pagamento extra.</p>
+		<div class="h-56 sm:h-80"
+			ontouchstart={handleCanvasTouchStart}
+			ontouchend={handleCanvasTouchEnd}
+			ontouchcancel={handleCanvasTouchEnd}
+		>
 			<canvas bind:this={canvasEl}></canvas>
 		</div>
 	</div>

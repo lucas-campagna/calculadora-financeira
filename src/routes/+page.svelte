@@ -5,6 +5,7 @@
 	import ComparisonChart from '$lib/components/comparison-chart.svelte';
 	import ExportButtons from '$lib/components/export-buttons.svelte';
 	import AdInterstitial from '$lib/components/ads/ad-interstitial.svelte';
+	import ExtraPaymentModal from '$lib/components/extra-payment-modal.svelte';
 	import { allResultsStore, isMobile } from '$lib/stores/calculator-store';
 	import type { AmortizationSystem } from '$lib/calculator/types';
 
@@ -13,9 +14,10 @@
 	let selectedSystem: AmortizationSystem = 'price';
 	let previousResultHash = $state('');
 	let activeTab: 'chart' | 'table' = 'chart';
+	let extraPaymentModalOpen = $state(false);
+	let extraPaymentMonth = $state(1);
 
 	let touchStartX = 0;
-	let touchEndX = 0;
 
 	const systemLabels: Record<AmortizationSystem, string> = {
 		price: 'PRICE',
@@ -28,18 +30,22 @@
 		selectedSystem = sys;
 	}
 
+	function openExtraPayment(month: number) {
+		extraPaymentMonth = month;
+		extraPaymentModalOpen = true;
+	}
+
 	function handleSwipeStart(e: TouchEvent) {
 		touchStartX = e.touches[0].clientX;
 	}
 
 	function handleSwipeEnd(e: TouchEvent) {
-		touchEndX = e.changedTouches[0].clientX;
-		const diff = touchEndX - touchStartX;
+		const diff = touchStartX - e.changedTouches[0].clientX;
 		if (Math.abs(diff) > 50) {
-			if (diff < 0 && activeTab === 'chart') {
-				activeTab = 'table';
-			} else if (diff > 0 && activeTab === 'table') {
+			if (diff < 0 && activeTab === 'table') {
 				activeTab = 'chart';
+			} else if (diff > 0 && activeTab === 'chart') {
+				activeTab = 'table';
 			}
 		}
 	}
@@ -79,9 +85,8 @@
 		<div class="mt-6">
 			<ResultsSummary />
 
-			<!-- MOBILE: swipeable tabs with fixed bottom buttons -->
+			<!-- MOBILE: swipeable tabs -->
 			<div class="sm:hidden">
-				<!-- Tab indicator -->
 				<div class="flex border-b mt-4">
 					<button
 						class="flex-1 py-3 text-base font-medium text-center transition-colors {activeTab === 'chart' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
@@ -97,15 +102,13 @@
 					</button>
 				</div>
 
-				<!-- Swipeable content area with fixed bottom -->
 				<div
-					class="relative"
 					ontouchstart={handleSwipeStart}
 					ontouchend={handleSwipeEnd}
 				>
 					{#if activeTab === 'chart'}
 						<div class="py-4">
-							<ComparisonChart />
+							<ComparisonChart onlongpress={openExtraPayment} />
 						</div>
 					{:else}
 						<div class="flex items-center gap-2 py-3 overflow-x-auto">
@@ -119,18 +122,18 @@
 							{/each}
 						</div>
 						<div class="overflow-y-auto" style="max-height: calc(100vh - 380px)">
-							<AmortizationTable system={selectedSystem} />
+							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
 						</div>
 					{/if}
 				</div>
 			</div>
 
-			<!-- DESKTOP: stacked layout -->
+			<!-- DESKTOP -->
 			<div class="hidden sm:block space-y-6">
-				<ComparisonChart />
+				<ComparisonChart onlongpress={openExtraPayment} />
 
 				<div>
-					<h2 class="text-xl font-semibold mb-3">Ver tabela de amortização</h2>
+					<h2 class="text-xl font-semibold mb-3">Ver tabela de amortizacao</h2>
 					<div class="flex flex-wrap gap-2">
 						{#each Object.entries(systemLabels) as [key, label]}
 							<button
@@ -144,7 +147,7 @@
 				</div>
 
 				{#key selectedSystem}
-					<AmortizationTable system={selectedSystem} />
+					<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
 				{/key}
 
 				<ExportButtons selectedSystem={selectedSystem} />
@@ -153,7 +156,6 @@
 	{/if}
 </div>
 
-<!-- Fixed bottom bar on mobile -->
 {#if $allResultsStore.price && showResults && $isMobile}
 	<div class="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-30 sm:hidden">
 		<ExportButtons selectedSystem={selectedSystem} />
@@ -161,3 +163,5 @@
 {/if}
 
 <AdInterstitial open={showInterstitial} onclose={handleInterstitialClose} />
+
+<ExtraPaymentModal bind:open={extraPaymentModalOpen} month={extraPaymentMonth} onclose={() => (extraPaymentModalOpen = false)} />
