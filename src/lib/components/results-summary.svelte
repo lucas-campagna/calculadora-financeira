@@ -1,52 +1,54 @@
 <script lang="ts">
-	import type { FinancingResult } from '$lib/calculator/types';
 	import { formatCurrency, formatPercent } from '$lib/calculator';
-	import Card from '$lib/components/ui/card.svelte';
-	import CardHeader from '$lib/components/ui/card-header.svelte';
-	import CardTitle from '$lib/components/ui/card-title.svelte';
-	import CardContent from '$lib/components/ui/card-content.svelte';
-	import { resultStore } from '$lib/stores/calculator-store';
+	import { allResultsStore } from '$lib/stores/calculator-store';
+	import type { AmortizationSystem } from '$lib/calculator/types';
 
-	function StatItem({ label, value }: { label: string; value: string }) {
-		return `
-			<div class="flex flex-col items-center p-3 bg-muted rounded-lg">
-				<span class="text-xs text-muted-foreground">${label}</span>
-				<span class="text-lg font-bold">${value}</span>
-			</div>
-		`;
-	}
+	const systems: { key: AmortizationSystem; label: string; color: string }[] = [
+		{ key: 'price', label: 'PRICE', color: 'bg-blue-500' },
+		{ key: 'sac', label: 'SAC', color: 'bg-green-500' },
+		{ key: 'sam', label: 'SAM', color: 'bg-yellow-500' },
+		{ key: 'americano', label: 'Americano', color: 'bg-purple-500' }
+	];
 </script>
 
-{#if $resultStore}
-	{@const result = $resultStore}
-	<Card>
-		<CardHeader>
-			<CardTitle>Resultado — {result.systemLabel}</CardTitle>
-		</CardHeader>
-		<CardContent>
-			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-				<div class="flex flex-col items-center p-3 bg-muted rounded-lg">
-					<span class="text-xs text-muted-foreground">Valor Total Pago</span>
-					<span class="text-lg font-bold">{formatCurrency(result.totalPaid)}</span>
-				</div>
-				<div class="flex flex-col items-center p-3 bg-muted rounded-lg">
-					<span class="text-xs text-muted-foreground">Total de Juros</span>
-					<span class="text-lg font-bold text-destructive">{formatCurrency(result.totalInterest)}</span>
-				</div>
-				<div class="flex flex-col items-center p-3 bg-muted rounded-lg">
-					<span class="text-xs text-muted-foreground">Primeira Parcela</span>
-					<span class="text-lg font-bold">{formatCurrency(result.firstInstallment)}</span>
-				</div>
-				<div class="flex flex-col items-center p-3 bg-muted rounded-lg">
-					<span class="text-xs text-muted-foreground">Última Parcela</span>
-					<span class="text-lg font-bold">{formatCurrency(result.lastInstallment)}</span>
-				</div>
-			</div>
-			<div class="mt-3 flex gap-4 text-sm text-muted-foreground justify-center">
-				<span>Taxa efetiva: {formatPercent(result.effectiveRate)}</span>
-				<span>|</span>
-				<span>Total de parcelas: {result.installments.length}</span>
-			</div>
-		</CardContent>
-	</Card>
+{#if $allResultsStore.price}
+	<div class="space-y-4">
+		<h2 class="text-xl font-semibold">Resultado</h2>
+
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			{#each systems as sys}
+				{@const result = $allResultsStore[sys.key]}
+				{#if result}
+					<div class="border rounded-lg p-4">
+						<div class="flex items-center gap-2 mb-3">
+							<div class="w-3 h-3 rounded-full {sys.color}"></div>
+							<h3 class="text-lg font-bold">{sys.label}</h3>
+						</div>
+						<div class="space-y-1.5 text-base">
+							<div class="flex justify-between">
+								<span class="text-muted-foreground">Total Pago</span>
+								<span class="font-bold">{formatCurrency(result.totalPaid)}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-muted-foreground">Juros</span>
+								<span class="font-bold text-destructive">{formatCurrency(result.totalInterest)}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-muted-foreground">1ª Parcela</span>
+								<span class="font-bold">{formatCurrency(result.firstInstallment)}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-muted-foreground">Última Parcela</span>
+								<span class="font-bold">{formatCurrency(result.lastInstallment)}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-muted-foreground">Parcelas</span>
+								<span class="font-bold">{result.installments.length}</span>
+							</div>
+						</div>
+					</div>
+				{/if}
+			{/each}
+		</div>
+	</div>
 {/if}

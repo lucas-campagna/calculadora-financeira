@@ -1,37 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { calculate } from '$lib/calculator';
-	import type { FinancingResult } from '$lib/calculator/types';
-	import { resultStore, calculatorStore } from '$lib/stores/calculator-store';
-	import Card from '$lib/components/ui/card.svelte';
-	import CardHeader from '$lib/components/ui/card-header.svelte';
-	import CardTitle from '$lib/components/ui/card-title.svelte';
-	import CardContent from '$lib/components/ui/card-content.svelte';
+	import { allResultsStore } from '$lib/stores/calculator-store';
 
 	let canvasEl: HTMLCanvasElement = $state(undefined as unknown as HTMLCanvasElement);
 	let chartInstance: any = $state(null);
 
 	async function renderChart() {
-		if (!$resultStore) return;
-
-		const principal = parseFloat($calculatorStore.principal) || 0;
-		const annualRate = parseFloat($calculatorStore.annualRate) || 0;
-		const termMonths = parseInt($calculatorStore.termMonths) || 0;
-		const downPayment = parseFloat($calculatorStore.downPayment) || 0;
-
-		if (principal <= 0 || annualRate <= 0 || termMonths <= 0) return;
-
-		const input = {
-			type: $calculatorStore.type,
-			principal,
-			annualRate,
-			termMonths,
-			downPayment: downPayment > 0 ? downPayment : undefined,
-			extraPayments: $calculatorStore.extraPayments
-		};
-
-		const priceResult = calculate({ ...input, system: 'price' });
-		const sacResult = calculate({ ...input, system: 'sac' });
+		if (!$allResultsStore.price) return;
 
 		const { Chart, registerables } = await import('chart.js');
 		Chart.register(...registerables);
@@ -40,46 +15,60 @@
 			chartInstance.destroy();
 		}
 
-		const maxInstallments = Math.max(
-			priceResult.installments.length,
-			sacResult.installments.length
+		const datasets: any[] = [];
+		const colors: Record<string, { border: string; bg: string }> = {
+			price: { border: '#3b82f6', bg: '#3b82f620' },
+			sac: { border: '#22c55e', bg: '#22c55e20' },
+			sam: { border: '#eab308', bg: '#eab30820' },
+			americano: { border: '#a855f7', bg: '#a855f720' }
+		};
+
+		const labels: string[] = [];
+		const maxLen = Math.max(
+			$allResultsStore.price?.installments.length ?? 0,
+			$allResultsStore.sac?.installments.length ?? 0,
+			$allResultsStore.sam?.installments.length ?? 0,
+			$allResultsStore.americano?.installments.length ?? 0
 		);
-		const showEvery = maxInstallments > 60 ? Math.ceil(maxInstallments / 30) : 1;
-		const labels = Array.from({ length: Math.ceil(maxInstallments / showEvery) }, (_, i) => `${(i + 1) * showEvery}`);
+		const showEvery = maxLen > 60 ? Math.ceil(maxLen / 30) : 1;
+
+		for (let i = 1; i <= maxLen; i++) {
+			if (i % showEvery === 0 || i === 1 || i === maxLen) {
+				labels.push(`${i}`);
+			}
+		}
+
+		const systems: { key: 'price' | 'sac' | 'sam' | 'americano'; label: string }[] = [
+			{ key: 'price', label: 'PRICE' },
+			{ key: 'sac', label: 'SAC' },
+			{ key: 'sam', label: 'SAM' },
+			{ key: 'americano', label: 'Americano' }
+		];
+
+		for (const sys of systems) {
+			const result = $allResultsStore[sys.key];
+			if (!result) continue;
+			const filtered = result.installments.filter((_: any, i: number) => i % showEvery === 0 || i === 0 || i === result.installments.length - 1);
+			datasets.push({
+				label: sys.label,
+				data: filtered.map((i: any) => i.balance),
+				borderColor: colors[sys.key].border,
+				backgroundColor: colors[sys.key].bg,
+				fill: false,
+				tension: 0.1
+			});
+		}
 
 		chartInstance = new Chart(canvasEl, {
 			type: 'line',
-			data: {
-				labels,
-				datasets: [
-					{
-						label: 'PRICE — Saldo',
-						data: priceResult.installments
-							.filter((_, i) => i % showEvery === 0)
-							.map((i) => i.balance),
-						borderColor: '#3b82f6',
-						backgroundColor: '#3b82f620',
-						fill: false,
-						tension: 0.1
-					},
-					{
-						label: 'SAC — Saldo',
-						data: sacResult.installments
-							.filter((_, i) => i % showEvery === 0)
-							.map((i) => i.balance),
-						borderColor: '#22c55e',
-						backgroundColor: '#22c55e20',
-						fill: false,
-						tension: 0.1
-					}
-				]
-			},
+			data: { labels, datasets },
 			options: {
 				responsive: true,
 				maintainAspectRatio: false,
 				plugins: {
 					legend: {
-						position: 'top'
+						position: 'top',
+						labels: { font: { size: 14 } }
 					},
 					tooltip: {
 						callbacks: {
@@ -91,13 +80,14 @@
 				},
 				scales: {
 					x: {
-						title: { display: true, text: 'Mês' }
+						title: { display: true, text: 'Mês', font: { size: 14 } },
+						ticks: { font: { size: 12 } }
 					},
 					y: {
-						title: { display: true, text: 'Saldo (R$)' },
+						title: { display: true, text: 'Saldo (R$)', font: { size: 14 } },
 						ticks: {
-							callback: (value: any) =>
-								`R$ ${(value / 1000).toFixed(0)}k`
+							callback: (value: any) => `R$ ${(value / 1000).toFixed(0)}k`,
+							font: { size: 12 }
 						}
 					}
 				}
@@ -106,7 +96,7 @@
 	}
 
 	$effect(() => {
-		if ($resultStore && canvasEl) {
+		if ($allResultsStore.price && canvasEl) {
 			renderChart();
 		}
 	});
@@ -120,15 +110,12 @@
 	});
 </script>
 
-{#if $resultStore}
-	<Card>
-		<CardHeader>
-			<CardTitle>Comparação PRICE × SAC</CardTitle>
-		</CardHeader>
-		<CardContent>
-			<div class="h-64 sm:h-80">
-				<canvas bind:this={canvasEl}></canvas>
-			</div>
-		</CardContent>
-	</Card>
+{#if $allResultsStore.price}
+	<div class="border rounded-lg p-4">
+		<h2 class="text-xl font-semibold mb-3">Evolução do Saldo Devedor</h2>
+		<p class="text-sm text-muted-foreground mb-3">Clique na legenda para mostrar/ocultar sistemas.</p>
+		<div class="h-64 sm:h-80">
+			<canvas bind:this={canvasEl}></canvas>
+		</div>
+	</div>
 {/if}

@@ -11,7 +11,7 @@
 		children: import('svelte').Snippet;
 	} = $props();
 
-	let classes = $derived(cn('text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70', className));
+	let classes = $derived(cn('text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70', className));
 </script>
 
 <label for={labelFor} class={classes}>

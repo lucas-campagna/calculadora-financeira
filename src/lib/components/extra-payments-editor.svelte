@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ExtraPayment } from '$lib/calculator/types';
 	import { calculatorStore } from '$lib/stores/calculator-store';
+	import { formatInputValue } from '$lib/calculator';
 	import Button from '$lib/components/ui/button.svelte';
 	import Input from '$lib/components/ui/input.svelte';
 
@@ -24,6 +25,17 @@
 		}
 		$calculatorStore.extraPayments = updated;
 	}
+
+	function handleAmountInput(e: Event, index: number) {
+		const target = e.target as HTMLInputElement;
+		const raw = target.value.replace(/[^\d]/g, '');
+		updateExtraPayment(index, 'amount', Number(raw));
+	}
+
+	function handleMonthInput(e: Event, index: number) {
+		const target = e.target as HTMLInputElement;
+		updateExtraPayment(index, 'month', Number(target.value));
+	}
 </script>
 
 <div class="mt-3 space-y-3">
@@ -36,17 +48,17 @@
 					type="number"
 					value={String(ep.month)}
 					min="1"
-					oninput={(e: Event) => updateExtraPayment(i, 'month', (e.target as HTMLInputElement).value)}
+					oninput={(e: Event) => handleMonthInput(e, i)}
 				/>
 			</div>
 			<div class="flex-1 min-w-[100px]">
 				<label for="extra-amount-{i}" class="text-xs text-muted-foreground">Valor (R$)</label>
 				<Input
 					id="extra-amount-{i}"
-					type="number"
-					value={String(ep.amount)}
-					min="0"
-					oninput={(e: Event) => updateExtraPayment(i, 'amount', (e.target as HTMLInputElement).value)}
+					type="text"
+					inputmode="numeric"
+					value={formatInputValue(String(ep.amount))}
+					oninput={(e: Event) => handleAmountInput(e, i)}
 				/>
 			</div>
 			<div class="flex-1 min-w-[120px]">

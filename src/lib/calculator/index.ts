@@ -70,3 +70,15 @@ export function formatNumber(value: number, decimals = 2): string {
 		maximumFractionDigits: decimals
 	}).format(value);
 }
+
+export function formatInputValue(raw: string): string {
+	const digits = raw.replace(/[^\d]/g, '');
+	if (!digits) return '';
+	const num = parseInt(digits, 10);
+	if (isNaN(num)) return '';
+	return num.toLocaleString('pt-BR');
+}
+
+export function parseFormattedValue(formatted: string): string {
+	return formatted.replace(/\./g, '').replace(/,/g, '');
+}
