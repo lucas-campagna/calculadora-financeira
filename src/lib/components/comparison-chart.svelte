@@ -111,10 +111,10 @@
 </script>
 
 {#if $allResultsStore.price}
-	<div class="border rounded-lg p-4">
-		<h2 class="text-xl font-semibold mb-3">Evolução do Saldo Devedor</h2>
-		<p class="text-sm text-muted-foreground mb-3">Clique na legenda para mostrar/ocultar sistemas.</p>
-		<div class="h-64 sm:h-80">
+	<div class="border rounded-lg p-3 sm:p-4">
+		<h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Evolucao do Saldo Devedor</h2>
+		<p class="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Clique na legenda para mostrar/ocultar sistemas.</p>
+		<div class="h-56 sm:h-80">
 			<canvas bind:this={canvasEl}></canvas>
 		</div>
 	</div>

@@ -12,6 +12,10 @@
 	let showResults = $state(false);
 	let selectedSystem: AmortizationSystem = 'price';
 	let previousResultHash = $state('');
+	let activeTab: 'chart' | 'table' = 'chart';
+
+	let touchStartX = 0;
+	let touchEndX = 0;
 
 	const systemLabels: Record<AmortizationSystem, string> = {
 		price: 'PRICE',
@@ -22,6 +26,22 @@
 
 	function selectSystem(sys: AmortizationSystem) {
 		selectedSystem = sys;
+	}
+
+	function handleSwipeStart(e: TouchEvent) {
+		touchStartX = e.touches[0].clientX;
+	}
+
+	function handleSwipeEnd(e: TouchEvent) {
+		touchEndX = e.changedTouches[0].clientX;
+		const diff = touchEndX - touchStartX;
+		if (Math.abs(diff) > 50) {
+			if (diff < 0 && activeTab === 'chart') {
+				activeTab = 'table';
+			} else if (diff > 0 && activeTab === 'table') {
+				activeTab = 'chart';
+			}
+		}
 	}
 
 	$effect(() => {
@@ -46,18 +66,67 @@
 </script>
 
 <div class="max-w-4xl mx-auto">
-	<div class="mb-8">
+	<div class="mb-6">
 		<h1 class="text-3xl sm:text-4xl font-bold">Calculadora de Financiamento</h1>
 		<p class="text-lg text-muted-foreground mt-2">
 			Simule PRICE, SAC, SAM e Americano. Compare todos os sistemas ao mesmo tempo.
 		</p>
 	</div>
 
-	<div class="flex flex-col sm:flex-col-reverse gap-6 sm:gap-8">
-		{#if $allResultsStore.price && showResults}
-			<div class="space-y-6 order-first sm:order-last">
-				<ResultsSummary />
+	<CalculatorForm />
 
+	{#if $allResultsStore.price && showResults}
+		<div class="mt-6">
+			<ResultsSummary />
+
+			<!-- MOBILE: swipeable tabs with fixed bottom buttons -->
+			<div class="sm:hidden">
+				<!-- Tab indicator -->
+				<div class="flex border-b mt-4">
+					<button
+						class="flex-1 py-3 text-base font-medium text-center transition-colors {activeTab === 'chart' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
+						onclick={() => (activeTab = 'chart')}
+					>
+						Grafico
+					</button>
+					<button
+						class="flex-1 py-3 text-base font-medium text-center transition-colors {activeTab === 'table' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
+						onclick={() => (activeTab = 'table')}
+					>
+						Tabela
+					</button>
+				</div>
+
+				<!-- Swipeable content area with fixed bottom -->
+				<div
+					class="relative"
+					ontouchstart={handleSwipeStart}
+					ontouchend={handleSwipeEnd}
+				>
+					{#if activeTab === 'chart'}
+						<div class="py-4">
+							<ComparisonChart />
+						</div>
+					{:else}
+						<div class="flex items-center gap-2 py-3 overflow-x-auto">
+							{#each Object.entries(systemLabels) as [key, label]}
+								<button
+									class="px-3 py-2 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input hover:bg-accent'}"
+									onclick={() => selectSystem(key as AmortizationSystem)}
+								>
+									{label}
+								</button>
+							{/each}
+						</div>
+						<div class="overflow-y-auto" style="max-height: calc(100vh - 380px)">
+							<AmortizationTable system={selectedSystem} />
+						</div>
+					{/if}
+				</div>
+			</div>
+
+			<!-- DESKTOP: stacked layout -->
+			<div class="hidden sm:block space-y-6">
 				<ComparisonChart />
 
 				<div>
@@ -80,12 +149,15 @@
 
 				<ExportButtons selectedSystem={selectedSystem} />
 			</div>
-		{/if}
-
-		<div class="order-last sm:order-first">
-			<CalculatorForm />
 		</div>
-	</div>
+	{/if}
 </div>
+
+<!-- Fixed bottom bar on mobile -->
+{#if $allResultsStore.price && showResults && $isMobile}
+	<div class="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-30 sm:hidden">
+		<ExportButtons selectedSystem={selectedSystem} />
+	</div>
+{/if}
 
 <AdInterstitial open={showInterstitial} onclose={handleInterstitialClose} />

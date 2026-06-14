@@ -1,32 +1,23 @@
 <script lang="ts">
-	import { SYSTEM_LABELS, formatInputValue } from '$lib/calculator';
 	import { calculatorStore } from '$lib/stores/calculator-store';
 	import { calculateAll } from '$lib/stores/calculator-store';
 	import Card from '$lib/components/ui/card.svelte';
 	import CardHeader from '$lib/components/ui/card-header.svelte';
 	import CardTitle from '$lib/components/ui/card-title.svelte';
 	import CardContent from '$lib/components/ui/card-content.svelte';
-	import Input from '$lib/components/ui/input.svelte';
+	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 	import Label from '$lib/components/ui/label.svelte';
 	import Button from '$lib/components/ui/button.svelte';
 	import ExtraPaymentsEditor from '$lib/components/extra-payments-editor.svelte';
 
 	let showExtras = $state(false);
 
-	let displayPrincipal = $derived(formatInputValue($calculatorStore.principal));
-	let displayDownPayment = $derived(formatInputValue($calculatorStore.downPayment));
-	let displayTermMonths = $derived(formatInputValue($calculatorStore.termMonths));
-
-	function handleCurrencyInput(e: Event, field: 'principal' | 'downPayment') {
-		const target = e.target as HTMLInputElement;
-		const raw = target.value.replace(/[^\d]/g, '');
+	function updateField(field: 'principal' | 'downPayment' | 'termMonths', raw: string) {
 		$calculatorStore[field] = raw;
 	}
 
-	function handleNumberInput(e: Event, field: 'termMonths') {
-		const target = e.target as HTMLInputElement;
-		const raw = target.value.replace(/[^\d]/g, '');
-		$calculatorStore[field] = raw;
+	function updateRate(raw: string) {
+		$calculatorStore.annualRate = raw;
 	}
 </script>
 
@@ -39,26 +30,24 @@
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 				<div>
 					<Label for="principal" class="text-base">Valor do Financiamento (R$)</Label>
-					<Input
+					<SwipeInput
 						id="principal"
-						type="text"
 						inputmode="numeric"
 						placeholder="Ex: 500.000"
-						value={displayPrincipal}
-						oninput={(e: Event) => handleCurrencyInput(e, 'principal')}
+						value={$calculatorStore.principal}
+						onchange={(v) => updateField('principal', v)}
 						class="mt-1.5"
 					/>
 				</div>
 
 				<div>
 					<Label for="downPayment" class="text-base">Entrada (R$) — opcional</Label>
-					<Input
+					<SwipeInput
 						id="downPayment"
-						type="text"
 						inputmode="numeric"
 						placeholder="Ex: 100.000"
-						value={displayDownPayment}
-						oninput={(e: Event) => handleCurrencyInput(e, 'downPayment')}
+						value={$calculatorStore.downPayment}
+						onchange={(v) => updateField('downPayment', v)}
 						class="mt-1.5"
 					/>
 				</div>
@@ -67,29 +56,25 @@
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 				<div>
 					<Label for="annualRate" class="text-base">Taxa de Juros (% ao ano)</Label>
-					<Input
+					<SwipeInput
 						id="annualRate"
-						type="text"
 						inputmode="decimal"
-						placeholder="Ex: 10.5"
+						placeholder="Ex: 10,5"
+						decimal={true}
 						value={$calculatorStore.annualRate}
-						oninput={(e: Event) => {
-							const target = e.target as HTMLInputElement;
-							$calculatorStore.annualRate = target.value;
-						}}
+						onchange={updateRate}
 						class="mt-1.5"
 					/>
 				</div>
 
 				<div>
 					<Label for="termMonths" class="text-base">Prazo (meses)</Label>
-					<Input
+					<SwipeInput
 						id="termMonths"
-						type="text"
 						inputmode="numeric"
 						placeholder="Ex: 360"
-						value={displayTermMonths}
-						oninput={(e: Event) => handleNumberInput(e, 'termMonths')}
+						value={$calculatorStore.termMonths}
+						onchange={(v) => updateField('termMonths', v)}
 						class="mt-1.5"
 					/>
 				</div>
