@@ -11,20 +11,38 @@
 	import type { AmortizationSystem } from '$lib/calculator/types';
 
 	let selectedSystem: AmortizationSystem = $state('price');
-	let activeTab: 'chart' | 'table' = $state('chart');
 	let extraPaymentModalOpen = $state(false);
 	let extraPaymentMonth = $state(1);
 	let showInterstitial = $state(false);
 	let showResults = $state(false);
 	let previousResultHash = $state('');
 	let userHasInteracted = $state(false);
+
+	const SLIDES = ['chart', 'results', 'table'] as const;
+	type SlideKey = typeof SLIDES[number];
+	const N = SLIDES.length;
+
+	let realIndex = $state<number>(0);
+	let carouselIndex = $state<number>(1);
+	let swipeContainerEl: HTMLElement | undefined = $state(undefined);
+	let trackEl: HTMLElement | undefined = $state(undefined);
 	let touchStartX = 0;
+	let touchStartY = 0;
+	let isDragging = false;
+	let dragDelta = $state(0);
+	let animating = $state(true);
 
 	const systemLabels: Record<AmortizationSystem, string> = {
 		price: 'PRICE',
 		sac: 'SAC',
 		sam: 'SAM',
 		americano: 'Americano'
+	};
+
+	const slideLabels: Record<SlideKey, string> = {
+		chart: 'Grafico',
+		results: 'Resultado',
+		table: 'Tabela'
 	};
 
 	function selectSystem(sys: AmortizationSystem) {
@@ -36,19 +54,61 @@
 		extraPaymentModalOpen = true;
 	}
 
+	function syncRealIndex() {
+		realIndex = ((carouselIndex - 1) % N + N) % N;
+	}
+
+	function goToSlide(index: number) {
+		animating = true;
+		carouselIndex = index + 1;
+		dragDelta = 0;
+		syncRealIndex();
+	}
+
+	function handleTransitionEnd() {
+		if (carouselIndex === 0) {
+			animating = false;
+			carouselIndex = N;
+			syncRealIndex();
+		} else if (carouselIndex === N + 1) {
+			animating = false;
+			carouselIndex = 1;
+			syncRealIndex();
+		}
+	}
+
 	function handleSwipeStart(e: TouchEvent) {
 		touchStartX = e.touches[0].clientX;
+		touchStartY = e.touches[0].clientY;
+		isDragging = true;
+		animating = false;
+	}
+
+	function handleSwipeMove(e: TouchEvent) {
+		if (!isDragging) return;
+		const dx = e.touches[0].clientX - touchStartX;
+		const dy = Math.abs(e.touches[0].clientY - touchStartY);
+		if (Math.abs(dx) > dy && Math.abs(dx) > 5) {
+			e.preventDefault();
+			dragDelta = dx;
+		}
 	}
 
 	function handleSwipeEnd(e: TouchEvent) {
+		if (!isDragging) return;
+		isDragging = false;
 		const diff = touchStartX - e.changedTouches[0].clientX;
+		animating = true;
+
 		if (Math.abs(diff) > 50) {
-			if (diff < 0 && activeTab === 'table') {
-				activeTab = 'chart';
-			} else if (diff > 0 && activeTab === 'chart') {
-				activeTab = 'table';
+			if (diff > 0) {
+				carouselIndex++;
+			} else {
+				carouselIndex--;
 			}
 		}
+		dragDelta = 0;
+		syncRealIndex();
 	}
 
 	$effect(() => {
@@ -73,6 +133,21 @@
 
 	onMount(() => {
 		calculateAll();
+
+		if (swipeContainerEl) {
+			swipeContainerEl.addEventListener('touchstart', handleSwipeStart, { passive: true });
+			swipeContainerEl.addEventListener('touchmove', handleSwipeMove, { passive: false });
+			swipeContainerEl.addEventListener('touchend', handleSwipeEnd, { passive: true });
+			swipeContainerEl.addEventListener('touchcancel', handleSwipeEnd, { passive: true });
+		}
+		return () => {
+			if (swipeContainerEl) {
+				swipeContainerEl.removeEventListener('touchstart', handleSwipeStart);
+				swipeContainerEl.removeEventListener('touchmove', handleSwipeMove);
+				swipeContainerEl.removeEventListener('touchend', handleSwipeEnd);
+				swipeContainerEl.removeEventListener('touchcancel', handleSwipeEnd);
+			}
+		};
 	});
 </script>
 
@@ -88,53 +163,91 @@
 
 	{#if $allResultsStore.price && showResults}
 		<div class="mt-6">
-			<ResultsSummary />
-
-			<!-- MOBILE: swipeable tabs -->
+			<!-- MOBILE: infinite carousel -->
 			<div class="sm:hidden">
-				<div class="flex border-b mt-4">
-					<button
-						class="flex-1 py-3 text-base font-medium text-center transition-colors {activeTab === 'chart' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
-						onclick={() => (activeTab = 'chart')}
-					>
-						Grafico
-					</button>
-					<button
-						class="flex-1 py-3 text-base font-medium text-center transition-colors {activeTab === 'table' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
-						onclick={() => (activeTab = 'table')}
-					>
-						Tabela
-					</button>
+				<div class="flex border-b mt-2 mb-1">
+					{#each SLIDES as key, i}
+						<button
+							class="flex-1 py-3 text-base font-medium text-center transition-colors {realIndex === i ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
+							onclick={() => goToSlide(i)}
+						>
+							{slideLabels[key]}
+						</button>
+					{/each}
 				</div>
 
-				<div
-					ontouchstart={handleSwipeStart}
-					ontouchend={handleSwipeEnd}
-				>
-					{#if activeTab === 'chart'}
-						<div class="py-4">
-							<ComparisonChart onlongpress={openExtraPayment} />
+				<div class="overflow-hidden" bind:this={swipeContainerEl}>
+					<div
+						bind:this={trackEl}
+						class="flex {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
+						style="transform: translateX(calc(-{carouselIndex * 100}% + {dragDelta}px))"
+						ontransitionend={handleTransitionEnd}
+					>
+						<!-- Clone of last slide (table) -->
+						<div class="w-full flex-shrink-0">
+							<div class="px-1 py-2">
+								<div class="flex items-center gap-2 py-3 overflow-x-auto">
+									{#each Object.entries(systemLabels) as [sysKey, label]}
+										<button
+											class="px-3 py-2 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
+											onclick={() => selectSystem(sysKey as AmortizationSystem)}
+										>
+											{label}
+										</button>
+									{/each}
+								</div>
+								<div class="overflow-y-auto" style="max-height: calc(100vh - 400px)">
+									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
+								</div>
+							</div>
 						</div>
-					{:else}
-						<div class="flex items-center gap-2 py-3 overflow-x-auto">
-							{#each Object.entries(systemLabels) as [key, label]}
-								<button
-									class="px-3 py-2 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input hover:bg-accent'}"
-									onclick={() => selectSystem(key as AmortizationSystem)}
-								>
-									{label}
-								</button>
-							{/each}
+
+						<!-- Real slides -->
+						{#each SLIDES as key}
+							<div class="w-full flex-shrink-0">
+								{#if key === 'chart'}
+									<div class="px-1 py-2">
+										<ComparisonChart onlongpress={openExtraPayment} />
+									</div>
+								{:else if key === 'results'}
+									<div class="px-1 py-2">
+										<ResultsSummary />
+									</div>
+								{:else}
+									<div class="px-1 py-2">
+										<div class="flex items-center gap-2 py-3 overflow-x-auto">
+											{#each Object.entries(systemLabels) as [sysKey, label]}
+												<button
+													class="px-3 py-2 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
+													onclick={() => selectSystem(sysKey as AmortizationSystem)}
+												>
+													{label}
+												</button>
+											{/each}
+										</div>
+										<div class="overflow-y-auto" style="max-height: calc(100vh - 400px)">
+											<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
+										</div>
+									</div>
+								{/if}
+							</div>
+						{/each}
+
+						<!-- Clone of first slide (chart) -->
+						<div class="w-full flex-shrink-0">
+							<div class="px-1 py-2">
+								<ComparisonChart onlongpress={openExtraPayment} />
+							</div>
 						</div>
-						<div class="overflow-y-auto" style="max-height: calc(100vh - 380px)">
-							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
-						</div>
-					{/if}
+					</div>
 				</div>
+
+				<div class="pb-16"></div>
 			</div>
 
 			<!-- DESKTOP -->
 			<div class="hidden sm:block space-y-6">
+				<ResultsSummary />
 				<ComparisonChart onlongpress={openExtraPayment} />
 
 				<div>

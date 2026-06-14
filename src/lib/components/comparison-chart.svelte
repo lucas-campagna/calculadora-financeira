@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { allResultsStore } from '$lib/stores/calculator-store';
-	import type { Installment } from '$lib/calculator/types';
+	import type { AmortizationSystem, Installment } from '$lib/calculator/types';
 
 	let canvasEl: HTMLCanvasElement = $state(undefined as unknown as HTMLCanvasElement);
 	let chartInstance: InstanceType<typeof import('chart.js').Chart> | null = $state(null);
 	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+	let touchStartX = 0;
+	let touchStartY = 0;
+	let hasMoved = false;
 
 	let {
 		onlongpress = (_month: number) => {}
@@ -46,7 +49,7 @@
 			}
 		}
 
-		const systems: { key: 'price' | 'sac' | 'sam' | 'americano'; label: string }[] = [
+		const systems: { key: AmortizationSystem; label: string }[] = [
 			{ key: 'price', label: 'PRICE' },
 			{ key: 'sac', label: 'SAC' },
 			{ key: 'sam', label: 'SAM' },
@@ -73,6 +76,11 @@
 			options: {
 				responsive: true,
 				maintainAspectRatio: false,
+				interaction: {
+					mode: 'nearest',
+					axis: 'x',
+					intersect: false
+				},
 				plugins: {
 					legend: {
 						position: 'top',
@@ -103,21 +111,51 @@
 		});
 	}
 
-	function handleCanvasTouchStart() {
+	function getMonthFromPosition(clientX: number): number | null {
+		if (!chartInstance) return null;
+		const canvas = chartInstance.canvas;
+		const rect = canvas.getBoundingClientRect();
+		const x = clientX - rect.left;
+		const xScale = chartInstance.scales.x;
+		if (!xScale) return null;
+
+		const maxLen = Math.max(
+			$allResultsStore.price?.installments.length ?? 0,
+			$allResultsStore.sac?.installments.length ?? 0,
+			$allResultsStore.sam?.installments.length ?? 0,
+			$allResultsStore.americano?.installments.length ?? 0
+		);
+		if (maxLen === 0) return null;
+
+		const showEvery = maxLen > 60 ? Math.ceil(maxLen / 30) : 1;
+		const labelIndex = Math.round(xScale.getValueForPixel(x) ?? 0);
+		const month = labelIndex * showEvery + 1;
+		return Math.max(1, Math.min(month, maxLen));
+	}
+
+	function handleCanvasTouchStart(e: TouchEvent) {
+		touchStartX = e.touches[0].clientX;
+		touchStartY = e.touches[0].clientY;
+		hasMoved = false;
 		longPressTimer = setTimeout(() => {
-			if (chartInstance && canvasEl) {
-				const activeElements = chartInstance.getActiveElements();
-				if (activeElements.length > 0) {
-					const idx = activeElements[0].index;
-					const results = Object.values($allResultsStore) as (import('$lib/calculator/types').FinancingResult | null)[];
-					const maxLen = Math.max(...results.map((r) => r?.installments?.length ?? 0));
-					const showEvery = maxLen > 60
-						? Math.ceil(maxLen / 30) : 1;
-					const month = idx * showEvery + 1;
-					onlongpress(month);
-				}
+			if (hasMoved) return;
+			const month = getMonthFromPosition(touchStartX);
+			if (month !== null) {
+				onlongpress(month);
 			}
 		}, 600);
+	}
+
+	function handleCanvasTouchMove(e: TouchEvent) {
+		const dx = Math.abs(e.touches[0].clientX - touchStartX);
+		const dy = Math.abs(e.touches[0].clientY - touchStartY);
+		if (dx > 10 || dy > 10) {
+			hasMoved = true;
+			if (longPressTimer) {
+				clearTimeout(longPressTimer);
+				longPressTimer = null;
+			}
+		}
 	}
 
 	function handleCanvasTouchEnd() {
@@ -148,6 +186,7 @@
 		<p class="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Clique na legenda para mostrar/ocultar. Segure no grafico para adicionar pagamento extra.</p>
 		<div class="h-56 sm:h-80"
 			ontouchstart={handleCanvasTouchStart}
+			ontouchmove={handleCanvasTouchMove}
 			ontouchend={handleCanvasTouchEnd}
 			ontouchcancel={handleCanvasTouchEnd}
 		>

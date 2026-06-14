@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { cn } from '$lib/utils';
 	import { formatInputValue } from '$lib/calculator';
 	import { SWIPE_TICK_PERCENT } from '$lib/constants';
@@ -28,6 +29,11 @@
 	let touchStartY = 0;
 	let isSwiping = $state(false);
 	let swipeDirection = $state<'up' | 'down' | null>(null);
+	let inputEl: HTMLInputElement | undefined = $state(undefined);
+
+	$effect(() => {
+		inputRef = inputEl;
+	});
 
 	function getNumericValue(): number {
 		if (decimal) {
@@ -71,6 +77,7 @@
 		const diff = touchStartY - e.touches[0].clientY;
 		if (Math.abs(diff) > 20) {
 			swipeDirection = diff > 0 ? 'up' : 'down';
+			e.preventDefault();
 		}
 	}
 
@@ -113,11 +120,28 @@
 	let swipeIndicator = $derived(
 		isSwiping && swipeDirection === 'up' ? '+' : isSwiping && swipeDirection === 'down' ? '-' : ''
 	);
+
+	onMount(() => {
+		if (inputEl) {
+			inputEl.addEventListener('touchstart', handleTouchStart, { passive: true });
+			inputEl.addEventListener('touchmove', handleTouchMove, { passive: false });
+			inputEl.addEventListener('touchend', handleTouchEnd, { passive: true });
+			inputEl.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+		}
+		return () => {
+			if (inputEl) {
+				inputEl.removeEventListener('touchstart', handleTouchStart);
+				inputEl.removeEventListener('touchmove', handleTouchMove);
+				inputEl.removeEventListener('touchend', handleTouchEnd);
+				inputEl.removeEventListener('touchcancel', handleTouchEnd);
+			}
+		};
+	});
 </script>
 
 <div class="relative">
 	<input
-		bind:this={inputRef}
+		bind:this={inputEl}
 		{id}
 		type="text"
 		{placeholder}
@@ -125,9 +149,6 @@
 		value={displayValue}
 		oninput={handleInput}
 		onblur={handleBlur}
-		ontouchstart={handleTouchStart}
-		ontouchmove={handleTouchMove}
-		ontouchend={handleTouchEnd}
 		class={cn(
 			'flex h-12 w-full rounded-lg border border-input bg-background px-4 py-3 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none',
 			isSwiping ? 'border-primary bg-primary/5' : '',
