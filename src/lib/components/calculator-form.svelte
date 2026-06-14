@@ -36,18 +36,20 @@
 						placeholder="Ex: 500.000"
 						value={$calculatorStore.principal}
 						onchange={(v) => updateField('principal', v)}
+						min="1"
 						class="mt-1.5"
 					/>
 				</div>
 
 				<div>
-					<Label for="downPayment" class="text-base">Entrada (R$) — opcional</Label>
+					<Label for="downPayment" class="text-base">Entrada (R$)</Label>
 					<SwipeInput
 						id="downPayment"
 						inputmode="numeric"
 						placeholder="Ex: 100.000"
 						value={$calculatorStore.downPayment}
 						onchange={(v) => updateField('downPayment', v)}
+						min="0"
 						class="mt-1.5"
 					/>
 				</div>
@@ -63,6 +65,7 @@
 						decimal={true}
 						value={$calculatorStore.annualRate}
 						onchange={updateRate}
+						min="0.01"
 						class="mt-1.5"
 					/>
 				</div>
@@ -75,6 +78,7 @@
 						placeholder="Ex: 360"
 						value={$calculatorStore.termMonths}
 						onchange={(v) => updateField('termMonths', v)}
+						min="1"
 						class="mt-1.5"
 					/>
 				</div>

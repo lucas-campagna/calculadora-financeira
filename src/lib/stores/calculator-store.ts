@@ -20,10 +20,10 @@ interface AllResults {
 }
 
 const initialState: CalculatorState = {
-	principal: '',
-	annualRate: '',
-	termMonths: '',
-	downPayment: '',
+	principal: '500000',
+	annualRate: '10',
+	termMonths: '360',
+	downPayment: '0',
 	extraPayments: [],
 	calculated: false
 };

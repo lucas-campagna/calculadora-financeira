@@ -10,6 +10,7 @@
 		value = '',
 		inputmode = 'numeric' as 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none',
 		decimal = false,
+		min = '0',
 		onchange: handleChange = (_v: string) => {},
 		this: inputRef = undefined as HTMLInputElement | undefined
 	}: {
@@ -19,6 +20,7 @@
 		value?: string;
 		inputmode?: 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none';
 		decimal?: boolean;
+		min?: string;
 		onchange?: (v: string) => void;
 		this?: HTMLInputElement | undefined;
 	} = $props();
@@ -36,15 +38,20 @@
 		return parseInt(digits, 10) || 0;
 	}
 
+	function applyMin(v: number): number {
+		const minVal = parseFloat(min) || 0;
+		return Math.max(minVal, v);
+	}
+
 	function applyTick(direction: 'up' | 'down') {
 		const current = getNumericValue();
-		if (current === 0) return;
+		if (current === 0 && direction === 'down') return;
 		const tick = Math.max(1, Math.round(current * (SWIPE_TICK_PERCENT / 100)));
 		let next: number;
 		if (direction === 'up') {
 			next = current + tick;
 		} else {
-			next = Math.max(0, current - tick);
+			next = applyMin(current - tick);
 		}
 		if (decimal) {
 			handleChange(next.toFixed(2).replace('.', ','));
@@ -78,9 +85,26 @@
 	function handleInput(e: Event) {
 		const target = e.target as HTMLInputElement;
 		if (decimal) {
-			handleChange(target.value);
+			let v = target.value;
+			const num = parseFloat(v.replace(/\./g, '').replace(',', '.')) || 0;
+			v = applyMin(num).toFixed(2).replace('.', ',');
+			handleChange(v);
 		} else {
-			handleChange(target.value.replace(/[^\d]/g, ''));
+			let raw = target.value.replace(/[^\d]/g, '');
+			if (raw === '') raw = min;
+			const num = parseInt(raw, 10) || 0;
+			handleChange(String(applyMin(num)));
+		}
+	}
+
+	function handleBlur() {
+		if (decimal) {
+			if (!value || value === '' || value === ',') {
+				handleChange(applyMin(0).toFixed(2).replace('.', ','));
+			}
+		} else {
+			const num = parseInt(value.replace(/[^\d]/g, ''), 10) || 0;
+			handleChange(String(applyMin(num)));
 		}
 	}
 
@@ -100,6 +124,7 @@
 		{inputmode}
 		value={displayValue}
 		oninput={handleInput}
+		onblur={handleBlur}
 		ontouchstart={handleTouchStart}
 		ontouchmove={handleTouchMove}
 		ontouchend={handleTouchEnd}
