@@ -56,16 +56,16 @@
 
 		{#if viewMode === 'financing'}
 			<div class={flexMode ? 'flex-1 min-h-0 overflow-auto border rounded-lg' : 'overflow-auto border rounded-lg'} style={flexMode ? '' : 'max-height: 45vh'}>
-				<table class="w-full text-xs border-collapse min-w-[500px]">
+				<table class="w-full text-xs border-collapse table-fixed">
 					<thead class="sticky top-0 z-10">
 						<tr class="border-b bg-muted">
-							<th class="px-2 py-1 text-left font-medium bg-muted">Mês</th>
-							<th class="px-2 py-1 text-right font-medium bg-muted">Parcela</th>
-							<th class="px-2 py-1 text-right font-medium bg-muted">Amort.</th>
-							<th class="px-2 py-1 text-right font-medium bg-muted">Juros</th>
-							<th class="px-2 py-1 text-right font-medium bg-muted">Saldo</th>
+							<th class="px-1 py-1 text-left font-medium bg-muted w-[10%]">Mes</th>
+							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Parcela</th>
+							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Amort.</th>
+							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Juros</th>
+							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Saldo</th>
 							{#if activeStudyResult.installments.some((i: Installment) => i.extraPayment)}
-								<th class="px-2 py-1 text-right font-medium bg-muted">Extra</th>
+								<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Extra</th>
 							{/if}
 						</tr>
 					</thead>
@@ -78,13 +78,13 @@
 								tabindex="0"
 								onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') onrowclick(installment.number); }}
 							>
-								<td class="px-2 py-1">{installment.number}</td>
-								<td class="px-2 py-1 text-right">{formatCurrency(installment.payment)}</td>
-								<td class="px-2 py-1 text-right">{formatCurrency(installment.principal)}</td>
-								<td class="px-2 py-1 text-right text-destructive">{formatCurrency(installment.interest)}</td>
-								<td class="px-2 py-1 text-right">{formatCurrency(installment.balance)}</td>
+								<td class="px-1 py-1 truncate">{installment.number}</td>
+								<td class="px-1 py-1 text-right truncate">{formatCurrency(installment.payment)}</td>
+								<td class="px-1 py-1 text-right truncate">{formatCurrency(installment.principal)}</td>
+								<td class="px-1 py-1 text-right text-destructive truncate">{formatCurrency(installment.interest)}</td>
+								<td class="px-1 py-1 text-right truncate">{formatCurrency(installment.balance)}</td>
 								{#if activeStudyResult.installments.some((inst: Installment) => inst.extraPayment)}
-									<td class="px-2 py-1 text-right">
+									<td class="px-1 py-1 text-right truncate">
 										{installment.extraPayment ? formatCurrency(installment.extraPayment) : '—'}
 									</td>
 								{/if}
@@ -105,12 +105,12 @@
 				{/each}
 			</div>
 			<div class={flexMode ? 'flex-1 min-h-0 overflow-auto border rounded-lg' : 'overflow-auto border rounded-lg'} style={flexMode ? '' : 'max-height: 45vh'}>
-				<table class="w-full text-xs border-collapse min-w-[500px]">
+<table class="w-full text-xs border-collapse table-fixed">
 					<thead class="sticky top-0 z-10">
 						<tr class="border-b bg-muted">
-							<th class="px-2 py-1 text-left font-medium bg-muted">Mês</th>
+							<th class="px-1 py-1 text-left font-medium bg-muted w-[10%]">Mes</th>
 							{#each $studiesStore.studies as study}
-								<th class="px-2 py-1 text-right font-medium bg-muted">{study.name}</th>
+								<th class="px-1 py-1 text-right font-medium bg-muted">{study.name}</th>
 							{/each}
 						</tr>
 					</thead>
@@ -123,10 +123,10 @@
 								tabindex="0"
 								onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') onrowclick(inst.number); }}
 							>
-								<td class="px-2 py-1">{inst.number}</td>
+								<td class="px-1 py-1 truncate">{inst.number}</td>
 								{#each $studiesStore.studies as study}
 									{@const v = getVal(study.id, inst.number, selectedField)}
-									<td class="px-2 py-1 text-right {selectedField === 'interest' ? 'text-destructive' : ''}">
+									<td class="px-1 py-1 text-right truncate {selectedField === 'interest' ? 'text-destructive' : ''}">
 										{v !== null ? formatCurrency(v) : '—'}
 									</td>
 								{/each}
