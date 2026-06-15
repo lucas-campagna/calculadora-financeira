@@ -157,12 +157,6 @@
 
 			<div class="flex gap-3 mt-5">
 				<button
-					class="flex-1 h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer"
-					onclick={() => (open = false)}
-				>
-					Cancelar
-				</button>
-				<button
 					class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
 					onclick={handleConfirm}
 				>
