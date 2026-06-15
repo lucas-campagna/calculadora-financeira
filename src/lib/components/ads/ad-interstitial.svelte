@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { isMobile } from '$lib/stores/calculator-store';
 
+	const isDev = import.meta.env.DEV;
+
 	let {
 		open = false,
 		onclose
@@ -47,7 +49,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if open && $isMobile}
+{#if open && $isMobile && !isDev}
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onclick={handleClose} onkeydown={handleKeydown} role="dialog" aria-modal="true" aria-label="Anúncio" tabindex="0">
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
