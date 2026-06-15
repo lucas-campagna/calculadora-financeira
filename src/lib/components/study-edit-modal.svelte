@@ -59,9 +59,9 @@
 				downPayment,
 				extraPayments: []
 			};
-			$studiesStore.addStudy(newStudy);
+			studiesStore.addStudy(newStudy);
 		} else if (mode === 'edit' && editStudy) {
-			$studiesStore.updateStudy(editStudy.id, {
+			studiesStore.updateStudy(editStudy.id, {
 				name: name || SYSTEMS.find((s) => s.key === system)?.label || editStudy.name,
 				system,
 				principal,

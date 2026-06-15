@@ -11,7 +11,7 @@
 
 	function removeExtraPayment(index: number) {
 		const studyId = $studiesStore.activeStudyId;
-		$studiesStore.updateStudy(studyId, {
+		studiesStore.updateStudy(studyId, {
 			extraPayments: activePayments.filter((_, i) => i !== index)
 		});
 		calculateAll();
@@ -21,7 +21,7 @@
 		const month = parseInt(raw) || 1;
 		const updated = [...activePayments];
 		updated[index] = { ...updated[index], month };
-		$studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
+		studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
 		calculateAll();
 	}
 
@@ -29,14 +29,14 @@
 		const amount = parseInt(raw.replace(/[^\d]/g, '')) || 0;
 		const updated = [...activePayments];
 		updated[index] = { ...updated[index], amount };
-		$studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
+		studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
 		calculateAll();
 	}
 
 	function updateType(index: number, type: 'reduce_installment' | 'reduce_term') {
 		const updated = [...activePayments];
 		updated[index] = { ...updated[index], type };
-		$studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
+		studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
 		calculateAll();
 	}
 </script>

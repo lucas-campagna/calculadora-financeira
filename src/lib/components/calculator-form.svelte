@@ -21,7 +21,7 @@
 	let editStudy: Study | undefined = $state(undefined);
 
 	function updateField(field: 'principal' | 'downPayment' | 'termMonths' | 'annualRate', raw: string) {
-		$studiesStore.updateField(field, raw);
+		studiesStore.updateField(field, raw);
 		handleFormChange();
 	}
 
