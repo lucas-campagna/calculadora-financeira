@@ -44,7 +44,7 @@
 
 <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
 	<button
-		class="shrink-0 w-8 h-8 rounded-full border border-dashed border-primary/50 text-primary flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer"
+		class="shrink-0 w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer"
 		onclick={onadd}
 		aria-label="Adicionar estudo"
 	>
@@ -52,7 +52,7 @@
 	</button>
 
 	<button
-		class="shrink-0 w-8 h-8 rounded-full border border-input bg-background text-muted-foreground hover:bg-accent flex items-center justify-center transition-colors cursor-pointer"
+		class="shrink-0 w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer"
 		onclick={() => { studiesStore.restore(); }}
 		aria-label="Restaurar estudos"
 	>
