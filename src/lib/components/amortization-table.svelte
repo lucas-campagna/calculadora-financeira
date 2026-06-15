@@ -32,7 +32,7 @@
 
 		<p class="text-xs text-muted-foreground mb-2">Toque em uma parcela para adicionar pagamento extra.</p>
 
-		<div class="overflow-auto border rounded-lg" style="max-height: 60vh">
+		<div class="overflow-auto border rounded-lg" style="max-height: 50vh">
 			<table class="w-full text-sm border-collapse min-w-[600px]">
 				<thead class="sticky top-0 z-10">
 					<tr class="border-b bg-muted">
