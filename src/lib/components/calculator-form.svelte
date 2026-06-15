@@ -31,7 +31,7 @@
 	}
 
 	function handleFieldLockToggle(field: FieldKey) {
-		studiesStore.commitFieldToCommon(field);
+		studiesStore.toggleFieldLock(field);
 	}
 
 	function handleFieldRevert(field: FieldKey) {
