@@ -6,7 +6,7 @@
 	import Button from '$lib/components/ui/button.svelte';
 	import type { AmortizationSystem } from '$lib/calculator/types';
 
-	let { selectedSystem = 'price' as AmortizationSystem }: { selectedSystem?: AmortizationSystem } = $props();
+	let { selectedSystem = $bindable('price' as AmortizationSystem) }: { selectedSystem?: AmortizationSystem } = $props();
 	let systemOptions: { key: AmortizationSystem; label: string }[] = [
 		{ key: 'price', label: 'PRICE' },
 		{ key: 'sac', label: 'SAC' },

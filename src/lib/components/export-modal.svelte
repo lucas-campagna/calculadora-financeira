@@ -7,7 +7,7 @@
 
 	let {
 		open = $bindable(false),
-		selectedSystem = 'price' as AmortizationSystem
+		selectedSystem = $bindable('price' as AmortizationSystem)
 	}: {
 		open?: boolean;
 		selectedSystem?: AmortizationSystem;
@@ -89,10 +89,10 @@
 </script>
 
 {#if open}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="fixed inset-0 z-50 bg-black/80 flex items-end justify-center" onclick={() => (open = false)} role="dialog" aria-modal="true" aria-label="Exportar">
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="bg-background w-full max-w-md rounded-t-xl p-4" onclick={(e) => e.stopPropagation()}>
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div class="fixed inset-0 z-50 bg-black/80 flex items-end justify-center" onclick={() => (open = false)} onkeydown={(e: KeyboardEvent) => { if (e.key === 'Escape') { open = false; } }} role="dialog" aria-modal="true" aria-label="Exportar" tabindex="0">
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<div role="document" class="bg-background w-full max-w-md rounded-t-xl p-4" onclick={(e) => e.stopPropagation()}>
 			<h2 class="text-base font-semibold mb-3">Exportar</h2>
 
 			<div class="mb-3">

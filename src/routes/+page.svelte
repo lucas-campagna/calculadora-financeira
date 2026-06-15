@@ -318,7 +318,7 @@ let touchStartX = 0;
 
 		<!-- Fixed bottom bar: inputs 2x2 -->
 		<div class="shrink-0 bg-background border-t px-3 pt-2 pb-3">
-			<CalculatorForm compact={true} onchange={() => (userHasInteracted = true)} selectedSystem={selectedSystem} />
+			<CalculatorForm compact={true} onchange={() => (userHasInteracted = true)} bind:selectedSystem={selectedSystem} />
 		</div>
 	</div>
 {:else}
@@ -353,7 +353,7 @@ let touchStartX = 0;
 					{/each}
 				</div>
 
-				<ExportButtons selectedSystem={selectedSystem} />
+				<ExportButtons bind:selectedSystem={selectedSystem} />
 			</div>
 		{/if}
 	</div>

@@ -8,7 +8,7 @@
 	let {
 		onchange: handleFormChange = () => {},
 		compact = false,
-		selectedSystem = 'price' as AmortizationSystem
+		selectedSystem = $bindable('price' as AmortizationSystem)
 	}: {
 		onchange?: () => void;
 		compact?: boolean;
@@ -88,7 +88,7 @@
 		</button>
 	</div>
 
-	<ExportModal bind:open={exportModalOpen} {selectedSystem} />
+	<ExportModal bind:open={exportModalOpen} bind:selectedSystem />
 {:else}
 	<!-- Desktop: full form, no extras toggle -->
 	<div class="space-y-4">

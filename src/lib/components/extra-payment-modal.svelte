@@ -65,10 +65,10 @@
 </script>
 
 {#if open}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onclick={handleCancel} role="dialog" aria-modal="true" aria-label="Pagamento extra">
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="bg-background p-6 rounded-xl max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onclick={handleCancel} onkeydown={(e: KeyboardEvent) => { if (e.key === 'Escape') handleCancel(); }} role="dialog" aria-modal="true" aria-label="Pagamento extra" tabindex="0">
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<div role="document" class="bg-background p-6 rounded-xl max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
 			<h2 class="text-base font-semibold mb-3">Pagamento Extra</h2>
 
 			<div class="space-y-4">

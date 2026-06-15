@@ -186,7 +186,7 @@
 	<div class="border rounded-lg p-2 sm:p-4 {fullHeight ? 'flex flex-col' : ''}" style={fullHeight ? 'height: 100%' : ''}>
 		<h2 class="text-sm font-semibold mb-1">Evolucao do Saldo Devedor</h2>
 		<p class="text-xs text-muted-foreground mb-1">Clique na legenda para mostrar/ocultar. Segure no grafico para adicionar pagamento extra.</p>
-		<div class={fullHeight ? 'flex-1 min-h-0' : 'h-56 sm:h-80'}
+		<div class={fullHeight ? 'flex-1 min-h-0' : 'h-56 sm:h-80'} role="img" aria-label="Grafico de evolucao do saldo devedor"
 			ontouchstart={handleCanvasTouchStart}
 			ontouchmove={handleCanvasTouchMove}
 			ontouchend={handleCanvasTouchEnd}
