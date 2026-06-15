@@ -194,7 +194,7 @@
 		function updateMobileHeight() {
 			const header = document.querySelector('header');
 			const headerH = header ? header.getBoundingClientRect().height : 56;
-			mobileHeight = `${window.visualViewport?.height ?? window.innerHeight - headerH}px`;
+			mobileHeight = `${(window.visualViewport?.height ?? window.innerHeight) - headerH}px`;
 		}
 
 		updateMobileHeight();
