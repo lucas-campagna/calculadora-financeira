@@ -14,9 +14,6 @@
 	} = $props();
 
 	let expanded = $state(defaultExpanded);
-	let showAll = $state(false);
-
-	const PAGE_SIZE = 12;
 
 	let currentResult = $derived($allResultsStore[system]);
 </script>
@@ -47,7 +44,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each currentResult.installments.slice(0, expanded ? undefined : showAll ? undefined : PAGE_SIZE) as installment, i}
+					{#each currentResult.installments as installment, i}
 						<tr
 							class="border-b hover:bg-primary/10 cursor-pointer active:bg-primary/20 transition-colors {i % 2 === 0 ? '' : 'bg-muted/30'}"
 							onclick={() => onrowclick(installment.number)}
@@ -71,15 +68,5 @@
 			</table>
 		</div>
 
-		{#if !expanded && currentResult.installments.length > PAGE_SIZE && !showAll}
-			<div class="text-center mt-2">
-				<button
-					class="text-sm text-primary hover:underline py-1"
-					onclick={() => (showAll = true)}
-				>
-					Mostrar todas as {currentResult.installments.length} parcelas
-				</button>
-			</div>
-		{/if}
-	</div>
+		</div>
 {/if}
