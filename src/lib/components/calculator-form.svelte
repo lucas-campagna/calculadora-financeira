@@ -33,7 +33,8 @@
 	function isOverridden(field: FieldKey): boolean {
 		const overrides = $studiesStore.overrides[$studiesStore.activeStudyId];
 		if (!overrides) return false;
-		return overrides[field] !== undefined;
+		const effective = overrides[field] ?? $studiesStore.commonValues[field];
+		return effective !== $studiesStore.commonValues[field];
 	}
 
 	function handleFieldLockToggle(field: FieldKey) {
