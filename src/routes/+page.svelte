@@ -303,7 +303,7 @@ let touchStartX = 0;
 
 		<!-- Fixed bottom bar: inputs 2x2 -->
 		<div class="shrink-0 bg-background border-t px-3 pt-2 pb-3">
-			<CalculatorForm compact={true} onchange={() => (userHasInteracted = true)} />
+			<CalculatorForm compact={true} onchange={() => (userHasInteracted = true)} selectedSystem={selectedSystem} />
 		</div>
 	</div>
 {:else}
