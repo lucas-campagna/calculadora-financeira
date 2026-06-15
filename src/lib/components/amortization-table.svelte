@@ -21,7 +21,7 @@
 </script>
 
 {#if currentResult}
-	<div class={flexMode ? 'flex flex-col h-full' : ''}>
+	<div class={flexMode ? 'flex flex-col flex-1 min-h-0' : ''}>
 		<div class={flexMode ? 'flex-1 min-h-0 overflow-auto border rounded-lg' : 'overflow-auto border rounded-lg'} style={flexMode ? '' : 'max-height: 45vh'}>
 			<table class="w-full text-xs border-collapse min-w-[500px]">
 				<thead class="sticky top-0 z-10">

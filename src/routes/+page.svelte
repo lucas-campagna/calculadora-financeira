@@ -212,8 +212,8 @@ let touchStartX = 0;
 </script>
 
 {#if $isMobile}
-	<!-- MOBILE: carousel + fixed bottom inputs -->
-	<div class="h-[calc(100dvh-3.5rem)] flex flex-col overflow-hidden">
+	<!-- MOBILE: full viewport, no page scroll -->
+	<div class="h-dvh flex flex-col overflow-hidden">
 		<div class="flex border-b shrink-0">
 			{#each SLIDES as key, i}
 				<button
@@ -225,6 +225,7 @@ let touchStartX = 0;
 			{/each}
 		</div>
 
+		<!-- carousel area: fills remaining space between tabs and bottom bar -->
 		<div class="flex-1 min-h-0 overflow-hidden" style="touch-action: pan-y" bind:this={swipeContainerEl}>
 			<div
 				class="flex h-full {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
@@ -233,11 +234,11 @@ let touchStartX = 0;
 			>
 				<!-- Clone of last slide (table) -->
 				<div class="w-full flex-shrink-0 h-full flex flex-col">
-					<div class="flex-1 min-h-0 p-3 flex flex-col gap-2">
+					<div class="flex-1 min-h-0 p-3 flex flex-col">
 						{#if $allResultsStore.price}
 							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
 						{/if}
-						<div class="flex items-center gap-2 overflow-x-auto pt-2 border-t">
+						<div class="shrink-0 flex items-center gap-2 overflow-x-auto pt-2 border-t">
 							{#each Object.entries(systemLabels) as [sysKey, label]}
 								<button
 									class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
@@ -252,21 +253,29 @@ let touchStartX = 0;
 
 				<!-- Real slides -->
 				{#each SLIDES as key}
-					<div class="w-full flex-shrink-0 h-full {key === 'chart' ? 'flex flex-col' : key === 'table' ? 'flex flex-col' : 'overflow-y-auto'}">
-						<div class={key === 'chart' ? 'flex-1 min-h-0 p-2' : key === 'table' ? 'flex-1 min-h-0 p-3 flex flex-col gap-2' : 'p-3'}>
-							{#if key === 'chart'}
+					{#if key === 'chart'}
+						<div class="w-full flex-shrink-0 h-full flex flex-col">
+							<div class="flex-1 min-h-0 p-2">
 								{#if $allResultsStore.price}
 									<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
 								{/if}
-							{:else if key === 'results'}
+							</div>
+						</div>
+					{:else if key === 'results'}
+						<div class="w-full flex-shrink-0 h-full overflow-y-auto">
+							<div class="p-3">
 								{#if $allResultsStore.price}
 									<ResultsSummary />
 								{/if}
-							{:else}
+							</div>
+						</div>
+					{:else}
+						<div class="w-full flex-shrink-0 h-full flex flex-col">
+							<div class="flex-1 min-h-0 p-3 flex flex-col">
 								{#if $allResultsStore.price}
 									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
 								{/if}
-								<div class="flex items-center gap-2 overflow-x-auto pt-2 border-t">
+								<div class="shrink-0 flex items-center gap-2 overflow-x-auto pt-2 border-t">
 									{#each Object.entries(systemLabels) as [sysKey, label]}
 										<button
 											class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
@@ -276,9 +285,9 @@ let touchStartX = 0;
 										</button>
 									{/each}
 								</div>
-							{/if}
+							</div>
 						</div>
-					</div>
+					{/if}
 				{/each}
 
 				<!-- Clone of first slide (chart) -->
