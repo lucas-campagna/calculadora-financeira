@@ -177,6 +177,35 @@ function createStudiesStore() {
 			});
 			calculateAll();
 		},
+		revertField(field: FieldKey) {
+			update((s) => {
+				const studyId = s.activeStudyId;
+				const newOverrides = { ...s.overrides };
+				delete newOverrides[studyId]?.[field];
+				if (Object.keys(newOverrides[studyId] ?? {}).length === 0) {
+					delete newOverrides[studyId];
+				}
+				return { ...s, overrides: newOverrides };
+			});
+			calculateAll();
+		},
+		commitFieldToCommon(field: FieldKey) {
+			update((s) => {
+				const studyId = s.activeStudyId;
+				const currentEffective = getEffectiveValue(s, studyId, field);
+				const newOverrides = { ...s.overrides };
+				delete newOverrides[studyId]?.[field];
+				if (Object.keys(newOverrides[studyId] ?? {}).length === 0) {
+					delete newOverrides[studyId];
+				}
+				return {
+					...s,
+					commonValues: { ...s.commonValues, [field]: currentEffective },
+					overrides: newOverrides
+				};
+			});
+			calculateAll();
+		},
 		updateField(field: FieldKey, value: string) {
 			update((s) => {
 				const studyId = s.activeStudyId;

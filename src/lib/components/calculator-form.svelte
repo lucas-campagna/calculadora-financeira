@@ -31,7 +31,11 @@
 	}
 
 	function handleFieldLockToggle(field: FieldKey) {
-		studiesStore.toggleFieldLock(field);
+		studiesStore.commitFieldToCommon(field);
+	}
+
+	function handleFieldRevert(field: FieldKey) {
+		studiesStore.revertField(field);
 	}
 
 	function updateField(field: FieldKey, raw: string) {
@@ -69,6 +73,7 @@
 					onchange={(v) => updateField('principal', v)}
 					locked={isLocked('principal')}
 					onlocktoggle={() => handleFieldLockToggle('principal')}
+					onrevert={() => handleFieldRevert('principal')}
 					min="1"
 				/>
 			</div>
@@ -82,6 +87,7 @@
 					onchange={(v) => updateField('downPayment', v)}
 					locked={isLocked('downPayment')}
 					onlocktoggle={() => handleFieldLockToggle('downPayment')}
+					onrevert={() => handleFieldRevert('downPayment')}
 					min="0"
 				/>
 			</div>
@@ -96,6 +102,7 @@
 					onchange={(v) => updateField('annualRate', v)}
 					locked={isLocked('annualRate')}
 					onlocktoggle={() => handleFieldLockToggle('annualRate')}
+					onrevert={() => handleFieldRevert('annualRate')}
 					min="0.01"
 				/>
 			</div>
@@ -109,6 +116,7 @@
 					onchange={(v) => updateField('termMonths', v)}
 					locked={isLocked('termMonths')}
 					onlocktoggle={() => handleFieldLockToggle('termMonths')}
+					onrevert={() => handleFieldRevert('termMonths')}
 					min="1"
 				/>
 			</div>
@@ -138,6 +146,7 @@
 					onchange={(v) => updateField('principal', v)}
 					locked={isLocked('principal')}
 					onlocktoggle={() => handleFieldLockToggle('principal')}
+					onrevert={() => handleFieldRevert('principal')}
 					min="1"
 					class="mt-1"
 				/>
@@ -153,6 +162,7 @@
 					onchange={(v) => updateField('downPayment', v)}
 					locked={isLocked('downPayment')}
 					onlocktoggle={() => handleFieldLockToggle('downPayment')}
+					onrevert={() => handleFieldRevert('downPayment')}
 					min="0"
 					class="mt-1"
 				/>
@@ -171,6 +181,7 @@
 					onchange={(v) => updateField('annualRate', v)}
 					locked={isLocked('annualRate')}
 					onlocktoggle={() => handleFieldLockToggle('annualRate')}
+					onrevert={() => handleFieldRevert('annualRate')}
 					min="0.01"
 					class="mt-1"
 				/>
@@ -186,6 +197,7 @@
 					onchange={(v) => updateField('termMonths', v)}
 					locked={isLocked('termMonths')}
 					onlocktoggle={() => handleFieldLockToggle('termMonths')}
+					onrevert={() => handleFieldRevert('termMonths')}
 					min="1"
 					class="mt-1"
 				/>
