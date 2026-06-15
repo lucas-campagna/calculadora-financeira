@@ -122,7 +122,7 @@
 			</div>
 		</div>
 		<button
-			class="w-full mt-2 h-9 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
+			class="w-full mt-2 h-12 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
 			onclick={() => (exportModalOpen = true)}
 		>
 			Exportar
