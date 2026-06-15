@@ -80,6 +80,18 @@
 		}
 	}
 
+	function getScrollParent(el: HTMLElement | null): HTMLElement | null {
+		while (el && el !== swipeContainerEl) {
+			const style = window.getComputedStyle(el);
+			const overflowX = style.overflowX;
+			if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
+				return el;
+			}
+			el = el.parentElement;
+		}
+		return null;
+	}
+
 	function handleSwipeStart(e: TouchEvent) {
 		touchStartX = e.touches[0].clientX;
 		touchStartY = e.touches[0].clientY;
@@ -92,6 +104,15 @@
 		const dx = e.touches[0].clientX - touchStartX;
 		const dy = Math.abs(e.touches[0].clientY - touchStartY);
 		if (Math.abs(dx) > dy && Math.abs(dx) > 5) {
+			const scrollEl = getScrollParent(e.target as HTMLElement);
+			if (scrollEl) {
+				const atLeft = scrollEl.scrollLeft <= 0 && dx > 0;
+				const atRight = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth && dx < 0;
+				if (!atLeft && !atRight) {
+					isDragging = false;
+					return;
+				}
+			}
 			e.preventDefault();
 			dragDelta = dx;
 		}
