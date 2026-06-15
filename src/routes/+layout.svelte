@@ -4,6 +4,8 @@
 	import AdUnit from '$lib/components/ads/ad-unit.svelte';
 
 	let { children } = $props();
+
+	const isDev = import.meta.env.DEV;
 </script>
 
 <AdsenseScript />
@@ -11,7 +13,13 @@
 <div class="min-h-screen flex flex-col">
 	<header class="border-b bg-background sticky top-0 z-40 flex items-center justify-center">
 		<div class="container mx-auto px-4">
-			<AdUnit slot="" format="auto" />
+			{#if !isDev}
+				<AdUnit slot="" format="auto" />
+			{:else}
+				<div class="h-[90px] flex items-center justify-center bg-muted/30 rounded-md text-xs text-muted-foreground">
+					AdSense (dev mode)
+				</div>
+			{/if}
 		</div>
 	</header>
 

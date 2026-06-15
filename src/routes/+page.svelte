@@ -216,8 +216,8 @@
 </script>
 
 {#if $isMobile}
+<div class="flex flex-col overflow-hidden" style="height: {mobileHeight}">
 	<!-- MOBILE -->
-	<div class="flex flex-col overflow-hidden" style="height: {mobileHeight}">
 		<div class="flex border-b shrink-0">
 			{#each SLIDES as key, i}
 				<button
