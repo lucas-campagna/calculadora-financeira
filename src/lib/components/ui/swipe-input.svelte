@@ -14,6 +14,7 @@
 		inputmode = 'numeric' as 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none',
 		decimal = false,
 		min = '0',
+		dimmed = false,
 		onchange: handleChange = (_v: string) => {},
 		this: inputRef = undefined as HTMLInputElement | undefined
 	}: {
@@ -24,6 +25,7 @@
 		inputmode?: 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none';
 		decimal?: boolean;
 		min?: string;
+		dimmed?: boolean;
 		onchange?: (v: string) => void;
 		this?: HTMLInputElement | undefined;
 	} = $props();
@@ -162,8 +164,9 @@
 		oninput={handleInput}
 		onblur={handleBlur}
 		class={cn(
-			'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none',
+			'flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none transition-colors',
 			isSwiping ? 'border-primary bg-primary/5' : '',
+			dimmed ? 'border-yellow-400/50 bg-yellow-50 text-muted-foreground' : 'border-input',
 			className
 		)}
 	/>

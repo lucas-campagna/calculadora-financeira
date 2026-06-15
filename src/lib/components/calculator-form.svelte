@@ -20,6 +20,18 @@
 	let editMode = $state<'add' | 'edit'>('add');
 	let editStudy: Study | undefined = $state(undefined);
 
+	function isFieldSynced(field: 'principal' | 'downPayment' | 'termMonths' | 'annualRate'): boolean {
+		const studies = $studiesStore.studies;
+		if (studies.length < 2) return true;
+		const first = studies[0][field];
+		return studies.every((s) => s[field] === first);
+	}
+
+	let principalSynced = $derived(isFieldSynced('principal'));
+	let downPaymentSynced = $derived(isFieldSynced('downPayment'));
+	let annualRateSynced = $derived(isFieldSynced('annualRate'));
+	let termMonthsSynced = $derived(isFieldSynced('termMonths'));
+
 	function updateField(field: 'principal' | 'downPayment' | 'termMonths' | 'annualRate', raw: string) {
 		studiesStore.updateField(field, raw);
 		handleFormChange();
@@ -54,6 +66,7 @@
 					value={$activeStudy?.principal ?? '500000'}
 					onchange={(v) => updateField('principal', v)}
 					min="1"
+					dimmed={$studiesStore.syncLocked && !principalSynced}
 				/>
 			</div>
 			<div>
@@ -65,6 +78,7 @@
 					value={$activeStudy?.downPayment ?? '0'}
 					onchange={(v) => updateField('downPayment', v)}
 					min="0"
+					dimmed={$studiesStore.syncLocked && !downPaymentSynced}
 				/>
 			</div>
 			<div>
@@ -77,6 +91,7 @@
 					value={$activeStudy?.annualRate ?? '10'}
 					onchange={(v) => updateField('annualRate', v)}
 					min="0.01"
+					dimmed={$studiesStore.syncLocked && !annualRateSynced}
 				/>
 			</div>
 			<div>
@@ -88,6 +103,7 @@
 					value={$activeStudy?.termMonths ?? '360'}
 					onchange={(v) => updateField('termMonths', v)}
 					min="1"
+					dimmed={$studiesStore.syncLocked && !termMonthsSynced}
 				/>
 			</div>
 		</div>
@@ -116,6 +132,7 @@
 					onchange={(v) => updateField('principal', v)}
 					min="1"
 					class="mt-1"
+					dimmed={$studiesStore.syncLocked && !principalSynced}
 				/>
 			</div>
 
@@ -129,6 +146,7 @@
 					onchange={(v) => updateField('downPayment', v)}
 					min="0"
 					class="mt-1"
+					dimmed={$studiesStore.syncLocked && !downPaymentSynced}
 				/>
 			</div>
 		</div>
@@ -145,6 +163,7 @@
 					onchange={(v) => updateField('annualRate', v)}
 					min="0.01"
 					class="mt-1"
+					dimmed={$studiesStore.syncLocked && !annualRateSynced}
 				/>
 			</div>
 
@@ -158,6 +177,7 @@
 					onchange={(v) => updateField('termMonths', v)}
 					min="1"
 					class="mt-1"
+					dimmed={$studiesStore.syncLocked && !termMonthsSynced}
 				/>
 			</div>
 		</div>
