@@ -192,7 +192,7 @@
 							{/each}
 						</div>
 						{#if $allResultsStore.price}
-							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
+							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
 						{/if}
 					</div>
 				</div>
@@ -221,7 +221,7 @@
 									{/each}
 								</div>
 								{#if $allResultsStore.price}
-									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
+<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
 								{/if}
 							{/if}
 						</div>

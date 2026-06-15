@@ -5,13 +5,15 @@
 
 	let {
 		system = 'price' as AmortizationSystem,
-		onrowclick = (_month: number) => {}
+		onrowclick = (_month: number) => {},
+		defaultExpanded = false
 	}: {
 		system?: AmortizationSystem;
 		onrowclick?: (month: number) => void;
+		defaultExpanded?: boolean;
 	} = $props();
 
-	let expanded = $state(false);
+	let expanded = $state(defaultExpanded);
 	let showAll = $state(false);
 
 	const PAGE_SIZE = 12;
