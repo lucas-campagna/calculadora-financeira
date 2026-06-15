@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatCurrency } from '$lib/calculator';
+	import { formatNumber } from '$lib/calculator';
 	import { allResultsStore, studiesStore } from '$lib/stores/calculator-store';
 	import type { AmortizationSystem, Installment } from '$lib/calculator/types';
 
@@ -59,13 +59,13 @@
 				<table class="w-full text-xs border-collapse table-fixed">
 					<thead class="sticky top-0 z-10">
 						<tr class="border-b bg-muted">
-							<th class="px-1 py-1 text-left font-medium bg-muted w-[10%]">Mes</th>
-							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Parcela</th>
-							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Amort.</th>
-							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Juros</th>
-							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Saldo</th>
+							<th class="px-1 py-1 text-left font-medium bg-muted w-[10%]">Mês</th>
+							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Parcela (R$)</th>
+							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Amort. (R$)</th>
+							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Juros (R$)</th>
+							<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Saldo (R$)</th>
 							{#if activeStudyResult.installments.some((i: Installment) => i.extraPayment)}
-								<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Extra</th>
+								<th class="px-1 py-1 text-right font-medium bg-muted w-[18%]">Extra (R$)</th>
 							{/if}
 						</tr>
 					</thead>
@@ -79,13 +79,13 @@
 								onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') onrowclick(installment.number); }}
 							>
 								<td class="px-1 py-1 truncate">{installment.number}</td>
-								<td class="px-1 py-1 text-right truncate">{formatCurrency(installment.payment)}</td>
-								<td class="px-1 py-1 text-right truncate">{formatCurrency(installment.principal)}</td>
-								<td class="px-1 py-1 text-right text-destructive truncate">{formatCurrency(installment.interest)}</td>
-								<td class="px-1 py-1 text-right truncate">{formatCurrency(installment.balance)}</td>
+								<td class="px-1 py-1 text-right truncate">{formatNumber(installment.payment)}</td>
+								<td class="px-1 py-1 text-right truncate">{formatNumber(installment.principal)}</td>
+								<td class="px-1 py-1 text-right text-destructive truncate">{formatNumber(installment.interest)}</td>
+								<td class="px-1 py-1 text-right truncate">{formatNumber(installment.balance)}</td>
 								{#if activeStudyResult.installments.some((inst: Installment) => inst.extraPayment)}
 									<td class="px-1 py-1 text-right truncate">
-										{installment.extraPayment ? formatCurrency(installment.extraPayment) : '—'}
+										{installment.extraPayment ? formatNumber(installment.extraPayment) : '—'}
 									</td>
 								{/if}
 							</tr>
@@ -108,7 +108,7 @@
 <table class="w-full text-xs border-collapse table-fixed">
 					<thead class="sticky top-0 z-10">
 						<tr class="border-b bg-muted">
-							<th class="px-1 py-1 text-left font-medium bg-muted w-[10%]">Mes</th>
+							<th class="px-1 py-1 text-left font-medium bg-muted w-[10%]">Mês</th>
 							{#each $studiesStore.studies as study}
 								<th class="px-1 py-1 text-right font-medium bg-muted">{study.name}</th>
 							{/each}
@@ -127,7 +127,7 @@
 								{#each $studiesStore.studies as study}
 									{@const v = getVal(study.id, inst.number, selectedField)}
 									<td class="px-1 py-1 text-right truncate {selectedField === 'interest' ? 'text-destructive' : ''}">
-										{v !== null ? formatCurrency(v) : '—'}
+										{v !== null ? formatNumber(v) : '—'}
 									</td>
 								{/each}
 							</tr>
