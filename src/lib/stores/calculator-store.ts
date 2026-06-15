@@ -161,7 +161,11 @@ function createStudiesStore() {
 					if (Object.keys(newOverrides[studyId] ?? {}).length === 0) {
 						delete newOverrides[studyId];
 					}
-					return { ...s, overrides: newOverrides };
+					return {
+						...s,
+						commonValues: { ...s.commonValues, [field]: currentEffective },
+						overrides: newOverrides
+					};
 				} else {
 					return {
 						...s,
