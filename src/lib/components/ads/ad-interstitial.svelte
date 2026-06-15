@@ -63,7 +63,7 @@
 				<ins
 					class="adsbygoogle"
 					style="display:block"
-					data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+					data-ad-client="ca-pub-1972364870511142"
 					data-ad-slot=""
 					data-ad-format="auto"
 					data-full-width-responsive="true"
