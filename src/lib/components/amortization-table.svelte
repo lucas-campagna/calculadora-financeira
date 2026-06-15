@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { formatCurrency } from '$lib/calculator';
 	import { allResultsStore } from '$lib/stores/calculator-store';
 	import type { AmortizationSystem, Installment } from '$lib/calculator/types';
@@ -15,12 +16,36 @@
 
 	let expanded = $state(defaultExpanded);
 
+	let tableContainer: HTMLElement | undefined = $state(undefined);
+
+	function updateHeight() {
+		if (!tableContainer) return;
+		const rect = tableContainer.getBoundingClientRect();
+		const vh = window.innerHeight;
+		const available = vh - rect.top - 10;
+		if (available > 100) {
+			tableContainer.style.maxHeight = `${available}px`;
+		}
+	}
+
 	let currentResult = $derived($allResultsStore[system]);
+
+	$effect(() => {
+		if (currentResult) {
+			setTimeout(updateHeight, 0);
+		}
+	});
+
+	onMount(() => {
+		updateHeight();
+		window.addEventListener('resize', updateHeight);
+		return () => window.removeEventListener('resize', updateHeight);
+	});
 </script>
 
 {#if currentResult}
 	<div>
-		<div class="overflow-auto border rounded-lg" style="max-height: 50vh">
+		<div class="overflow-auto border rounded-lg" bind:this={tableContainer}>
 			<table class="w-full text-sm border-collapse min-w-[600px]">
 				<thead class="sticky top-0 z-10">
 					<tr class="border-b bg-muted">
