@@ -229,12 +229,12 @@ let touchStartX = 0;
 				ontransitionend={handleTransitionEnd}
 			>
 				<!-- Clone of last slide (table) -->
-				<div class="w-full flex-shrink-0 h-full flex flex-col overflow-hidden">
-					<div class="flex-1 min-h-0 p-4 overflow-hidden">
+				<div class="w-full flex-shrink-0 h-full overflow-y-auto">
+					<div class="p-3">
 						{#if $allResultsStore.price}
 							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
 						{/if}
-						<div class="flex items-center gap-2 overflow-x-auto pt-2 mt-auto border-t">
+						<div class="flex items-center gap-2 overflow-x-auto pt-2 border-t">
 							{#each Object.entries(systemLabels) as [sysKey, label]}
 								<button
 									class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
@@ -249,8 +249,8 @@ let touchStartX = 0;
 
 				<!-- Real slides -->
 				{#each SLIDES as key}
-					<div class="w-full flex-shrink-0 h-full flex flex-col overflow-hidden">
-						<div class={key === 'chart' ? 'flex-1 min-h-0 p-2' : 'flex-1 min-h-0 p-4 overflow-hidden'}>
+					<div class="w-full flex-shrink-0 h-full {key === 'chart' ? 'flex flex-col' : 'overflow-y-auto'}">
+						<div class={key === 'chart' ? 'flex-1 min-h-0 p-2' : 'p-3'}>
 							{#if key === 'chart'}
 								{#if $allResultsStore.price}
 									<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
@@ -263,7 +263,7 @@ let touchStartX = 0;
 								{#if $allResultsStore.price}
 									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
 								{/if}
-								<div class="flex items-center gap-2 overflow-x-auto pt-2 mt-auto border-t">
+								<div class="flex items-center gap-2 overflow-x-auto pt-2 border-t">
 									{#each Object.entries(systemLabels) as [sysKey, label]}
 										<button
 											class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
@@ -279,7 +279,7 @@ let touchStartX = 0;
 				{/each}
 
 				<!-- Clone of first slide (chart) -->
-				<div class="w-full flex-shrink-0 h-full flex flex-col overflow-hidden">
+				<div class="w-full flex-shrink-0 h-full flex flex-col">
 					<div class="flex-1 min-h-0 p-2">
 						{#if $allResultsStore.price}
 							<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />

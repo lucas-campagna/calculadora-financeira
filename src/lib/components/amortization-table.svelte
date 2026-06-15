@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { formatCurrency } from '$lib/calculator';
 	import { allResultsStore } from '$lib/stores/calculator-store';
 	import type { AmortizationSystem, Installment } from '$lib/calculator/types';
@@ -16,36 +15,12 @@
 
 	let expanded = $state(defaultExpanded);
 
-	let tableContainer: HTMLElement | undefined = $state(undefined);
-
-	function updateHeight() {
-		if (!tableContainer) return;
-		const rect = tableContainer.getBoundingClientRect();
-		const vh = window.innerHeight;
-		const available = vh - rect.top - 10;
-		if (available > 100) {
-			tableContainer.style.maxHeight = `${available}px`;
-		}
-	}
-
 	let currentResult = $derived($allResultsStore[system]);
-
-	$effect(() => {
-		if (currentResult) {
-			setTimeout(updateHeight, 0);
-		}
-	});
-
-	onMount(() => {
-		updateHeight();
-		window.addEventListener('resize', updateHeight);
-		return () => window.removeEventListener('resize', updateHeight);
-	});
 </script>
 
 {#if currentResult}
 	<div>
-		<div class="overflow-auto border rounded-lg" bind:this={tableContainer}>
+		<div class="overflow-auto border rounded-lg" style="max-height: 45vh">
 			<table class="w-full text-xs border-collapse min-w-[500px]">
 				<thead class="sticky top-0 z-10">
 					<tr class="border-b bg-muted">
@@ -85,8 +60,8 @@
 		</div>
 
 		{#if !defaultExpanded}
-			<div class="flex justify-end mt-2">
-				<button class="text-sm text-primary hover:underline py-1" onclick={() => (expanded = !expanded)}>
+			<div class="flex justify-end mt-1">
+				<button class="text-xs text-primary hover:underline py-1" onclick={() => (expanded = !expanded)}>
 					{expanded ? '▲ Ver resumo' : '▼ Ver tudo'}
 				</button>
 			</div>
