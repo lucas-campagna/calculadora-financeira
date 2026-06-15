@@ -46,16 +46,16 @@
 {#if currentResult}
 	<div>
 		<div class="overflow-auto border rounded-lg" bind:this={tableContainer}>
-			<table class="w-full text-sm border-collapse min-w-[600px]">
+			<table class="w-full text-xs border-collapse min-w-[500px]">
 				<thead class="sticky top-0 z-10">
 					<tr class="border-b bg-muted">
-						<th class="px-3 py-2 text-left font-medium bg-muted">Mes</th>
-						<th class="px-3 py-2 text-right font-medium bg-muted">Parcela</th>
-						<th class="px-3 py-2 text-right font-medium bg-muted">Amortizacao</th>
-						<th class="px-3 py-2 text-right font-medium bg-muted">Juros</th>
-						<th class="px-3 py-2 text-right font-medium bg-muted">Saldo</th>
+						<th class="px-2 py-1 text-left font-medium bg-muted">Mes</th>
+						<th class="px-2 py-1 text-right font-medium bg-muted">Parcela</th>
+						<th class="px-2 py-1 text-right font-medium bg-muted">Amort.</th>
+						<th class="px-2 py-1 text-right font-medium bg-muted">Juros</th>
+						<th class="px-2 py-1 text-right font-medium bg-muted">Saldo</th>
 						{#if currentResult.installments.some((i: Installment) => i.extraPayment)}
-							<th class="px-3 py-2 text-right font-medium bg-muted">Aporte Extra</th>
+							<th class="px-2 py-1 text-right font-medium bg-muted">Extra</th>
 						{/if}
 					</tr>
 				</thead>
@@ -68,13 +68,13 @@
 							tabindex="0"
 							onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') onrowclick(installment.number); }}
 						>
-							<td class="px-3 py-2">{installment.number}</td>
-							<td class="px-3 py-2 text-right">{formatCurrency(installment.payment)}</td>
-							<td class="px-3 py-2 text-right">{formatCurrency(installment.principal)}</td>
-							<td class="px-3 py-2 text-right text-destructive">{formatCurrency(installment.interest)}</td>
-							<td class="px-3 py-2 text-right">{formatCurrency(installment.balance)}</td>
+							<td class="px-2 py-1">{installment.number}</td>
+							<td class="px-2 py-1 text-right">{formatCurrency(installment.payment)}</td>
+							<td class="px-2 py-1 text-right">{formatCurrency(installment.principal)}</td>
+							<td class="px-2 py-1 text-right text-destructive">{formatCurrency(installment.interest)}</td>
+							<td class="px-2 py-1 text-right">{formatCurrency(installment.balance)}</td>
 							{#if currentResult.installments.some((inst: Installment) => inst.extraPayment)}
-								<td class="px-3 py-2 text-right">
+								<td class="px-2 py-1 text-right">
 									{installment.extraPayment ? formatCurrency(installment.extraPayment) : '—'}
 								</td>
 							{/if}
