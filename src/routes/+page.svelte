@@ -29,11 +29,13 @@
 	let realIndex = $state<number>(0);
 	let carouselIndex = $state<number>(1);
 	let swipeContainerEl: HTMLElement | undefined = $state(undefined);
-	let touchStartX = 0;
+let touchStartX = 0;
 	let touchStartY = 0;
 	let isDragging = false;
+	let directionLocked: 'h' | 'v' | null = null;
 	let dragDelta = $state(0);
 	let animating = $state(true);
+	const LOCK_DISTANCE = 10;
 
 	const systemLabels: Record<AmortizationSystem, string> = {
 		price: 'PRICE',
@@ -50,6 +52,76 @@
 
 	function selectSystem(sys: AmortizationSystem) {
 		selectedSystem = sys;
+	}
+
+	function getScrollParent(el: HTMLElement | null): HTMLElement | null {
+		while (el && el !== swipeContainerEl) {
+			const style = window.getComputedStyle(el);
+			const overflowX = style.overflowX;
+			if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
+				return el;
+			}
+			el = el.parentElement;
+		}
+		return null;
+	}
+
+	function handleSwipeStart(e: TouchEvent) {
+		touchStartX = e.touches[0].clientX;
+		touchStartY = e.touches[0].clientY;
+		isDragging = true;
+		directionLocked = null;
+		animating = false;
+	}
+
+	function handleSwipeMove(e: TouchEvent) {
+		if (!isDragging) return;
+		const dx = e.touches[0].clientX - touchStartX;
+		const dy = e.touches[0].clientY - touchStartY;
+
+		if (!directionLocked) {
+			if (Math.sqrt(dx * dx + dy * dy) < LOCK_DISTANCE) return;
+			const angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * (180 / Math.PI);
+			directionLocked = angle < 45 ? 'h' : 'v';
+		}
+
+		if (directionLocked === 'v') return;
+
+		const scrollEl = getScrollParent(e.target as HTMLElement);
+		if (scrollEl) {
+			const atLeft = scrollEl.scrollLeft <= 0 && dx > 0;
+			const atRight = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth && dx < 0;
+			if (!atLeft && !atRight) {
+				isDragging = false;
+				return;
+			}
+		}
+		e.preventDefault();
+		dragDelta = dx;
+	}
+
+	function handleSwipeEnd(e: TouchEvent) {
+		if (!isDragging) {
+			isDragging = false;
+			dragDelta = 0;
+			directionLocked = null;
+			animating = true;
+			return;
+		}
+		isDragging = false;
+		const diff = touchStartX - e.changedTouches[0].clientX;
+		animating = true;
+		directionLocked = null;
+
+		if (Math.abs(diff) > 50) {
+			if (diff > 0) {
+				carouselIndex++;
+			} else {
+				carouselIndex--;
+			}
+		}
+		dragDelta = 0;
+		syncRealIndex();
 	}
 
 	function openExtraPayment(month: number) {
@@ -78,61 +150,6 @@
 			carouselIndex = 1;
 			syncRealIndex();
 		}
-	}
-
-	function getScrollParent(el: HTMLElement | null): HTMLElement | null {
-		while (el && el !== swipeContainerEl) {
-			const style = window.getComputedStyle(el);
-			const overflowX = style.overflowX;
-			if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
-				return el;
-			}
-			el = el.parentElement;
-		}
-		return null;
-	}
-
-	function handleSwipeStart(e: TouchEvent) {
-		touchStartX = e.touches[0].clientX;
-		touchStartY = e.touches[0].clientY;
-		isDragging = true;
-		animating = false;
-	}
-
-	function handleSwipeMove(e: TouchEvent) {
-		if (!isDragging) return;
-		const dx = e.touches[0].clientX - touchStartX;
-		const dy = Math.abs(e.touches[0].clientY - touchStartY);
-		if (Math.abs(dx) > dy && Math.abs(dx) > 5) {
-			const scrollEl = getScrollParent(e.target as HTMLElement);
-			if (scrollEl) {
-				const atLeft = scrollEl.scrollLeft <= 0 && dx > 0;
-				const atRight = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth && dx < 0;
-				if (!atLeft && !atRight) {
-					isDragging = false;
-					return;
-				}
-			}
-			e.preventDefault();
-			dragDelta = dx;
-		}
-	}
-
-	function handleSwipeEnd(e: TouchEvent) {
-		if (!isDragging) return;
-		isDragging = false;
-		const diff = touchStartX - e.changedTouches[0].clientX;
-		animating = true;
-
-		if (Math.abs(diff) > 50) {
-			if (diff > 0) {
-				carouselIndex++;
-			} else {
-				carouselIndex--;
-			}
-		}
-		dragDelta = 0;
-		syncRealIndex();
 	}
 
 	$effect(() => {
