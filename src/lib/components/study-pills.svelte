@@ -42,7 +42,7 @@
 	}
 </script>
 
-<div class="flex items-center gap-2">
+<div class="flex flex-nowrap items-center gap-2">
 	<button
 		class="shrink-0 w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer"
 		onclick={onadd}
@@ -59,7 +59,7 @@
 		<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
 	</button>
 
-	<div class="flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+	<div class="flex-1 min-w-0 overflow-x-auto scrollbar-hide flex flex-nowrap items-center gap-2">
 		{#each $studiesStore.studies as study (study.id)}
 		{@const studyOverrides = $studiesStore.overrides[study.id]}
 		{@const hasOverrides = studyOverrides && Object.keys(studyOverrides).length > 0}
