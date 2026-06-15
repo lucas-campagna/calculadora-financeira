@@ -16,6 +16,7 @@
 	let previousResultHash = $state('');
 	let userHasInteracted = $state(false);
 	let lastInterstitialTime = 0;
+	const FIRST_INTERSTITIAL_MS = 1 * 60 * 1000;
 	const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 
 	let showScrollTop = $state(false);
@@ -150,7 +151,8 @@
 				previousResultHash = hash;
 				if (userHasInteracted && $isMobile) {
 					const now = Date.now();
-					if (lastInterstitialTime === 0 || now - lastInterstitialTime >= INTERSTITIAL_COOLDOWN_MS) {
+					const timeout = lastInterstitialTime === 0 ? FIRST_INTERSTITIAL_MS : INTERSTITIAL_COOLDOWN_MS;
+					if (now - lastInterstitialTime >= timeout) {
 						showInterstitial = true;
 						showResults = false;
 						lastInterstitialTime = now;
