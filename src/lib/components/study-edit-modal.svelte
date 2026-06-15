@@ -173,21 +173,12 @@
 			<div class="flex gap-3 mt-5">
 				{#if mode === 'edit'}
 					{#if showRemoveConfirm}
-						<div class="flex items-center gap-2">
-							<span class="text-sm text-destructive font-medium">Confirmar remocao?</span>
-							<button
-								class="h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer px-3"
-								onclick={() => (showRemoveConfirm = false)}
-							>
-								Nao
-							</button>
-							<button
-								class="h-10 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 cursor-pointer px-3"
-								onclick={handleRemove}
-							>
-								Sim
-							</button>
-						</div>
+						<button
+							class="flex-1 h-10 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 cursor-pointer"
+							onclick={handleRemove}
+						>
+							Confirmar remocao?
+						</button>
 					{:else}
 						<button
 							class="shrink-0 w-10 h-10 rounded-md border border-destructive text-destructive flex items-center justify-center hover:bg-destructive/10 cursor-pointer"
