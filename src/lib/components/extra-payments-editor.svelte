@@ -6,7 +6,7 @@
 	let activePayments = $derived($studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.extraPayments ?? []);
 
 	function addExtraPayment() {
-		$studiesStore.addExtraPayment($studiesStore.activeStudyId, { month: 1, amount: 0, type: 'reduce_term' });
+		studiesStore.addExtraPayment($studiesStore.activeStudyId, { month: 1, amount: 0, type: 'reduce_term' });
 	}
 
 	function removeExtraPayment(index: number) {

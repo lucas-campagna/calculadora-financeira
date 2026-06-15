@@ -43,7 +43,7 @@
 		if (m <= 0 || a <= 0) return;
 
 		const payment: ExtraPayment = { month: m, amount: a, type: extraType };
-		$studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
+		studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
 		open = false;
 		onclose?.();
 	}
