@@ -13,7 +13,10 @@
 			{#each $studiesStore.studies as study, i}
 				{@const result = $allResultsStore[study.id]}
 				{#if result}
-					<div class="border rounded-lg p-4">
+					<div
+						class="border rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-colors"
+						onclick={() => studiesStore.setActive(study.id)}
+					>
 						<div class="flex items-center gap-2 mb-3">
 							<div class="w-3 h-3 rounded-full {COLORS[i % COLORS.length]}"></div>
 							<h3 class="text-sm font-bold">{study.name}</h3>
