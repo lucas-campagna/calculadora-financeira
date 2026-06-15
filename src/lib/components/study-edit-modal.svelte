@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { studiesStore } from '$lib/stores/calculator-store';
+	import { studiesStore, calculateAll } from '$lib/stores/calculator-store';
 	import type { AmortizationSystem, Study } from '$lib/calculator/types';
 
 	let {
@@ -74,6 +74,19 @@
 	}
 
 	function handleBackdrop() {
+		open = false;
+	}
+
+	function handleRemove() {
+		if (!editStudy) return;
+		studiesStore.update((s) => {
+			const remaining = s.studies.filter((st) => st.id !== editStudy!.id);
+			const newActiveId = s.activeStudyId === editStudy!.id
+				? (remaining[0]?.id ?? s.studies[0].id)
+				: s.activeStudyId;
+			return { ...s, studies: remaining, activeStudyId: newActiveId };
+		});
+		calculateAll();
 		open = false;
 	}
 </script>
@@ -156,6 +169,14 @@
 			</div>
 
 			<div class="flex gap-3 mt-5">
+				{#if mode === 'edit'}
+					<button
+						class="h-10 rounded-md border border-destructive text-destructive text-sm font-medium hover:bg-destructive/10 cursor-pointer px-4"
+						onclick={handleRemove}
+					>
+						Remover
+					</button>
+				{/if}
 				<button
 					class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
 					onclick={handleConfirm}
