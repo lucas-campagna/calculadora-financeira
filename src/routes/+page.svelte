@@ -85,7 +85,10 @@ let touchStartX = 0;
 			directionLocked = angle < 45 ? 'h' : 'v';
 		}
 
-		if (directionLocked === 'v') return;
+		if (directionLocked === 'v') {
+			isDragging = false;
+			return;
+		}
 
 		const scrollEl = getScrollParent(e.target as HTMLElement);
 		if (scrollEl) {
@@ -222,7 +225,7 @@ let touchStartX = 0;
 			{/each}
 		</div>
 
-		<div class="flex-1 min-h-0 overflow-hidden" bind:this={swipeContainerEl}>
+		<div class="flex-1 min-h-0 overflow-hidden" style="touch-action: pan-y" bind:this={swipeContainerEl}>
 			<div
 				class="flex h-full {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
 				style="transform: translateX(calc(-{carouselIndex * 100}% + {dragDelta}px))"
