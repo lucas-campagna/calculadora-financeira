@@ -68,13 +68,6 @@ export function formatPercent(value: number): string {
 	}).format(value / 100);
 }
 
-export function formatNumber(value: number, decimals = 2): string {
-	return new Intl.NumberFormat('pt-BR', {
-		minimumFractionDigits: decimals,
-		maximumFractionDigits: decimals
-	}).format(value);
-}
-
 export function formatInputValue(raw: string): string {
 	const digits = raw.replace(/[^\d]/g, '');
 	if (!digits) return '';
