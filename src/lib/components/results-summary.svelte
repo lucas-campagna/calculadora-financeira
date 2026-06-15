@@ -13,7 +13,7 @@
 
 {#if $allResultsStore.price}
 	<div class="space-y-4">
-		<h2 class="text-xl font-semibold">Resultado</h2>
+		<h2 class="text-base font-semibold">Resultado</h2>
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 			{#each systems as sys}
@@ -22,9 +22,9 @@
 					<div class="border rounded-lg p-4">
 						<div class="flex items-center gap-2 mb-3">
 							<div class="w-3 h-3 rounded-full {sys.color}"></div>
-							<h3 class="text-lg font-bold">{sys.label}</h3>
+							<h3 class="text-sm font-bold">{sys.label}</h3>
 						</div>
-						<div class="space-y-1.5 text-base">
+						<div class="space-y-1 text-sm">
 							<div class="flex justify-between">
 								<span class="text-muted-foreground">Total Pago</span>
 								<span class="font-bold">{formatCurrency(result.totalPaid)}</span>

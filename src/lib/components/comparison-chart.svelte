@@ -182,8 +182,8 @@
 
 {#if $allResultsStore.price}
 	<div class="border rounded-lg p-3 sm:p-4">
-		<h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Evolucao do Saldo Devedor</h2>
-		<p class="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Clique na legenda para mostrar/ocultar. Segure no grafico para adicionar pagamento extra.</p>
+		<h2 class="text-sm font-semibold mb-1 sm:mb-2">Evolucao do Saldo Devedor</h2>
+		<p class="text-xs text-muted-foreground mb-1 sm:mb-2">Clique na legenda para mostrar/ocultar. Segure no grafico para adicionar pagamento extra.</p>
 		<div class="h-56 sm:h-80"
 			ontouchstart={handleCanvasTouchStart}
 			ontouchmove={handleCanvasTouchMove}

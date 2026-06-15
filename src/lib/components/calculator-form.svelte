@@ -34,10 +34,10 @@
 		<CardTitle>Simular Financiamento</CardTitle>
 	</CardHeader>
 	<CardContent>
-		<div class="space-y-5">
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+		<div class="space-y-4">
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				<div>
-					<Label for="principal" class="text-base">Valor do Financiamento (R$)</Label>
+					<Label for="principal" class="text-sm">Valor do Financiamento (R$)</Label>
 					<SwipeInput
 						id="principal"
 						inputmode="numeric"
@@ -45,12 +45,12 @@
 						value={$calculatorStore.principal}
 						onchange={(v) => updateField('principal', v)}
 						min="1"
-						class="mt-1.5"
+						class="mt-1"
 					/>
 				</div>
 
 				<div>
-					<Label for="downPayment" class="text-base">Entrada (R$)</Label>
+					<Label for="downPayment" class="text-sm">Entrada (R$)</Label>
 					<SwipeInput
 						id="downPayment"
 						inputmode="numeric"
@@ -58,14 +58,14 @@
 						value={$calculatorStore.downPayment}
 						onchange={(v) => updateField('downPayment', v)}
 						min="0"
-						class="mt-1.5"
+						class="mt-1"
 					/>
 				</div>
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				<div>
-					<Label for="annualRate" class="text-base">Taxa de Juros (% ao ano)</Label>
+					<Label for="annualRate" class="text-sm">Taxa de Juros (% ao ano)</Label>
 					<SwipeInput
 						id="annualRate"
 						inputmode="decimal"
@@ -74,12 +74,12 @@
 						value={$calculatorStore.annualRate}
 						onchange={updateRate}
 						min="0.01"
-						class="mt-1.5"
+						class="mt-1"
 					/>
 				</div>
 
 				<div>
-					<Label for="termMonths" class="text-base">Prazo (meses)</Label>
+					<Label for="termMonths" class="text-sm">Prazo (meses)</Label>
 					<SwipeInput
 						id="termMonths"
 						inputmode="numeric"
@@ -87,14 +87,14 @@
 						value={$calculatorStore.termMonths}
 						onchange={(v) => updateField('termMonths', v)}
 						min="1"
-						class="mt-1.5"
+						class="mt-1"
 					/>
 				</div>
 			</div>
 
 			<div>
 				<button
-					class="text-base text-primary hover:underline py-1"
+					class="text-sm text-primary hover:underline py-1"
 					onclick={() => (showExtras = !showExtras)}
 				>
 					{showExtras ? '▲ Ocultar' : '▼ Adicionar'} pagamentos extras

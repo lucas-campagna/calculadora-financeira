@@ -162,13 +162,13 @@
 		oninput={handleInput}
 		onblur={handleBlur}
 		class={cn(
-			'flex h-12 w-full rounded-lg border border-input bg-background px-4 py-3 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none',
+			'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none',
 			isSwiping ? 'border-primary bg-primary/5' : '',
 			className
 		)}
 	/>
 	{#if swipeIndicator}
-		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-bold text-lg pointer-events-none">
+		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-bold text-sm pointer-events-none">
 			{swipeIndicator}
 		</div>
 	{/if}

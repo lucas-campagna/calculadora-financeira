@@ -11,7 +11,7 @@
 <div class="min-h-screen flex flex-col">
 	<header class="border-b bg-background sticky top-0 z-40 h-14 flex items-center">
 		<div class="container mx-auto px-4 flex items-center justify-between">
-			<a href="/" class="text-xl sm:text-2xl font-bold text-primary">
+			<a href="/" class="text-lg font-bold text-primary">
 				CalcFinanciamento
 			</a>
 			<a href="/comparar" class="text-base text-primary hover:underline hidden sm:inline">

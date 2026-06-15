@@ -69,11 +69,11 @@
 	<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onclick={handleCancel} role="dialog" aria-modal="true" aria-label="Pagamento extra">
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="bg-background p-6 rounded-xl max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
-			<h2 class="text-xl font-semibold mb-4">Pagamento Extra</h2>
+			<h2 class="text-base font-semibold mb-3">Pagamento Extra</h2>
 
 			<div class="space-y-4">
 				<div>
-					<label for="extra-modal-month" class="text-base font-medium">Mes</label>
+					<label for="extra-modal-month" class="text-sm font-medium">Mes</label>
 					<SwipeInput
 						id="extra-modal-month"
 						inputmode="numeric"
@@ -86,7 +86,7 @@
 				</div>
 
 				<div>
-					<label for="extra-modal-amount" class="text-base font-medium">Valor (R$)</label>
+					<label for="extra-modal-amount" class="text-sm font-medium">Valor (R$)</label>
 					<SwipeInput
 						id="extra-modal-amount"
 						inputmode="numeric"
@@ -100,10 +100,10 @@
 				</div>
 
 				<div>
-					<label for="extra-modal-type" class="text-base font-medium">Tipo</label>
+					<label for="extra-modal-type" class="text-sm font-medium">Tipo</label>
 					<select
 						id="extra-modal-type"
-						class="flex h-12 w-full rounded-lg border border-input bg-background px-4 py-3 text-base mt-1.5"
+						class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1.5"
 						bind:value={extraType}
 					>
 						<option value="reduce_term">Reduzir prazo</option>
@@ -113,10 +113,10 @@
 			</div>
 
 			<div class="flex gap-3 mt-5">
-				<button class="flex-1 h-12 rounded-lg border border-input bg-background text-base font-medium hover:bg-accent cursor-pointer" onclick={handleCancel}>
+				<button class="flex-1 h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer" onclick={handleCancel}>
 					Cancelar
 				</button>
-				<button class="flex-1 h-12 rounded-lg bg-primary text-primary-foreground text-base font-medium hover:bg-primary/90 cursor-pointer" onclick={handleSave}>
+				<button class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer" onclick={handleSave}>
 					Adicionar
 				</button>
 			</div>

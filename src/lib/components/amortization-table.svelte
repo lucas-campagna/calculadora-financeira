@@ -22,8 +22,8 @@
 {#if currentResult}
 	<div class="mt-2">
 		<div class="flex items-center justify-between mb-3">
-			<h3 class="text-lg sm:text-xl font-semibold">Tabela — {currentResult.systemLabel}</h3>
-			<button class="text-base text-primary hover:underline py-1" onclick={() => (expanded = !expanded)}>
+			<h3 class="text-sm font-semibold">Tabela — {currentResult.systemLabel}</h3>
+			<button class="text-sm text-primary hover:underline py-1" onclick={() => (expanded = !expanded)}>
 				{expanded ? '▲ Ver resumo' : '▼ Ver tudo'}
 			</button>
 		</div>
@@ -31,7 +31,7 @@
 		<p class="text-xs text-muted-foreground mb-2">Toque em uma parcela para adicionar pagamento extra.</p>
 
 		<div class="overflow-x-auto -mx-4 px-4">
-			<table class="w-full text-base border-collapse min-w-[600px]">
+			<table class="w-full text-sm border-collapse min-w-[600px]">
 				<thead>
 					<tr class="border-b bg-muted">
 						<th class="px-3 py-3 text-left font-medium">Mes</th>
@@ -72,7 +72,7 @@
 		{#if !expanded && currentResult.installments.length > PAGE_SIZE && !showAll}
 			<div class="text-center mt-3">
 				<button
-					class="text-base text-primary hover:underline py-1"
+					class="text-sm text-primary hover:underline py-1"
 					onclick={() => (showAll = true)}
 				>
 					Mostrar todas as {currentResult.installments.length} parcelas

@@ -207,7 +207,7 @@
 					<div class="w-full flex-shrink-0 overflow-y-auto">
 						<div class="p-4">
 							{#if key === 'form'}
-								<h1 class="text-2xl font-bold mb-4">Calculadora de Financiamento</h1>
+								<h1 class="text-lg font-bold mb-3">Calculadora de Financiamento</h1>
 								<CalculatorForm onchange={() => (userHasInteracted = true)} />
 							{:else if key === 'chart'}
 								{#if $allResultsStore.price}
@@ -239,7 +239,7 @@
 				<!-- Clone of first slide (form) -->
 				<div class="w-full flex-shrink-0 overflow-y-auto">
 					<div class="p-4">
-						<h1 class="text-2xl font-bold mb-4">Calculadora de Financiamento</h1>
+						<h1 class="text-lg font-bold mb-3">Calculadora de Financiamento</h1>
 						<CalculatorForm onchange={() => (userHasInteracted = true)} />
 					</div>
 				</div>
@@ -254,8 +254,8 @@
 	<!-- DESKTOP: scrollable layout -->
 	<div class="max-w-4xl mx-auto">
 		<div class="mb-6">
-			<h1 class="text-3xl sm:text-4xl font-bold">Calculadora de Financiamento</h1>
-			<p class="text-lg text-muted-foreground mt-2">
+			<h1 class="text-2xl font-bold">Calculadora de Financiamento</h1>
+			<p class="text-sm text-muted-foreground mt-1">
 				Simule PRICE, SAC, SAM e Americano. Ajuste os valores e veja o resultado automaticamente.
 			</p>
 		</div>
@@ -268,7 +268,7 @@
 				<ComparisonChart onlongpress={openExtraPayment} />
 
 				<div>
-					<h2 class="text-xl font-semibold mb-3">Ver tabela de amortizacao</h2>
+					<h2 class="text-base font-semibold mb-2">Ver tabela de amortizacao</h2>
 					<div class="flex flex-wrap gap-2">
 						{#each Object.entries(systemLabels) as [key, label]}
 							<button

@@ -30,8 +30,8 @@
 
 <div class="max-w-4xl mx-auto">
 	<div class="mb-8">
-		<h1 class="text-3xl sm:text-4xl font-bold">Comparar Sistemas</h1>
-		<p class="text-lg text-muted-foreground mt-2">
+		<h1 class="text-2xl font-bold">Comparar Sistemas</h1>
+		<p class="text-sm text-muted-foreground mt-1">
 			Compare PRICE, SAC, SAM e Americano lado a lado para o mesmo financiamento.
 		</p>
 	</div>
@@ -48,7 +48,7 @@
 			<div class="p-4 bg-muted rounded-lg">
 				<h3 class="font-semibold mb-3 text-lg">Resumo Comparativo</h3>
 				<div class="overflow-x-auto">
-					<table class="w-full text-base border-collapse min-w-[600px]">
+					<table class="w-full text-sm border-collapse min-w-[600px]">
 						<thead>
 							<tr class="border-b bg-muted">
 								<th class="px-3 py-2 text-left font-medium"></th>
@@ -102,8 +102,8 @@
 			</div>
 
 			<div class="p-4 bg-muted rounded-lg">
-				<h3 class="font-semibold mb-3 text-lg">Economia em Juros (em relacao ao PRICE)</h3>
-				<div class="space-y-2 text-base">
+				<h3 class="font-semibold mb-2 text-sm">Economia em Juros (em relacao ao PRICE)</h3>
+				<div class="space-y-2 text-sm">
 					{#each systems.slice(1) as sys}
 						{@const r = $allResultsStore[sys.key]}
 						{#if r}
