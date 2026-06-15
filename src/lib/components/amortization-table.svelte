@@ -19,7 +19,7 @@
 </script>
 
 {#if currentResult}
-	<div class="mt-2">
+	<div>
 		<div class="overflow-auto border rounded-lg" style="max-height: 50vh">
 			<table class="w-full text-sm border-collapse min-w-[600px]">
 				<thead class="sticky top-0 z-10">

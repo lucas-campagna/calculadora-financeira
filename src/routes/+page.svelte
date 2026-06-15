@@ -234,7 +234,7 @@ let touchStartX = 0;
 						{#if $allResultsStore.price}
 							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
 						{/if}
-						<div class="flex items-center gap-2 overflow-x-auto pt-2 mt-2 border-t">
+						<div class="flex items-center gap-2 overflow-x-auto pt-2 border-t">
 							{#each Object.entries(systemLabels) as [sysKey, label]}
 								<button
 									class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
@@ -263,7 +263,7 @@ let touchStartX = 0;
 								{#if $allResultsStore.price}
 									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
 								{/if}
-								<div class="flex items-center gap-2 overflow-x-auto pt-2 mt-2 border-t">
+								<div class="flex items-center gap-2 overflow-x-auto pt-2 border-t">
 									{#each Object.entries(systemLabels) as [sysKey, label]}
 										<button
 											class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
