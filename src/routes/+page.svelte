@@ -7,10 +7,8 @@
 	import ExportButtons from '$lib/components/export-buttons.svelte';
 	import AdInterstitial from '$lib/components/ads/ad-interstitial.svelte';
 	import ExtraPaymentModal from '$lib/components/extra-payment-modal.svelte';
-	import { allResultsStore, isMobile, calculateAll } from '$lib/stores/calculator-store';
-	import type { AmortizationSystem } from '$lib/calculator/types';
+	import { allResultsStore, isMobile, calculateAll, studiesStore } from '$lib/stores/calculator-store';
 
-	let selectedSystem: AmortizationSystem = $state('price');
 	let extraPaymentModalOpen = $state(false);
 	let extraPaymentMonth = $state(1);
 	let showInterstitial = $state(false);
@@ -30,30 +28,13 @@
 	let realIndex = $state<number>(0);
 	let carouselIndex = $state<number>(1);
 	let swipeContainerEl: HTMLElement | undefined = $state(undefined);
-let touchStartX = 0;
+	let touchStartX = 0;
 	let touchStartY = 0;
 	let isDragging = false;
 	let directionLocked: 'h' | 'v' | null = null;
 	let dragDelta = $state(0);
 	let animating = $state(true);
 	const LOCK_DISTANCE = 10;
-
-	const systemLabels: Record<AmortizationSystem, string> = {
-		price: 'PRICE',
-		sac: 'SAC',
-		sam: 'SAM',
-		americano: 'Americano'
-	};
-
-	const slideLabels: Record<SlideKey, string> = {
-		chart: 'Grafico',
-		results: 'Resultado',
-		table: 'Tabela'
-	};
-
-	function selectSystem(sys: AmortizationSystem) {
-		selectedSystem = sys;
-	}
 
 	function getScrollParent(el: HTMLElement | null): HTMLElement | null {
 		while (el && el !== swipeContainerEl) {
@@ -156,9 +137,15 @@ let touchStartX = 0;
 		}
 	}
 
+	const slideLabels: Record<SlideKey, string> = {
+		chart: 'Grafico',
+		results: 'Resultado',
+		table: 'Tabela'
+	};
+
 	$effect(() => {
-		if ($allResultsStore.price) {
-			const hash = $allResultsStore.price.totalPaid.toString();
+		if (Object.keys($allResultsStore).length > 0) {
+			const hash = Object.values($allResultsStore).map((r) => r?.totalPaid ?? 0).join(',');
 			if (hash !== previousResultHash) {
 				previousResultHash = hash;
 				if (userHasInteracted && $isMobile) {
@@ -224,10 +211,12 @@ let touchStartX = 0;
 	function scrollToTop() {
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
+
+	let hasResults = $derived(Object.keys($allResultsStore).length > 0 && $allResultsStore[$studiesStore.activeStudyId] != null);
 </script>
 
 {#if $isMobile}
-	<!-- MOBILE: full viewport height, adjusts for keyboard -->
+	<!-- MOBILE -->
 	<div class="flex flex-col overflow-hidden" style="height: {mobileHeight}">
 		<div class="flex border-b shrink-0">
 			{#each SLIDES as key, i}
@@ -240,7 +229,6 @@ let touchStartX = 0;
 			{/each}
 		</div>
 
-		<!-- carousel area: fills remaining space between tabs and bottom bar -->
 		<div class="flex-1 min-h-0 overflow-hidden" style="touch-action: pan-y" bind:this={swipeContainerEl}>
 			<div
 				class="flex h-full {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
@@ -250,19 +238,9 @@ let touchStartX = 0;
 				<!-- Clone of last slide (table) -->
 				<div class="w-full flex-shrink-0 h-full flex flex-col">
 					<div class="flex-1 min-h-0 p-3 flex flex-col">
-						{#if $allResultsStore.price}
-							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
+						{#if hasResults}
+							<AmortizationTable onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
 						{/if}
-						<div class="shrink-0 flex items-center gap-2 overflow-x-auto pt-2 border-t">
-							{#each Object.entries(systemLabels) as [sysKey, label]}
-								<button
-									class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
-									onclick={() => selectSystem(sysKey as AmortizationSystem)}
-								>
-									{label}
-								</button>
-							{/each}
-						</div>
 					</div>
 				</div>
 
@@ -271,7 +249,7 @@ let touchStartX = 0;
 					{#if key === 'chart'}
 						<div class="w-full flex-shrink-0 h-full flex flex-col">
 							<div class="flex-1 min-h-0 p-2">
-								{#if $allResultsStore.price}
+								{#if hasResults}
 									<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
 								{/if}
 							</div>
@@ -279,7 +257,7 @@ let touchStartX = 0;
 					{:else if key === 'results'}
 						<div class="w-full flex-shrink-0 h-full overflow-y-auto">
 							<div class="p-3">
-								{#if $allResultsStore.price}
+								{#if hasResults}
 									<ResultsSummary />
 								{/if}
 							</div>
@@ -287,19 +265,9 @@ let touchStartX = 0;
 					{:else}
 						<div class="w-full flex-shrink-0 h-full flex flex-col">
 							<div class="flex-1 min-h-0 p-3 flex flex-col">
-								{#if $allResultsStore.price}
-									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
+								{#if hasResults}
+									<AmortizationTable onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
 								{/if}
-								<div class="shrink-0 flex items-center gap-2 overflow-x-auto pt-2 border-t">
-									{#each Object.entries(systemLabels) as [sysKey, label]}
-										<button
-											class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
-											onclick={() => selectSystem(sysKey as AmortizationSystem)}
-										>
-											{label}
-										</button>
-									{/each}
-								</div>
 							</div>
 						</div>
 					{/if}
@@ -308,7 +276,7 @@ let touchStartX = 0;
 				<!-- Clone of first slide (chart) -->
 				<div class="w-full flex-shrink-0 h-full flex flex-col">
 					<div class="flex-1 min-h-0 p-2">
-						{#if $allResultsStore.price}
+						{#if hasResults}
 							<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
 						{/if}
 					</div>
@@ -316,13 +284,12 @@ let touchStartX = 0;
 			</div>
 		</div>
 
-		<!-- Fixed bottom bar: inputs 2x2 -->
 		<div class="shrink-0 bg-background border-t px-3 pt-2 pb-3">
-			<CalculatorForm compact={true} onchange={() => (userHasInteracted = true)} bind:selectedSystem={selectedSystem} />
+			<CalculatorForm compact={true} onchange={() => (userHasInteracted = true)} />
 		</div>
 	</div>
 {:else}
-	<!-- DESKTOP: scrollable layout -->
+	<!-- DESKTOP -->
 	<div class="max-w-4xl mx-auto">
 		<div class="mb-6">
 			<h1 class="text-2xl font-bold">Calculadora de Financiamento</h1>
@@ -333,27 +300,12 @@ let touchStartX = 0;
 
 		<CalculatorForm onchange={() => (userHasInteracted = true)} />
 
-		{#if $allResultsStore.price && showResults}
+		{#if hasResults && showResults}
 			<div class="mt-6 space-y-6">
 				<ResultsSummary />
 				<ComparisonChart onlongpress={openExtraPayment} />
-
-				{#key selectedSystem}
-					<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
-				{/key}
-
-				<div class="flex flex-wrap gap-2">
-					{#each Object.entries(systemLabels) as [key, label]}
-						<button
-							class="px-4 py-2 text-sm rounded-md border transition-colors {selectedSystem === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input hover:bg-accent'}"
-							onclick={() => selectSystem(key as AmortizationSystem)}
-						>
-							{label}
-						</button>
-					{/each}
-				</div>
-
-				<ExportButtons bind:selectedSystem={selectedSystem} />
+				<AmortizationTable onrowclick={openExtraPayment} />
+				<ExportButtons />
 			</div>
 		{/if}
 	</div>

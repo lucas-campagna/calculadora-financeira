@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { calculatorStore, calculateAll } from '$lib/stores/calculator-store';
+	import { studiesStore, calculateAll } from '$lib/stores/calculator-store';
 	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
+	import type { ExtraPayment } from '$lib/calculator/types';
 
 	let {
 		open = $bindable(false),
@@ -41,19 +42,8 @@
 		const a = parseInt(extraAmount.replace(/[^\d]/g, '')) || 0;
 		if (m <= 0 || a <= 0) return;
 
-		const existing = $calculatorStore.extraPayments.find((ep) => ep.month === m);
-		if (existing) {
-			$calculatorStore.extraPayments = $calculatorStore.extraPayments.map((ep) =>
-				ep.month === m ? { ...ep, amount: ep.amount + a, type: extraType } : ep
-			);
-		} else {
-			$calculatorStore.extraPayments = [
-				...$calculatorStore.extraPayments,
-				{ month: m, amount: a, type: extraType }
-			];
-		}
-
-		calculateAll();
+		const payment: ExtraPayment = { month: m, amount: a, type: extraType };
+		$studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
 		open = false;
 		onclose?.();
 	}
@@ -67,8 +57,7 @@
 {#if open}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onclick={handleCancel} onkeydown={(e: KeyboardEvent) => { if (e.key === 'Escape') handleCancel(); }} role="dialog" aria-modal="true" aria-label="Pagamento extra" tabindex="0">
-		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div role="document" class="bg-background p-6 rounded-xl max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
+		<div role="document" class="bg-background p-6 rounded-xl max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
 			<h2 class="text-base font-semibold mb-3">Pagamento Extra</h2>
 
 			<div class="space-y-4">

@@ -1,94 +1,164 @@
-import { writable } from 'svelte/store';
-import type { ExtraPayment } from '$lib/calculator/types';
+import { writable, derived } from 'svelte/store';
 import { calculate } from '$lib/calculator';
-import type { FinancingResult } from '$lib/calculator/types';
+import type { AmortizationSystem, ExtraPayment, FinancingResult, Study } from '$lib/calculator/types';
 
-interface CalculatorState {
-	principal: string;
-	annualRate: string;
-	termMonths: string;
-	downPayment: string;
-	extraPayments: ExtraPayment[];
+interface StudiesState {
+	studies: Study[];
+	activeStudyId: string;
+	syncLocked: boolean;
 }
 
 interface AllResults {
-	price: FinancingResult | null;
-	sac: FinancingResult | null;
-	sam: FinancingResult | null;
-	americano: FinancingResult | null;
+	[studyId: string]: FinancingResult | null;
 }
 
-const initialState: CalculatorState = {
+const DEFAULT_VALUES = {
 	principal: '500000',
 	annualRate: '10',
 	termMonths: '360',
-	downPayment: '0',
-	extraPayments: []
+	downPayment: '0'
 };
 
-const STORAGE_KEY = 'calcfin_state';
+function createDefaultStudies(): Study[] {
+	return [
+		{ id: '1', name: 'PRICE', system: 'price', ...DEFAULT_VALUES, extraPayments: [] },
+		{ id: '2', name: 'SAC', system: 'sac', ...DEFAULT_VALUES, extraPayments: [] },
+		{ id: '3', name: 'SAM', system: 'sam', ...DEFAULT_VALUES, extraPayments: [] },
+		{ id: '4', name: 'Americano', system: 'americano', ...DEFAULT_VALUES, extraPayments: [] }
+	];
+}
 
-function loadState(): CalculatorState {
-	if (typeof window === 'undefined') return initialState;
+const STORAGE_KEY = 'calcfin_studies';
+
+function loadState(): StudiesState {
+	if (typeof window === 'undefined') {
+		return { studies: createDefaultStudies(), activeStudyId: '1', syncLocked: true };
+	}
 	try {
 		const saved = sessionStorage.getItem(STORAGE_KEY);
 		if (saved) {
 			const parsed = JSON.parse(saved);
-			if (parsed.principal && parsed.annualRate && parsed.termMonths) {
+			if (parsed.studies && parsed.studies.length > 0 && parsed.activeStudyId) {
 				return {
-					principal: parsed.principal ?? initialState.principal,
-					annualRate: parsed.annualRate ?? initialState.annualRate,
-					termMonths: parsed.termMonths ?? initialState.termMonths,
-					downPayment: parsed.downPayment ?? initialState.downPayment,
-					extraPayments: Array.isArray(parsed.extraPayments) ? parsed.extraPayments : []
+					studies: parsed.studies,
+					activeStudyId: parsed.activeStudyId,
+					syncLocked: parsed.syncLocked !== undefined ? parsed.syncLocked : true
 				};
 			}
 		}
 	} catch { /* ignore */ }
-	return initialState;
+	return { studies: createDefaultStudies(), activeStudyId: '1', syncLocked: true };
 }
 
-function createCalculatorStore() {
-	const { subscribe, set, update } = writable<CalculatorState>(loadState());
+const initialState = loadState();
+
+function createStudiesStore() {
+	const { subscribe, set, update } = writable<StudiesState>(initialState);
+
+	let saveTimer: ReturnType<typeof setTimeout> | null = null;
+	const SAVE_DELAY = 500;
+
+	function save(state: StudiesState) {
+		if (typeof window === 'undefined') return;
+		if (saveTimer) clearTimeout(saveTimer);
+		saveTimer = setTimeout(() => {
+			try {
+				sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+			} catch { /* ignore */ }
+		}, SAVE_DELAY);
+	}
+
+	subscribe((state) => {
+		save(state);
+	});
 
 	return {
 		subscribe,
 		set,
 		update,
-		reset: () => set(initialState)
+		addStudy(study: Study) {
+			update((s) => ({
+				...s,
+				studies: [...s.studies, study],
+				activeStudyId: study.id
+			}));
+			calculateAll();
+		},
+		updateStudy(id: string, patch: Partial<Omit<Study, 'id'>>) {
+			update((s) => ({
+				...s,
+				studies: s.studies.map((st) => (st.id === id ? { ...st, ...patch } : st))
+			}));
+			calculateAll();
+		},
+		setActive(id: string) {
+			update((s) => ({ ...s, activeStudyId: id }));
+		},
+		toggleLock() {
+			update((s) => ({ ...s, syncLocked: !s.syncLocked }));
+		},
+		updateField(field: keyof Pick<Study, 'principal' | 'annualRate' | 'termMonths' | 'downPayment'>, value: string) {
+			update((s) => {
+				const active = s.studies.find((st) => st.id === s.activeStudyId);
+				if (!active) return s;
+
+				const updatedStudies = s.studies.map((st) => {
+					if (s.syncLocked) {
+						return { ...st, [field]: value };
+					}
+					return st.id === s.activeStudyId ? { ...st, [field]: value } : st;
+				});
+
+				return { ...s, studies: updatedStudies };
+			});
+			calculateAll();
+		},
+		addExtraPayment(studyId: string, payment: ExtraPayment) {
+			update((s) => {
+				const study = s.studies.find((st) => st.id === studyId);
+				if (!study) return s;
+				const existing = study.extraPayments.find((ep) => ep.month === payment.month);
+				let newPayments: ExtraPayment[];
+				if (existing) {
+					newPayments = study.extraPayments.map((ep) =>
+						ep.month === payment.month ? { ...ep, amount: ep.amount + payment.amount, type: payment.type } : ep
+					);
+				} else {
+					newPayments = [...study.extraPayments, payment];
+				}
+				return {
+					...s,
+					studies: s.studies.map((st) =>
+						st.id === studyId ? { ...st, extraPayments: newPayments } : st
+					)
+				};
+			});
+			calculateAll();
+		},
+		reset() {
+			const defaults = createDefaultStudies();
+			set({ studies: defaults, activeStudyId: '1', syncLocked: true });
+			calculateAll();
+		}
 	};
 }
 
-export const calculatorStore = createCalculatorStore();
+export const studiesStore = createStudiesStore();
 
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
-const SAVE_DELAY = 500;
+export const activeStudy = derived(studiesStore, ($s) =>
+	$s.studies.find((st) => st.id === $s.activeStudyId) ?? $s.studies[0]
+);
 
-calculatorStore.subscribe((v) => {
-	if (typeof window === 'undefined') return;
-	if (saveTimer) clearTimeout(saveTimer);
-	saveTimer = setTimeout(() => {
-		try {
-			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(v));
-		} catch { /* ignore */ }
-	}, SAVE_DELAY);
-});
-
-export const allResultsStore = writable<AllResults>({
-	price: null,
-	sac: null,
-	sam: null,
-	americano: null
-});
+export const allResultsStore = writable<AllResults>({});
 
 let calculateVersion = 0;
 let throttleTimer: ReturnType<typeof setTimeout> | null = null;
 const THROTTLE_MS = 300;
 
-let currentStoreValue: CalculatorState = initialState;
+let currentState: StudiesState = initialState;
 
-calculatorStore.subscribe((v) => {
-	currentStoreValue = v;
+studiesStore.subscribe((v) => {
+	currentState = v;
 });
 
 export function calculateAll() {
@@ -102,32 +172,34 @@ export function calculateAll() {
 		throttleTimer = null;
 		if (version !== calculateVersion) return;
 
-		const principal = parseFloat(currentStoreValue.principal) || 0;
-		const annualRate = parseFloat(currentStoreValue.annualRate) || 0;
-		const termMonths = parseInt(currentStoreValue.termMonths) || 0;
-		const downPayment = parseFloat(currentStoreValue.downPayment) || 0;
+		const results: AllResults = {};
+		for (const study of currentState.studies) {
+			const principal = parseFloat(study.principal) || 0;
+			const annualRate = parseFloat(study.annualRate) || 0;
+			const termMonths = parseInt(study.termMonths) || 0;
+			const downPayment = parseFloat(study.downPayment) || 0;
 
-		if (principal <= 0 || annualRate <= 0 || termMonths <= 0) {
-			allResultsStore.set({ price: null, sac: null, sam: null, americano: null });
-			return;
+			if (principal <= 0 || annualRate <= 0 || termMonths <= 0) {
+				results[study.id] = null;
+				continue;
+			}
+
+			const input = {
+				principal,
+				annualRate,
+				termMonths,
+				downPayment: downPayment > 0 ? downPayment : undefined,
+				extraPayments: study.extraPayments,
+				system: study.system
+			};
+
+			const result = calculate(input);
+			results[study.id] = { ...result, studyId: study.id, studyName: study.name };
+
+			if (version !== calculateVersion) return;
 		}
 
-		const input = {
-			principal,
-			annualRate,
-			termMonths,
-			downPayment: downPayment > 0 ? downPayment : undefined,
-			extraPayments: currentStoreValue.extraPayments
-		};
-
-		if (version !== calculateVersion) return;
-
-		allResultsStore.set({
-			price: calculate({ ...input, system: 'price' }),
-			sac: calculate({ ...input, system: 'sac' }),
-			sam: calculate({ ...input, system: 'sam' }),
-			americano: calculate({ ...input, system: 'americano' })
-		});
+		allResultsStore.set(results);
 	}, THROTTLE_MS);
 }
 
@@ -138,3 +210,5 @@ if (typeof window !== 'undefined') {
 	isMobile.set(check());
 	window.addEventListener('resize', () => isMobile.set(check()));
 }
+
+export { type Study, type AllResults };

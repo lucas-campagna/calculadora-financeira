@@ -27,6 +27,8 @@ export interface FinancingInput {
 export interface FinancingResult {
 	system: AmortizationSystem;
 	systemLabel: string;
+	studyId?: string;
+	studyName?: string;
 	totalPaid: number;
 	totalInterest: number;
 	totalPrincipal: number;
@@ -34,6 +36,17 @@ export interface FinancingResult {
 	lastInstallment: number;
 	installments: Installment[];
 	effectiveRate: number;
+}
+
+export interface Study {
+	id: string;
+	name: string;
+	system: AmortizationSystem;
+	principal: string;
+	annualRate: string;
+	termMonths: string;
+	downPayment: string;
+	extraPayments: ExtraPayment[];
 }
 
 export const SYSTEM_LABELS: Record<AmortizationSystem, string> = {

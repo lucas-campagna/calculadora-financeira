@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { allResultsStore } from '$lib/stores/calculator-store';
-	import type { AmortizationSystem, Installment } from '$lib/calculator/types';
+	import { allResultsStore, studiesStore } from '$lib/stores/calculator-store';
+	import type { Installment } from '$lib/calculator/types';
 
 	let canvasEl: HTMLCanvasElement = $state(undefined as unknown as HTMLCanvasElement);
 	let chartInstance: InstanceType<typeof import('chart.js').Chart> | null = $state(null);
@@ -18,8 +18,12 @@
 		fullHeight?: boolean;
 	} = $props();
 
+	const COLORS = ['#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899', '#f97316', '#06b6d4', '#ef4444'];
+
 	async function renderChart() {
-		if (!$allResultsStore.price) return;
+		const studies = $studiesStore.studies;
+		const firstResult = $allResultsStore[studies[0]?.id];
+		if (!firstResult) return;
 
 		const { Chart, registerables } = await import('chart.js');
 		Chart.register(...registerables);
@@ -28,19 +32,8 @@
 			chartInstance.destroy();
 		}
 
-		const datasets: import('chart.js').ChartDataset[] = [];
-		const colors: Record<string, { border: string; bg: string }> = {
-			price: { border: '#3b82f6', bg: '#3b82f620' },
-			sac: { border: '#22c55e', bg: '#22c55e20' },
-			sam: { border: '#eab308', bg: '#eab30820' },
-			americano: { border: '#a855f7', bg: '#a855f720' }
-		};
-
 		const maxLen = Math.max(
-			$allResultsStore.price?.installments.length ?? 0,
-			$allResultsStore.sac?.installments.length ?? 0,
-			$allResultsStore.sam?.installments.length ?? 0,
-			$allResultsStore.americano?.installments.length ?? 0
+			...studies.map((s) => $allResultsStore[s.id]?.installments?.length ?? 0)
 		);
 		const showEvery = maxLen > 60 ? Math.ceil(maxLen / 30) : 1;
 
@@ -51,26 +44,20 @@
 			}
 		}
 
-		const systems: { key: AmortizationSystem; label: string }[] = [
-			{ key: 'price', label: 'PRICE' },
-			{ key: 'sac', label: 'SAC' },
-			{ key: 'sam', label: 'SAM' },
-			{ key: 'americano', label: 'Americano' }
-		];
-
-		for (const sys of systems) {
-			const result = $allResultsStore[sys.key];
-			if (!result) continue;
-			const filtered = result.installments.filter((_: Installment, i: number) => i % showEvery === 0 || i === 0 || i === result.installments.length - 1);
+		const datasets: import('chart.js').ChartDataset[] = [];
+		studies.forEach((study, i) => {
+			const result = $allResultsStore[study.id];
+			if (!result) return;
+			const filtered = result.installments.filter((_: Installment, idx: number) => idx % showEvery === 0 || idx === 0 || idx === result.installments.length - 1);
 			datasets.push({
-				label: sys.label,
-				data: filtered.map((i: Installment) => i.balance),
-				borderColor: colors[sys.key].border,
-				backgroundColor: colors[sys.key].bg,
+				label: study.name,
+				data: filtered.map((inst: Installment) => inst.balance),
+				borderColor: COLORS[i % COLORS.length],
+				backgroundColor: COLORS[i % COLORS.length] + '20',
 				fill: false,
 				tension: 0.1
 			});
-		}
+		});
 
 		chartInstance = new Chart(canvasEl, {
 			type: 'line',
@@ -121,12 +108,10 @@
 		const xScale = chartInstance.scales.x;
 		if (!xScale) return null;
 
-		const maxLen = Math.max(
-			$allResultsStore.price?.installments.length ?? 0,
-			$allResultsStore.sac?.installments.length ?? 0,
-			$allResultsStore.sam?.installments.length ?? 0,
-			$allResultsStore.americano?.installments.length ?? 0
-		);
+		const studies = $studiesStore.studies;
+		const firstResult = $allResultsStore[studies[0]?.id];
+		if (!firstResult) return null;
+		const maxLen = firstResult.installments.length;
 		if (maxLen === 0) return null;
 
 		const showEvery = maxLen > 60 ? Math.ceil(maxLen / 30) : 1;
@@ -168,7 +153,7 @@
 	}
 
 	$effect(() => {
-		if ($allResultsStore.price && canvasEl) {
+		if ($studiesStore.studies.length > 0 && canvasEl && Object.keys($allResultsStore).length > 0) {
 			renderChart();
 		}
 	});
@@ -182,7 +167,7 @@
 	});
 </script>
 
-{#if $allResultsStore.price}
+{#if Object.keys($allResultsStore).length > 0}
 	<div class="border rounded-lg p-2 sm:p-4 {fullHeight ? 'flex flex-col' : ''}" style={fullHeight ? 'height: 100%' : ''}>
 		<h2 class="text-sm font-semibold mb-1">Evolucao do Saldo Devedor</h2>
 		<p class="text-xs text-muted-foreground mb-1">Clique na legenda para mostrar/ocultar. Segure no grafico para adicionar pagamento extra.</p>

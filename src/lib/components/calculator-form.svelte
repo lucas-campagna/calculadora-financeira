@@ -1,38 +1,49 @@
 <script lang="ts">
-	import { calculatorStore, calculateAll } from '$lib/stores/calculator-store';
+	import { studiesStore, calculateAll } from '$lib/stores/calculator-store';
 	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 	import Label from '$lib/components/ui/label.svelte';
 	import ExportModal from '$lib/components/export-modal.svelte';
-	import type { AmortizationSystem } from '$lib/calculator/types';
+	import StudyPills from '$lib/components/study-pills.svelte';
+	import StudyEditModal from '$lib/components/study-edit-modal.svelte';
+	import type { Study } from '$lib/calculator/types';
 
 	let {
 		onchange: handleFormChange = () => {},
-		compact = false,
-		selectedSystem = $bindable('price' as AmortizationSystem)
+		compact = false
 	}: {
 		onchange?: () => void;
 		compact?: boolean;
-		selectedSystem?: AmortizationSystem;
 	} = $props();
 
 	let exportModalOpen = $state(false);
+	let editModalOpen = $state(false);
+	let editMode = $state<'add' | 'edit'>('add');
+	let editStudy: Study | undefined = $state(undefined);
 
-	function updateField(field: 'principal' | 'downPayment' | 'termMonths', raw: string) {
-		$calculatorStore[field] = raw;
-		calculateAll();
+	function updateField(field: 'principal' | 'downPayment' | 'termMonths' | 'annualRate', raw: string) {
+		$studiesStore.updateField(field, raw);
 		handleFormChange();
 	}
 
-	function updateRate(raw: string) {
-		$calculatorStore.annualRate = raw;
-		calculateAll();
-		handleFormChange();
+	function handleAddStudy() {
+		editMode = 'add';
+		editStudy = undefined;
+		editModalOpen = true;
+	}
+
+	function handleEditStudy(study: Study) {
+		editMode = 'edit';
+		editStudy = study;
+		editModalOpen = true;
 	}
 </script>
 
 {#if compact}
-	<!-- Mobile: 2x2 grid + export button -->
+	<!-- Mobile: pills + 2x2 grid + export button -->
 	<div>
+		<div class="mb-2">
+			<StudyPills onadd={handleAddStudy} onedit={handleEditStudy} />
+		</div>
 		<div class="grid grid-cols-2 gap-2">
 			<div>
 				<Label for="m-principal" class="text-xs">Valor (R$)</Label>
@@ -40,7 +51,7 @@
 					id="m-principal"
 					inputmode="numeric"
 					placeholder="500.000"
-					value={$calculatorStore.principal}
+					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.principal ?? '500000'}
 					onchange={(v) => updateField('principal', v)}
 					min="1"
 				/>
@@ -51,7 +62,7 @@
 					id="m-downPayment"
 					inputmode="numeric"
 					placeholder="0"
-					value={$calculatorStore.downPayment}
+					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.downPayment ?? '0'}
 					onchange={(v) => updateField('downPayment', v)}
 					min="0"
 				/>
@@ -63,8 +74,8 @@
 					inputmode="decimal"
 					placeholder="10"
 					decimal={true}
-					value={$calculatorStore.annualRate}
-					onchange={updateRate}
+					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.annualRate ?? '10'}
+					onchange={(v) => updateField('annualRate', v)}
 					min="0.01"
 				/>
 			</div>
@@ -74,7 +85,7 @@
 					id="m-term"
 					inputmode="numeric"
 					placeholder="360"
-					value={$calculatorStore.termMonths}
+					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.termMonths ?? '360'}
 					onchange={(v) => updateField('termMonths', v)}
 					min="1"
 				/>
@@ -88,10 +99,12 @@
 		</button>
 	</div>
 
-	<ExportModal bind:open={exportModalOpen} bind:selectedSystem />
+	<ExportModal bind:open={exportModalOpen} />
 {:else}
-	<!-- Desktop: full form, no extras toggle -->
+	<!-- Desktop: pills + full form -->
 	<div class="space-y-4">
+		<StudyPills onadd={handleAddStudy} onedit={handleEditStudy} />
+
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 			<div>
 				<Label for="principal" class="text-sm">Valor do Financiamento (R$)</Label>
@@ -99,7 +112,7 @@
 					id="principal"
 					inputmode="numeric"
 					placeholder="Ex: 500.000"
-					value={$calculatorStore.principal}
+					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.principal ?? '500000'}
 					onchange={(v) => updateField('principal', v)}
 					min="1"
 					class="mt-1"
@@ -112,7 +125,7 @@
 					id="downPayment"
 					inputmode="numeric"
 					placeholder="Ex: 100.000"
-					value={$calculatorStore.downPayment}
+					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.downPayment ?? '0'}
 					onchange={(v) => updateField('downPayment', v)}
 					min="0"
 					class="mt-1"
@@ -128,8 +141,8 @@
 					inputmode="decimal"
 					placeholder="Ex: 10,5"
 					decimal={true}
-					value={$calculatorStore.annualRate}
-					onchange={updateRate}
+					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.annualRate ?? '10'}
+					onchange={(v) => updateField('annualRate', v)}
 					min="0.01"
 					class="mt-1"
 				/>
@@ -141,7 +154,7 @@
 					id="termMonths"
 					inputmode="numeric"
 					placeholder="Ex: 360"
-					value={$calculatorStore.termMonths}
+					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.termMonths ?? '360'}
 					onchange={(v) => updateField('termMonths', v)}
 					min="1"
 					class="mt-1"
@@ -150,3 +163,5 @@
 		</div>
 	</div>
 {/if}
+
+<StudyEditModal bind:open={editModalOpen} mode={editMode} editStudy={editStudy} />

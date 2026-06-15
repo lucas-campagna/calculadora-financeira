@@ -1,47 +1,48 @@
 <script lang="ts">
-	import type { ExtraPayment } from '$lib/calculator/types';
-	import { calculatorStore, calculateAll } from '$lib/stores/calculator-store';
+	import { studiesStore, calculateAll } from '$lib/stores/calculator-store';
 	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 	import Button from '$lib/components/ui/button.svelte';
 
+	let activePayments = $derived($studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.extraPayments ?? []);
+
 	function addExtraPayment() {
-		$calculatorStore.extraPayments = [
-			...$calculatorStore.extraPayments,
-			{ month: 1, amount: 0, type: 'reduce_term' }
-		];
+		$studiesStore.addExtraPayment($studiesStore.activeStudyId, { month: 1, amount: 0, type: 'reduce_term' });
 	}
 
 	function removeExtraPayment(index: number) {
-		$calculatorStore.extraPayments = $calculatorStore.extraPayments.filter((_, i) => i !== index);
+		const studyId = $studiesStore.activeStudyId;
+		$studiesStore.updateStudy(studyId, {
+			extraPayments: activePayments.filter((_, i) => i !== index)
+		});
 		calculateAll();
 	}
 
 	function updateMonth(index: number, raw: string) {
 		const month = parseInt(raw) || 1;
-		const updated = [...$calculatorStore.extraPayments];
+		const updated = [...activePayments];
 		updated[index] = { ...updated[index], month };
-		$calculatorStore.extraPayments = updated;
+		$studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
 		calculateAll();
 	}
 
 	function updateAmount(index: number, raw: string) {
 		const amount = parseInt(raw.replace(/[^\d]/g, '')) || 0;
-		const updated = [...$calculatorStore.extraPayments];
+		const updated = [...activePayments];
 		updated[index] = { ...updated[index], amount };
-		$calculatorStore.extraPayments = updated;
+		$studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
 		calculateAll();
 	}
 
 	function updateType(index: number, type: 'reduce_installment' | 'reduce_term') {
-		const updated = [...$calculatorStore.extraPayments];
+		const updated = [...activePayments];
 		updated[index] = { ...updated[index], type };
-		$calculatorStore.extraPayments = updated;
+		$studiesStore.updateStudy($studiesStore.activeStudyId, { extraPayments: updated });
 		calculateAll();
 	}
 </script>
 
 <div class="mt-3 space-y-3">
-	{#each $calculatorStore.extraPayments as ep, i}
+	{#each activePayments as ep, i}
 		<div class="flex flex-wrap gap-2 items-end border rounded-md p-3">
 			<div class="flex-1 min-w-[80px]">
 				<label for="extra-month-{i}" class="text-xs text-muted-foreground">Mes</label>

@@ -1,28 +1,22 @@
 <script lang="ts">
 	import { formatCurrency, formatPercent } from '$lib/calculator';
-	import { allResultsStore } from '$lib/stores/calculator-store';
-	import type { AmortizationSystem } from '$lib/calculator/types';
+	import { allResultsStore, studiesStore } from '$lib/stores/calculator-store';
 
-	const systems: { key: AmortizationSystem; label: string; color: string }[] = [
-		{ key: 'price', label: 'PRICE', color: 'bg-blue-500' },
-		{ key: 'sac', label: 'SAC', color: 'bg-green-500' },
-		{ key: 'sam', label: 'SAM', color: 'bg-yellow-500' },
-		{ key: 'americano', label: 'Americano', color: 'bg-purple-500' }
-	];
+	const COLORS = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-pink-500', 'bg-orange-500', 'bg-cyan-500', 'bg-red-500'];
 </script>
 
-{#if $allResultsStore.price}
+{#if Object.keys($allResultsStore).length > 0}
 	<div class="space-y-4">
 		<h2 class="text-base font-semibold">Resultado</h2>
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-			{#each systems as sys}
-				{@const result = $allResultsStore[sys.key]}
+			{#each $studiesStore.studies as study, i}
+				{@const result = $allResultsStore[study.id]}
 				{#if result}
 					<div class="border rounded-lg p-4">
 						<div class="flex items-center gap-2 mb-3">
-							<div class="w-3 h-3 rounded-full {sys.color}"></div>
-							<h3 class="text-sm font-bold">{sys.label}</h3>
+							<div class="w-3 h-3 rounded-full {COLORS[i % COLORS.length]}"></div>
+							<h3 class="text-sm font-bold">{study.name}</h3>
 						</div>
 						<div class="space-y-1 text-sm">
 							<div class="flex justify-between">
@@ -34,11 +28,11 @@
 								<span class="font-bold text-destructive">{formatCurrency(result.totalInterest)}</span>
 							</div>
 							<div class="flex justify-between">
-								<span class="text-muted-foreground">1ª Parcela</span>
+								<span class="text-muted-foreground">1a Parcela</span>
 								<span class="font-bold">{formatCurrency(result.firstInstallment)}</span>
 							</div>
 							<div class="flex justify-between">
-								<span class="text-muted-foreground">Última Parcela</span>
+								<span class="text-muted-foreground">Ultima Parcela</span>
 								<span class="font-bold">{formatCurrency(result.lastInstallment)}</span>
 							</div>
 							<div class="flex justify-between">

@@ -2,28 +2,26 @@
 	import { formatCurrency } from '$lib/calculator';
 	import jspdf from 'jspdf';
 	import papaparse from 'papaparse';
-	import { allResultsStore } from '$lib/stores/calculator-store';
-	import type { AmortizationSystem } from '$lib/calculator/types';
+	import { allResultsStore, studiesStore } from '$lib/stores/calculator-store';
 
 	let {
-		open = $bindable(false),
-		selectedSystem = $bindable('price' as AmortizationSystem)
+		open = $bindable(false)
 	}: {
 		open?: boolean;
-		selectedSystem?: AmortizationSystem;
 	} = $props();
 
-	let systemOptions: { key: AmortizationSystem; label: string }[] = [
-		{ key: 'price', label: 'PRICE' },
-		{ key: 'sac', label: 'SAC' },
-		{ key: 'sam', label: 'SAM' },
-		{ key: 'americano', label: 'Americano' }
-	];
+	function getResult() {
+		const study = $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId);
+		if (!study) return null;
+		return { study, result: $allResultsStore[study.id] };
+	}
 
 	function exportCSV() {
-		const result = $allResultsStore[selectedSystem];
-		if (!result) return;
-		const data = result.installments.map((i) => ({
+		const data = getResult();
+		if (!data || !data.result) return;
+		const { study, result } = data;
+
+		const csvData = result.installments.map((i) => ({
 			Mes: i.number,
 			Parcela: i.payment.toFixed(2),
 			Amortizacao: i.principal.toFixed(2),
@@ -32,24 +30,25 @@
 			...(i.extraPayment ? { Aporte_Extra: i.extraPayment.toFixed(2) } : {})
 		}));
 
-		const csv = papaparse.unparse(data);
+		const csv = papaparse.unparse(csvData);
 		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = `financiamento-${result.systemLabel.toLowerCase()}.csv`;
+		a.download = `financiamento-${study.name.toLowerCase().replace(/\s+/g, '-')}.csv`;
 		a.click();
 		URL.revokeObjectURL(url);
 		open = false;
 	}
 
 	function exportPDF() {
-		const result = $allResultsStore[selectedSystem];
-		if (!result) return;
+		const data = getResult();
+		if (!data || !data.result) return;
+		const { study, result } = data;
 		const doc = new jspdf();
 
 		doc.setFontSize(18);
-		doc.text(`Simulacao - ${result.systemLabel}`, 14, 20);
+		doc.text(`Simulacao - ${study.name}`, 14, 20);
 
 		doc.setFontSize(10);
 		doc.text(`Valor Total Pago: ${formatCurrency(result.totalPaid)}`, 14, 32);
@@ -83,7 +82,7 @@
 			y += 5;
 		}
 
-		doc.save(`financiamento-${result.systemLabel.toLowerCase()}.pdf`);
+		doc.save(`financiamento-${study.name.toLowerCase().replace(/\s+/g, '-')}.pdf`);
 		open = false;
 	}
 </script>
@@ -92,24 +91,23 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div class="fixed inset-0 z-50 bg-black/80 flex items-end justify-center" onclick={() => (open = false)} onkeydown={(e: KeyboardEvent) => { if (e.key === 'Escape') { open = false; } }} role="dialog" aria-modal="true" aria-label="Exportar" tabindex="0">
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div role="document" class="bg-background w-full max-w-md rounded-t-xl p-4" onclick={(e) => e.stopPropagation()}>
+		<div role="document" class="bg-background w-full max-w-md rounded-t-xl p-4" onclick={(e) => e.stopPropagation()}>
 			<h2 class="text-base font-semibold mb-3">Exportar</h2>
 
-			<div class="mb-3">
-				<p class="text-sm text-muted-foreground mb-2">Sistema:</p>
-				<div class="flex flex-wrap gap-2">
-					{#each systemOptions as opt}
-						<button
-							class="px-3 py-1.5 text-sm rounded-lg border transition-colors {selectedSystem === opt.key ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
-							onclick={() => (selectedSystem = opt.key)}
-						>
-							{opt.label}
-						</button>
-					{/each}
+			{#each $studiesStore.studies as study}
+				{@const result = $allResultsStore[study.id]}
+				<div class="flex items-center justify-between py-2 border-b last:border-b-0">
+					<div>
+						<span class="font-medium text-sm {study.id === $studiesStore.activeStudyId ? 'text-primary' : ''}">{study.name}</span>
+						<span class="text-xs text-muted-foreground ml-2">{study.system.toUpperCase()}</span>
+					</div>
+					{#if result}
+						<span class="text-xs text-muted-foreground">{formatCurrency(result.totalPaid)}</span>
+					{/if}
 				</div>
-			</div>
+			{/each}
 
-			<div class="flex gap-3">
+			<div class="flex gap-3 mt-4">
 				<button
 					class="flex-1 h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer"
 					onclick={exportCSV}

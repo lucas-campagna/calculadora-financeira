@@ -1,20 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { formatCurrency } from '$lib/calculator';
-	import { allResultsStore, calculateAll } from '$lib/stores/calculator-store';
-	import CalculatorForm from '$lib/components/calculator-form.svelte';
-	import type { AmortizationSystem, FinancingResult } from '$lib/calculator/types';
+	import { allResultsStore, calculateAll, studiesStore } from '$lib/stores/calculator-store';
 
-	const systems: { key: AmortizationSystem; label: string }[] = [
-		{ key: 'price', label: 'PRICE' },
-		{ key: 'sac', label: 'SAC' },
-		{ key: 'sam', label: 'SAM' },
-		{ key: 'americano', label: 'Americano' }
-	];
-
-	function getEconomy(base: FinancingResult, compared: FinancingResult): { interest: number; percent: number } {
-		const interest = base.totalInterest - compared.totalInterest;
-		const percent = base.totalInterest > 0 ? (interest / base.totalInterest) * 100 : 0;
+	function getEconomy(baseTotalInterest: number, comparedTotalInterest: number): { interest: number; percent: number } {
+		const interest = baseTotalInterest - comparedTotalInterest;
+		const percent = baseTotalInterest > 0 ? (interest / baseTotalInterest) * 100 : 0;
 		return { interest, percent };
 	}
 
@@ -30,91 +21,104 @@
 
 <div class="max-w-4xl mx-auto">
 	<div class="mb-8">
-		<h1 class="text-2xl font-bold">Comparar Sistemas</h1>
+		<h1 class="text-2xl font-bold">Comparar Estudos</h1>
 		<p class="text-sm text-muted-foreground mt-1">
-			Compare PRICE, SAC, SAM e Americano lado a lado para o mesmo financiamento.
+			Compare seus estudos de financiamento lado a lado.
 		</p>
 	</div>
 
-	<CalculatorForm />
+	{#if $studiesStore.studies.length >= 2}
+		{@const studies = $studiesStore.studies}
+		{@const firstResult = $allResultsStore[studies[0].id]}
 
-	{#if $allResultsStore.price && $allResultsStore.sac && $allResultsStore.sam && $allResultsStore.americano}
-		{@const priceResult = $allResultsStore.price!}
-		{@const sacResult = $allResultsStore.sac!}
-		{@const samResult = $allResultsStore.sam!}
-		{@const americanoResult = $allResultsStore.americano!}
-
-		<div class="mt-6 space-y-6">
-			<div class="p-4 bg-muted rounded-lg">
-				<h3 class="font-semibold mb-3 text-lg">Resumo Comparativo</h3>
-				<div class="overflow-x-auto">
-					<table class="w-full text-sm border-collapse min-w-[600px]">
-						<thead>
-							<tr class="border-b bg-muted">
-								<th class="px-3 py-2 text-left font-medium"></th>
-								{#each systems as sys}
-									{@const r = $allResultsStore[sys.key]}
-									{#if r}
-										<th class="px-3 py-2 text-center font-medium">{sys.label}</th>
-									{/if}
-								{/each}
-							</tr>
-						</thead>
-						<tbody>
-							<tr class="border-b">
-								<td class="px-3 py-2 font-medium text-muted-foreground">Total Pago</td>
-								<td class="px-3 py-2 text-right font-bold">{formatCurrency(priceResult.totalPaid)}</td>
-								<td class="px-3 py-2 text-right font-bold">{formatCurrency(sacResult.totalPaid)}</td>
-								<td class="px-3 py-2 text-right font-bold">{formatCurrency(samResult.totalPaid)}</td>
-								<td class="px-3 py-2 text-right font-bold">{formatCurrency(americanoResult.totalPaid)}</td>
-							</tr>
-							<tr class="border-b">
-								<td class="px-3 py-2 font-medium text-muted-foreground">Total Juros</td>
-								<td class="px-3 py-2 text-right text-destructive font-bold">{formatCurrency(priceResult.totalInterest)}</td>
-								<td class="px-3 py-2 text-right text-destructive font-bold">{formatCurrency(sacResult.totalInterest)}</td>
-								<td class="px-3 py-2 text-right text-destructive font-bold">{formatCurrency(samResult.totalInterest)}</td>
-								<td class="px-3 py-2 text-right text-destructive font-bold">{formatCurrency(americanoResult.totalInterest)}</td>
-							</tr>
-							<tr class="border-b">
-								<td class="px-3 py-2 font-medium text-muted-foreground">1a Parcela</td>
-								<td class="px-3 py-2 text-right">{formatCurrency(priceResult.firstInstallment)}</td>
-								<td class="px-3 py-2 text-right">{formatCurrency(sacResult.firstInstallment)}</td>
-								<td class="px-3 py-2 text-right">{formatCurrency(samResult.firstInstallment)}</td>
-								<td class="px-3 py-2 text-right">{formatCurrency(americanoResult.firstInstallment)}</td>
-							</tr>
-							<tr class="border-b">
-								<td class="px-3 py-2 font-medium text-muted-foreground">Ultima Parcela</td>
-								<td class="px-3 py-2 text-right">{formatCurrency(priceResult.lastInstallment)}</td>
-								<td class="px-3 py-2 text-right">{formatCurrency(sacResult.lastInstallment)}</td>
-								<td class="px-3 py-2 text-right">{formatCurrency(samResult.lastInstallment)}</td>
-								<td class="px-3 py-2 text-right">{formatCurrency(americanoResult.lastInstallment)}</td>
-							</tr>
-							<tr class="border-b">
-								<td class="px-3 py-2 font-medium text-muted-foreground">Parcelas</td>
-								<td class="px-3 py-2 text-right">{priceResult.installments.length}</td>
-								<td class="px-3 py-2 text-right">{sacResult.installments.length}</td>
-								<td class="px-3 py-2 text-right">{samResult.installments.length}</td>
-								<td class="px-3 py-2 text-right">{americanoResult.installments.length}</td>
-							</tr>
-						</tbody>
-					</table>
+		{#if firstResult}
+			<div class="mt-6 space-y-6">
+				<div class="p-4 bg-muted rounded-lg">
+					<h3 class="font-semibold mb-3 text-lg">Resumo Comparativo</h3>
+					<div class="overflow-x-auto">
+						<table class="w-full text-sm border-collapse min-w-[600px]">
+							<thead>
+								<tr class="border-b bg-muted">
+									<th class="px-3 py-2 text-left font-medium"></th>
+									{#each studies as study}
+										{@const r = $allResultsStore[study.id]}
+										{#if r}
+											<th class="px-3 py-2 text-center font-medium">{study.name}</th>
+										{/if}
+									{/each}
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="border-b">
+									<td class="px-3 py-2 font-medium text-muted-foreground">Total Pago</td>
+									{#each studies as study}
+										{@const r = $allResultsStore[study.id]}
+										{#if r}
+											<td class="px-3 py-2 text-right font-bold">{formatCurrency(r.totalPaid)}</td>
+										{/if}
+									{/each}
+								</tr>
+								<tr class="border-b">
+									<td class="px-3 py-2 font-medium text-muted-foreground">Total Juros</td>
+									{#each studies as study}
+										{@const r = $allResultsStore[study.id]}
+										{#if r}
+											<td class="px-3 py-2 text-right text-destructive font-bold">{formatCurrency(r.totalInterest)}</td>
+										{/if}
+									{/each}
+								</tr>
+								<tr class="border-b">
+									<td class="px-3 py-2 font-medium text-muted-foreground">1a Parcela</td>
+									{#each studies as study}
+										{@const r = $allResultsStore[study.id]}
+										{#if r}
+											<td class="px-3 py-2 text-right">{formatCurrency(r.firstInstallment)}</td>
+										{/if}
+									{/each}
+								</tr>
+								<tr class="border-b">
+									<td class="px-3 py-2 font-medium text-muted-foreground">Ultima Parcela</td>
+									{#each studies as study}
+										{@const r = $allResultsStore[study.id]}
+										{#if r}
+											<td class="px-3 py-2 text-right">{formatCurrency(r.lastInstallment)}</td>
+										{/if}
+									{/each}
+								</tr>
+								<tr class="border-b">
+									<td class="px-3 py-2 font-medium text-muted-foreground">Parcelas</td>
+									{#each studies as study}
+										{@const r = $allResultsStore[study.id]}
+										{#if r}
+											<td class="px-3 py-2 text-right">{r.installments.length}</td>
+										{/if}
+									{/each}
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
-			</div>
 
-			<div class="p-4 bg-muted rounded-lg">
-				<h3 class="font-semibold mb-2 text-sm">Economia em Juros (em relacao ao PRICE)</h3>
-				<div class="space-y-2 text-sm">
-					{#each systems.slice(1) as sys}
-						{@const r = $allResultsStore[sys.key]}
-						{#if r}
-							{@const eco = getEconomy(priceResult, r)}
-							<p>
-								<strong>{sys.label}</strong>: economia de {formatCurrency(eco.interest)} em juros ({eco.percent.toFixed(1)}% a menos)
-							</p>
-						{/if}
-					{/each}
-				</div>
+				{#if studies.length >= 2}
+					<div class="p-4 bg-muted rounded-lg">
+						<h3 class="font-semibold mb-2 text-sm">Economia em Juros (em relacao a {studies[0].name})</h3>
+						<div class="space-y-2 text-sm">
+							{#each studies.slice(1) as study}
+								{@const r = $allResultsStore[study.id]}
+								{@const base = $allResultsStore[studies[0].id]}
+								{#if r && base}
+									{@const eco = getEconomy(base.totalInterest, r.totalInterest)}
+									<p>
+										<strong>{study.name}</strong>: economia de {formatCurrency(eco.interest)} em juros ({eco.percent.toFixed(1)}% a menos)
+									</p>
+								{/if}
+							{/each}
+						</div>
+					</div>
+				{/if}
 			</div>
-		</div>
+		{/if}
+	{:else}
+		<p class="text-muted-foreground">Adicione pelo menos 2 estudos para comparar.</p>
 	{/if}
 </div>
