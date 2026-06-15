@@ -213,7 +213,7 @@ let touchStartX = 0;
 
 {#if $isMobile}
 	<!-- MOBILE: full viewport, no page scroll -->
-	<div class="h-dvh flex flex-col overflow-hidden">
+	<div class="h-[calc(100dvh-3.5rem)] flex flex-col overflow-hidden">
 		<div class="flex border-b shrink-0">
 			{#each SLIDES as key, i}
 				<button
