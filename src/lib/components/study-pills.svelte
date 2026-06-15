@@ -18,7 +18,7 @@
 			longPressTarget = null;
 			return;
 		}
-		$studiesStore.setActive(id);
+		studiesStore.setActive(id);
 	}
 
 	function handlePillTouchStart(id: string) {
@@ -53,7 +53,7 @@
 
 	<button
 		class="shrink-0 w-8 h-8 rounded-full border {$studiesStore.syncLocked ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-input hover:bg-accent'} flex items-center justify-center transition-colors cursor-pointer"
-		onclick={() => { $studiesStore.toggleLock(); }}
+		onclick={() => { studiesStore.toggleLock(); }}
 		aria-label="{$studiesStore.syncLocked ? 'Desbloquear: editar apenas estudo ativo' : 'Bloquear: sincronizar valores entre estudos'}"
 	>
 		{#if $studiesStore.syncLocked}
