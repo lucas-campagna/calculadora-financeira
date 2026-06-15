@@ -14,19 +14,17 @@
 
 	function isInitialState(): boolean {
 		const s = $studiesStore;
-		if (s.studies.length !== 4) return false;
+		if (s.studies.length !== 2) return false;
 		if (Object.keys(s.overrides).length > 0) return false;
 		if (s.commonValues.principal !== '500000') return false;
 		if (s.commonValues.annualRate !== '10') return false;
 		if (s.commonValues.termMonths !== '360') return false;
 		if (s.commonValues.downPayment !== '0') return false;
 		const defaults = [
-			{ name: 'PRICE', system: 'price' as const },
 			{ name: 'SAC', system: 'sac' as const },
-			{ name: 'SAM', system: 'sam' as const },
-			{ name: 'Americano', system: 'americano' as const }
+			{ name: 'PRICE', system: 'price' as const }
 		];
-		for (let i = 0; i < 4; i++) {
+		for (let i = 0; i < 2; i++) {
 			const st = s.studies[i];
 			const df = defaults[i];
 			if (!st || st.name !== df.name || st.system !== df.system) return false;

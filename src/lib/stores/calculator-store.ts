@@ -25,10 +25,8 @@ const DEFAULT_VALUES: Record<FieldKey, string> = {
 
 function createDefaultStudies(): Study[] {
 	return [
-		{ id: '1', name: 'PRICE', system: 'price', ...DEFAULT_VALUES, extraPayments: [] },
-		{ id: '2', name: 'SAC', system: 'sac', ...DEFAULT_VALUES, extraPayments: [] },
-		{ id: '3', name: 'SAM', system: 'sam', ...DEFAULT_VALUES, extraPayments: [] },
-		{ id: '4', name: 'Americano', system: 'americano', ...DEFAULT_VALUES, extraPayments: [] }
+		{ id: '1', name: 'SAC', system: 'sac', ...DEFAULT_VALUES, extraPayments: [] },
+		{ id: '2', name: 'PRICE', system: 'price', ...DEFAULT_VALUES, extraPayments: [] }
 	];
 }
 
