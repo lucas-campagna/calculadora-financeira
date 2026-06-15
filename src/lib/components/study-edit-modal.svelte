@@ -25,9 +25,11 @@
 	let annualRate = $state('10');
 	let termMonths = $state('360');
 	let downPayment = $state('0');
+	let showRemoveConfirm = $state(false);
 
 	$effect(() => {
 		if (open) {
+			showRemoveConfirm = false;
 			if (mode === 'edit' && editStudy) {
 				name = editStudy.name;
 				system = editStudy.system;
@@ -170,13 +172,31 @@
 
 			<div class="flex gap-3 mt-5">
 				{#if mode === 'edit'}
-					<button
-						class="shrink-0 w-10 h-10 rounded-md border border-destructive text-destructive flex items-center justify-center hover:bg-destructive/10 cursor-pointer"
-						onclick={handleRemove}
-						aria-label="Remover estudo"
-					>
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-					</button>
+					{#if showRemoveConfirm}
+						<div class="flex items-center gap-2">
+							<span class="text-sm text-destructive font-medium">Confirmar remocao?</span>
+							<button
+								class="h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer px-3"
+								onclick={() => (showRemoveConfirm = false)}
+							>
+								Nao
+							</button>
+							<button
+								class="h-10 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 cursor-pointer px-3"
+								onclick={handleRemove}
+							>
+								Sim
+							</button>
+						</div>
+					{:else}
+						<button
+							class="shrink-0 w-10 h-10 rounded-md border border-destructive text-destructive flex items-center justify-center hover:bg-destructive/10 cursor-pointer"
+							onclick={() => (showRemoveConfirm = true)}
+							aria-label="Remover estudo"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+						</button>
+					{/if}
 				{/if}
 				<button
 					class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
