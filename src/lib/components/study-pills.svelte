@@ -45,7 +45,7 @@
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div role="document" class="bg-background p-6 rounded-xl max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
 				<h2 class="text-base font-semibold mb-2">Restaurar valores?</h2>
-				<p class="text-sm text-muted-foreground mb-4">Todos os estudos serao resetados para os valores iniciais. Esta acao nao pode ser desfeita.</p>
+				<p class="text-sm text-muted-foreground mb-4">Todos os estudos serão resetados para os valores iniciais. Esta ação não pode ser desfeita.</p>
 				<div class="flex gap-3">
 					<button
 						class="flex-1 h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer"

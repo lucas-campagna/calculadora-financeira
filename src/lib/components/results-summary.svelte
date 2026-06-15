@@ -28,11 +28,11 @@
 								<span class="font-bold text-destructive">{formatCurrency(result.totalInterest)}</span>
 							</div>
 							<div class="flex justify-between">
-								<span class="text-muted-foreground">1a Parcela</span>
+								<span class="text-muted-foreground">1ª Parcela</span>
 								<span class="font-bold">{formatCurrency(result.firstInstallment)}</span>
 							</div>
 							<div class="flex justify-between">
-								<span class="text-muted-foreground">Ultima Parcela</span>
+								<span class="text-muted-foreground">Última Parcela</span>
 								<span class="font-bold">{formatCurrency(result.lastInstallment)}</span>
 							</div>
 							<div class="flex justify-between">

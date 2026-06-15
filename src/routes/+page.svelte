@@ -139,7 +139,7 @@
 	}
 
 	const slideLabels: Record<SlideKey, string> = {
-		chart: 'Grafico',
+		chart: 'Gráfico',
 		results: 'Resultado',
 		table: 'Tabela'
 	};

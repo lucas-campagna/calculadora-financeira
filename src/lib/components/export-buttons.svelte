@@ -42,15 +42,15 @@
 		doc.text(`Valor Total Pago: ${formatCurrency(result.totalPaid)}`, 14, 32);
 		doc.text(`Total de Juros: ${formatCurrency(result.totalInterest)}`, 14, 38);
 		doc.text(`Primeira Parcela: ${formatCurrency(result.firstInstallment)}`, 14, 44);
-		doc.text(`Ultima Parcela: ${formatCurrency(result.lastInstallment)}`, 14, 50);
-		doc.text(`Numero de Parcelas: ${result.installments.length}`, 14, 56);
+		doc.text(`Última Parcela: ${formatCurrency(result.lastInstallment)}`, 14, 50);
+		doc.text(`Número de Parcelas: ${result.installments.length}`, 14, 56);
 
 		doc.setFontSize(12);
 		doc.text('Tabela de Amortizacao', 14, 66);
 
 		let y = 74;
 		doc.setFontSize(8);
-		doc.text('Mes', 14, y);
+		doc.text('Mês', 14, y);
 		doc.text('Parcela', 30, y);
 		doc.text('Amort.', 55, y);
 		doc.text('Juros', 75, y);

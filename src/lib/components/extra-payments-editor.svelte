@@ -45,7 +45,7 @@
 	{#each activePayments as ep, i}
 		<div class="flex flex-wrap gap-2 items-end border rounded-md p-3">
 			<div class="flex-1 min-w-[80px]">
-				<label for="extra-month-{i}" class="text-xs text-muted-foreground">Mes</label>
+				<label for="extra-month-{i}" class="text-xs text-muted-foreground">Mês</label>
 				<SwipeInput
 					id="extra-month-{i}"
 					inputmode="numeric"

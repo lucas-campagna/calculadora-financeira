@@ -68,7 +68,7 @@
 									{/each}
 								</tr>
 								<tr class="border-b">
-									<td class="px-3 py-2 font-medium text-muted-foreground">1a Parcela</td>
+									<td class="px-3 py-2 font-medium text-muted-foreground">1ª Parcela</td>
 									{#each studies as study}
 										{@const r = $allResultsStore[study.id]}
 										{#if r}
@@ -77,7 +77,7 @@
 									{/each}
 								</tr>
 								<tr class="border-b">
-									<td class="px-3 py-2 font-medium text-muted-foreground">Ultima Parcela</td>
+									<td class="px-3 py-2 font-medium text-muted-foreground">Última Parcela</td>
 									{#each studies as study}
 										{@const r = $allResultsStore[study.id]}
 										{#if r}

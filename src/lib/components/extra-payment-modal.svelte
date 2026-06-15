@@ -62,7 +62,7 @@
 
 			<div class="space-y-4">
 				<div>
-					<label for="extra-modal-month" class="text-sm font-medium">Mes</label>
+					<label for="extra-modal-month" class="text-sm font-medium">Mês</label>
 					<SwipeInput
 						id="extra-modal-month"
 						inputmode="numeric"
