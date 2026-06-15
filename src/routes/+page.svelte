@@ -17,6 +17,8 @@
 	let showResults = $state(false);
 	let previousResultHash = $state('');
 	let userHasInteracted = $state(false);
+	let lastInterstitialTime = 0;
+	const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 
 	const SLIDES = ['form', 'chart', 'results', 'table'] as const;
 	type SlideKey = typeof SLIDES[number];
@@ -117,8 +119,14 @@
 			if (hash !== previousResultHash) {
 				previousResultHash = hash;
 				if (userHasInteracted && $isMobile) {
-					showInterstitial = true;
-					showResults = false;
+					const now = Date.now();
+					if (lastInterstitialTime === 0 || now - lastInterstitialTime >= INTERSTITIAL_COOLDOWN_MS) {
+						showInterstitial = true;
+						showResults = false;
+						lastInterstitialTime = now;
+					} else {
+						showResults = true;
+					}
 				} else {
 					showResults = true;
 					if ($isMobile) {
