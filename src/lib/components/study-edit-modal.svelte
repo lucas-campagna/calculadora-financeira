@@ -171,7 +171,7 @@
 			<div class="flex gap-3 mt-5">
 				{#if mode === 'edit'}
 					<button
-						class="shrink-0 w-10 h-10 rounded-full border border-destructive text-destructive flex items-center justify-center hover:bg-destructive/10 cursor-pointer"
+						class="shrink-0 w-10 h-10 rounded-md border border-destructive text-destructive flex items-center justify-center hover:bg-destructive/10 cursor-pointer"
 						onclick={handleRemove}
 						aria-label="Remover estudo"
 					>
