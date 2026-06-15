@@ -25,7 +25,6 @@
 	let realIndex = $state<number>(0);
 	let carouselIndex = $state<number>(1);
 	let swipeContainerEl: HTMLElement | undefined = $state(undefined);
-	let trackEl: HTMLElement | undefined = $state(undefined);
 	let touchStartX = 0;
 	let touchStartY = 0;
 	let isDragging = false;
@@ -151,102 +150,101 @@
 	});
 </script>
 
-<div class="max-w-4xl mx-auto">
-	<div class="mb-6">
-		<h1 class="text-3xl sm:text-4xl font-bold">Calculadora de Financiamento</h1>
-		<p class="text-lg text-muted-foreground mt-2">
-			Simule PRICE, SAC, SAM e Americano. Ajuste os valores e veja o resultado automaticamente.
-		</p>
-	</div>
+{#if $isMobile && showResults}
+	<!-- MOBILE with results: full viewport, no page scroll -->
+	<div class="h-[calc(100dvh-3.5rem)] flex flex-col overflow-hidden">
+		<div class="flex-shrink-0 px-4 pt-2">
+			<CalculatorForm onchange={() => (userHasInteracted = true)} />
+		</div>
 
-	<CalculatorForm onchange={() => (userHasInteracted = true)} />
-
-	{#if $allResultsStore.price && showResults}
-		<div class="mt-6">
-			<!-- MOBILE: infinite carousel -->
-			<div class="sm:hidden">
-				<div class="flex border-b mt-2 mb-1">
-					{#each SLIDES as key, i}
-						<button
-							class="flex-1 py-3 text-base font-medium text-center transition-colors {realIndex === i ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
-							onclick={() => goToSlide(i)}
-						>
-							{slideLabels[key]}
-						</button>
-					{/each}
-				</div>
-
-				<div class="overflow-hidden" bind:this={swipeContainerEl}>
-					<div
-						bind:this={trackEl}
-						class="flex {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
-						style="transform: translateX(calc(-{carouselIndex * 100}% + {dragDelta}px))"
-						ontransitionend={handleTransitionEnd}
+		<div class="flex-1 flex flex-col min-h-0 mt-2 px-4 pb-14">
+			<div class="flex border-b mb-1">
+				{#each SLIDES as key, i}
+					<button
+						class="flex-1 py-2 text-sm font-medium text-center transition-colors {realIndex === i ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
+						onclick={() => goToSlide(i)}
 					>
-						<!-- Clone of last slide (table) -->
-						<div class="w-full flex-shrink-0">
-							<div class="px-1 py-2">
-								<div class="flex items-center gap-2 py-3 overflow-x-auto">
-									{#each Object.entries(systemLabels) as [sysKey, label]}
-										<button
-											class="px-3 py-2 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
-											onclick={() => selectSystem(sysKey as AmortizationSystem)}
-										>
-											{label}
-										</button>
-									{/each}
-								</div>
-								<div class="overflow-y-auto" style="max-height: calc(100vh - 400px)">
-									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
-								</div>
-							</div>
-						</div>
+						{slideLabels[key]}
+					</button>
+				{/each}
+			</div>
 
-						<!-- Real slides -->
-						{#each SLIDES as key}
-							<div class="w-full flex-shrink-0">
+			<div class="flex-1 min-h-0 overflow-hidden" bind:this={swipeContainerEl}>
+				<div
+					class="flex h-full {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
+					style="transform: translateX(calc(-{carouselIndex * 100}% + {dragDelta}px))"
+					ontransitionend={handleTransitionEnd}
+				>
+					<!-- Clone of last slide (table) -->
+					<div class="w-full flex-shrink-0 h-full overflow-y-auto">
+						<div class="py-2">
+							<div class="flex items-center gap-2 overflow-x-auto">
+								{#each Object.entries(systemLabels) as [sysKey, label]}
+									<button
+										class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
+										onclick={() => selectSystem(sysKey as AmortizationSystem)}
+									>
+										{label}
+									</button>
+								{/each}
+							</div>
+							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
+						</div>
+					</div>
+
+					<!-- Real slides -->
+					{#each SLIDES as key}
+						<div class="w-full flex-shrink-0 h-full overflow-y-auto">
+							<div class="py-2">
 								{#if key === 'chart'}
-									<div class="px-1 py-2">
-										<ComparisonChart onlongpress={openExtraPayment} />
-									</div>
+									<ComparisonChart onlongpress={openExtraPayment} />
 								{:else if key === 'results'}
-									<div class="px-1 py-2">
-										<ResultsSummary />
-									</div>
+									<ResultsSummary />
 								{:else}
-									<div class="px-1 py-2">
-										<div class="flex items-center gap-2 py-3 overflow-x-auto">
-											{#each Object.entries(systemLabels) as [sysKey, label]}
-												<button
-													class="px-3 py-2 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
-													onclick={() => selectSystem(sysKey as AmortizationSystem)}
-												>
-													{label}
-												</button>
-											{/each}
-										</div>
-										<div class="overflow-y-auto" style="max-height: calc(100vh - 400px)">
-											<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
-										</div>
+									<div class="flex items-center gap-2 overflow-x-auto">
+										{#each Object.entries(systemLabels) as [sysKey, label]}
+											<button
+												class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
+												onclick={() => selectSystem(sysKey as AmortizationSystem)}
+											>
+												{label}
+											</button>
+										{/each}
 									</div>
+									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
 								{/if}
 							</div>
-						{/each}
+						</div>
+					{/each}
 
-						<!-- Clone of first slide (chart) -->
-						<div class="w-full flex-shrink-0">
-							<div class="px-1 py-2">
-								<ComparisonChart onlongpress={openExtraPayment} />
-							</div>
+					<!-- Clone of first slide (chart) -->
+					<div class="w-full flex-shrink-0 h-full overflow-y-auto">
+						<div class="py-2">
+							<ComparisonChart onlongpress={openExtraPayment} />
 						</div>
 					</div>
 				</div>
-
-				<div class="pb-16"></div>
 			</div>
+		</div>
 
-			<!-- DESKTOP -->
-			<div class="hidden sm:block space-y-6">
+		<div class="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-30">
+			<ExportButtons selectedSystem={selectedSystem} />
+		</div>
+	</div>
+{:else}
+	<!-- DEFAULT: scrollable layout (desktop or mobile before results) -->
+	<div class="max-w-4xl mx-auto">
+		<div class="mb-6">
+			<h1 class="text-3xl sm:text-4xl font-bold">Calculadora de Financiamento</h1>
+			<p class="text-lg text-muted-foreground mt-2">
+				Simule PRICE, SAC, SAM e Americano. Ajuste os valores e veja o resultado automaticamente.
+			</p>
+		</div>
+
+		<CalculatorForm onchange={() => (userHasInteracted = true)} />
+
+		{#if $allResultsStore.price && showResults}
+			<div class="mt-6 space-y-6">
 				<ResultsSummary />
 				<ComparisonChart onlongpress={openExtraPayment} />
 
@@ -270,13 +268,7 @@
 
 				<ExportButtons selectedSystem={selectedSystem} />
 			</div>
-		</div>
-	{/if}
-</div>
-
-{#if $allResultsStore.price && showResults && $isMobile}
-	<div class="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-30 sm:hidden">
-		<ExportButtons selectedSystem={selectedSystem} />
+		{/if}
 	</div>
 {/if}
 
