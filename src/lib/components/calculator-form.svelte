@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { studiesStore, calculateAll } from '$lib/stores/calculator-store';
+	import { studiesStore, calculateAll, activeStudy } from '$lib/stores/calculator-store';
 	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 	import Label from '$lib/components/ui/label.svelte';
 	import ExportModal from '$lib/components/export-modal.svelte';
@@ -51,7 +51,7 @@
 					id="m-principal"
 					inputmode="numeric"
 					placeholder="500.000"
-					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.principal ?? '500000'}
+					value={$activeStudy?.principal ?? '500000'}
 					onchange={(v) => updateField('principal', v)}
 					min="1"
 				/>
@@ -62,7 +62,7 @@
 					id="m-downPayment"
 					inputmode="numeric"
 					placeholder="0"
-					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.downPayment ?? '0'}
+					value={$activeStudy?.downPayment ?? '0'}
 					onchange={(v) => updateField('downPayment', v)}
 					min="0"
 				/>
@@ -74,7 +74,7 @@
 					inputmode="decimal"
 					placeholder="10"
 					decimal={true}
-					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.annualRate ?? '10'}
+					value={$activeStudy?.annualRate ?? '10'}
 					onchange={(v) => updateField('annualRate', v)}
 					min="0.01"
 				/>
@@ -85,7 +85,7 @@
 					id="m-term"
 					inputmode="numeric"
 					placeholder="360"
-					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.termMonths ?? '360'}
+					value={$activeStudy?.termMonths ?? '360'}
 					onchange={(v) => updateField('termMonths', v)}
 					min="1"
 				/>
@@ -112,7 +112,7 @@
 					id="principal"
 					inputmode="numeric"
 					placeholder="Ex: 500.000"
-					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.principal ?? '500000'}
+					value={$activeStudy?.principal ?? '500000'}
 					onchange={(v) => updateField('principal', v)}
 					min="1"
 					class="mt-1"
@@ -125,7 +125,7 @@
 					id="downPayment"
 					inputmode="numeric"
 					placeholder="Ex: 100.000"
-					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.downPayment ?? '0'}
+					value={$activeStudy?.downPayment ?? '0'}
 					onchange={(v) => updateField('downPayment', v)}
 					min="0"
 					class="mt-1"
@@ -141,7 +141,7 @@
 					inputmode="decimal"
 					placeholder="Ex: 10,5"
 					decimal={true}
-					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.annualRate ?? '10'}
+					value={$activeStudy?.annualRate ?? '10'}
 					onchange={(v) => updateField('annualRate', v)}
 					min="0.01"
 					class="mt-1"
@@ -154,7 +154,7 @@
 					id="termMonths"
 					inputmode="numeric"
 					placeholder="Ex: 360"
-					value={$studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)?.termMonths ?? '360'}
+					value={$activeStudy?.termMonths ?? '360'}
 					onchange={(v) => updateField('termMonths', v)}
 					min="1"
 					class="mt-1"
