@@ -20,12 +20,12 @@
 	let lastInterstitialTime = 0;
 	const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 
-	const SLIDES = ['form', 'chart', 'results', 'table'] as const;
+	const SLIDES = ['chart', 'results', 'table'] as const;
 	type SlideKey = typeof SLIDES[number];
 	const N = SLIDES.length;
 
-	let realIndex = $state<number>($isMobile && showResults ? 1 : 0);
-	let carouselIndex = $state<number>($isMobile && showResults ? 2 : 1);
+	let realIndex = $state<number>(0);
+	let carouselIndex = $state<number>(1);
 	let swipeContainerEl: HTMLElement | undefined = $state(undefined);
 	let touchStartX = 0;
 	let touchStartY = 0;
@@ -41,7 +41,6 @@
 	};
 
 	const slideLabels: Record<SlideKey, string> = {
-		form: 'Simular',
 		chart: 'Grafico',
 		results: 'Resultado',
 		table: 'Tabela'
@@ -129,12 +128,6 @@
 					}
 				} else {
 					showResults = true;
-					if ($isMobile) {
-						animating = true;
-						carouselIndex = 2;
-						realIndex = 1;
-						dragDelta = 0;
-					}
 				}
 			}
 		}
@@ -143,12 +136,6 @@
 	function handleInterstitialClose() {
 		showInterstitial = false;
 		showResults = true;
-		if ($isMobile) {
-			animating = true;
-			carouselIndex = 2;
-			realIndex = 1;
-			dragDelta = 0;
-		}
 	}
 
 	$effect(() => {
@@ -172,7 +159,7 @@
 </script>
 
 {#if $isMobile}
-	<!-- MOBILE: full viewport carousel, no page scroll -->
+	<!-- MOBILE: carousel + fixed bottom inputs -->
 	<div class="h-[calc(100dvh-3.5rem)] flex flex-col overflow-hidden">
 		<div class="flex border-b shrink-0">
 			{#each SLIDES as key, i}
@@ -214,10 +201,7 @@
 				{#each SLIDES as key}
 					<div class="w-full flex-shrink-0 overflow-y-auto">
 						<div class="p-4">
-							{#if key === 'form'}
-								<h1 class="text-lg font-bold mb-3">Calculadora de Financiamento</h1>
-								<CalculatorForm onchange={() => (userHasInteracted = true)} />
-							{:else if key === 'chart'}
+							{#if key === 'chart'}
 								{#if $allResultsStore.price}
 									<ComparisonChart onlongpress={openExtraPayment} />
 								{/if}
@@ -244,18 +228,20 @@
 					</div>
 				{/each}
 
-				<!-- Clone of first slide (form) -->
+				<!-- Clone of first slide (chart) -->
 				<div class="w-full flex-shrink-0 overflow-y-auto">
 					<div class="p-4">
-						<h1 class="text-lg font-bold mb-3">Calculadora de Financiamento</h1>
-						<CalculatorForm onchange={() => (userHasInteracted = true)} />
+						{#if $allResultsStore.price}
+							<ComparisonChart onlongpress={openExtraPayment} />
+						{/if}
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="shrink-0 bg-background border-t p-3 z-30">
-			<ExportButtons selectedSystem={selectedSystem} />
+		<!-- Fixed bottom bar: inputs 2x2 -->
+		<div class="shrink-0 bg-background border-t px-3 pt-2 pb-3">
+			<CalculatorForm compact={true} onchange={() => (userHasInteracted = true)} />
 		</div>
 	</div>
 {:else}
@@ -280,7 +266,7 @@
 					<div class="flex flex-wrap gap-2">
 						{#each Object.entries(systemLabels) as [key, label]}
 							<button
-								class="px-4 py-2.5 text-base rounded-lg border transition-colors {selectedSystem === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input hover:bg-accent'}"
+								class="px-4 py-2 text-sm rounded-md border transition-colors {selectedSystem === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input hover:bg-accent'}"
 								onclick={() => selectSystem(key as AmortizationSystem)}
 							>
 								{label}
