@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let { publisherId = 'ca-pub-XXXXXXXXXXXXXXXX' }: { publisherId?: string } = $props();
+	let { publisherId = 'ca-pub-1972364870511142' }: { publisherId?: string } = $props();
 
 	onMount(() => {
 		if (typeof window !== 'undefined' && !document.querySelector('script[data-adsense]')) {
