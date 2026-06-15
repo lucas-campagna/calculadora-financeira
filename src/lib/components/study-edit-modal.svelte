@@ -136,6 +136,16 @@
 						/>
 					</div>
 					<div>
+						<label for="study-down" class="text-sm font-medium">Entrada (R$)</label>
+						<input
+							id="study-down"
+							type="text"
+							inputmode="numeric"
+							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
+							bind:value={downPayment}
+						/>
+					</div>
+					<div>
 						<label for="study-rate" class="text-sm font-medium">Taxa (% a.a.)</label>
 						<input
 							id="study-rate"
@@ -153,16 +163,6 @@
 							inputmode="numeric"
 							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
 							bind:value={termMonths}
-						/>
-					</div>
-					<div>
-						<label for="study-down" class="text-sm font-medium">Entrada (R$)</label>
-						<input
-							id="study-down"
-							type="text"
-							inputmode="numeric"
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
-							bind:value={downPayment}
 						/>
 					</div>
 				</div>
