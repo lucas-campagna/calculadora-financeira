@@ -65,7 +65,7 @@
 
 	{#each $studiesStore.studies as study (study.id)}
 		<button
-			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none {$studiesStore.syncLocked || $studiesStore.activeStudyId === study.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-foreground border-input hover:bg-accent'}"
+			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none {$studiesStore.activeStudyId === study.id ? 'bg-primary text-primary-foreground border-primary' : $studiesStore.syncLocked ? 'bg-muted text-muted-foreground border-muted' : 'bg-background text-foreground border-input hover:bg-accent'}"
 			onclick={() => handlePillClick(study.id)}
 			ontouchstart={() => handlePillTouchStart(study.id)}
 			ontouchend={handlePillTouchEnd}
