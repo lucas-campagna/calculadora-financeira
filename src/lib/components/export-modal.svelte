@@ -48,7 +48,7 @@
 		const doc = new jspdf();
 
 		doc.setFontSize(18);
-		doc.text(`Simulacao - ${study.name}`, 14, 20);
+		doc.text(`Simulação - ${study.name}`, 14, 20);
 
 		doc.setFontSize(10);
 		doc.text(`Valor Total Pago: ${formatCurrency(result.totalPaid)}`, 14, 32);
@@ -58,7 +58,7 @@
 		doc.text(`Número de Parcelas: ${result.installments.length}`, 14, 56);
 
 		doc.setFontSize(12);
-		doc.text('Tabela de Amortizacao', 14, 66);
+		doc.text('Tabela de Amortização', 14, 66);
 
 		let y = 74;
 		doc.setFontSize(8);

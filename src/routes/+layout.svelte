@@ -29,7 +29,7 @@
 
 	<footer class="border-t bg-muted/50 py-6 hidden sm:block">
 		<div class="container mx-auto px-4 text-center text-base text-muted-foreground">
-			<p>Calculadora de Financiamento — Simulacao educacional. Consulte um profissional antes de decisoes financeiras.</p>
+			<p>Calculadora de Financiamento — Simulação educacional. Consulte um profissional antes de decisões financeiras.</p>
 		</div>
 	</footer>
 </div>

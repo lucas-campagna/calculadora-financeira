@@ -15,8 +15,8 @@
 </script>
 
 <svelte:head>
-	<title>Comparar Sistemas de Amortizacao — PRICE vs SAC vs SAM vs Americano</title>
-	<meta name="description" content="Compare PRICE, SAC, SAM e Americano lado a lado. Veja qual sistema de amortizacao e mais vantajoso para o seu financiamento." />
+	<title>Comparar Sistemas de Amortização — PRICE vs SAC vs SAM vs Americano</title>
+	<meta name="description" content="Compare PRICE, SAC, SAM e Americano lado a lado. Veja qual sistema de amortização e mais vantajoso para o seu financiamento." />
 </svelte:head>
 
 <div class="max-w-4xl mx-auto">
