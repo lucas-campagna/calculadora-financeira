@@ -16,6 +16,10 @@
 		const s = $studiesStore;
 		if (s.studies.length !== 4) return false;
 		if (Object.keys(s.overrides).length > 0) return false;
+		if (s.commonValues.principal !== '500000') return false;
+		if (s.commonValues.annualRate !== '10') return false;
+		if (s.commonValues.termMonths !== '360') return false;
+		if (s.commonValues.downPayment !== '0') return false;
 		const defaults = [
 			{ name: 'PRICE', system: 'price' as const },
 			{ name: 'SAC', system: 'sac' as const },
