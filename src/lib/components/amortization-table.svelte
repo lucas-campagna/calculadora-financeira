@@ -22,9 +22,11 @@
 	<div class="mt-2">
 		<div class="flex items-center justify-between mb-2">
 			<h3 class="text-sm font-semibold">Tabela — {currentResult.systemLabel}</h3>
-			<button class="text-sm text-primary hover:underline py-1" onclick={() => (expanded = !expanded)}>
-				{expanded ? '▲ Ver resumo' : '▼ Ver tudo'}
-			</button>
+			{#if !defaultExpanded}
+				<button class="text-sm text-primary hover:underline py-1" onclick={() => (expanded = !expanded)}>
+					{expanded ? '▲ Ver resumo' : '▼ Ver tudo'}
+				</button>
+			{/if}
 		</div>
 
 		<p class="text-xs text-muted-foreground mb-2">Toque em uma parcela para adicionar pagamento extra.</p>
