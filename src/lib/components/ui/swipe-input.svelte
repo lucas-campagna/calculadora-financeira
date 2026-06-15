@@ -14,7 +14,8 @@
 		inputmode = 'numeric' as 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none',
 		decimal = false,
 		min = '0',
-		dimmed = false,
+		locked = false,
+		onlocktoggle = () => {},
 		onchange: handleChange = (_v: string) => {},
 		this: inputRef = undefined as HTMLInputElement | undefined
 	}: {
@@ -25,7 +26,8 @@
 		inputmode?: 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none';
 		decimal?: boolean;
 		min?: string;
-		dimmed?: boolean;
+		locked?: boolean;
+		onlocktoggle?: () => void;
 		onchange?: (v: string) => void;
 		this?: HTMLInputElement | undefined;
 	} = $props();
@@ -166,7 +168,7 @@
 		class={cn(
 			'flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none transition-colors',
 			isSwiping ? 'border-primary bg-primary/5' : '',
-			dimmed ? 'border-muted bg-muted text-muted-foreground' : 'border-input',
+			locked ? 'border-muted bg-muted text-muted-foreground' : 'border-input',
 			className
 		)}
 	/>
@@ -175,12 +177,17 @@
 			{swipeIndicator}
 		</div>
 	{:else}
-		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-			{#if dimmed}
+		<button
+			class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground cursor-pointer"
+			onclick={(e) => { e.stopPropagation(); onlocktoggle(); }}
+			aria-label={locked ? 'Desbloquear campo' : 'Bloquear campo'}
+			type="button"
+		>
+			{#if locked}
 				<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
 			{:else}
 				<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 5-5 1.6 1.6 0 0 1 1 .4"/></svg>
 			{/if}
-		</div>
+		</button>
 	{/if}
 </div>

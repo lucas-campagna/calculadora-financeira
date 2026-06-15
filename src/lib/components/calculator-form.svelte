@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { studiesStore, calculateAll, activeStudy } from '$lib/stores/calculator-store';
+	import type { FieldKey } from '$lib/stores/calculator-store';
 	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 	import Label from '$lib/components/ui/label.svelte';
 	import ExportModal from '$lib/components/export-modal.svelte';
@@ -20,21 +21,21 @@
 	let editMode = $state<'add' | 'edit'>('add');
 	let editStudy: Study | undefined = $state(undefined);
 
-	function isFieldSynced(field: 'principal' | 'downPayment' | 'termMonths' | 'annualRate'): boolean {
-		const studies = $studiesStore.studies;
-		if (studies.length < 2) return true;
-		const first = studies[0][field];
-		return studies.every((s) => s[field] === first);
+	function getFieldLocked(field: FieldKey): boolean {
+		return studiesStore.isFieldLocked(field);
 	}
 
-	let principalSynced = $derived(isFieldSynced('principal'));
-	let downPaymentSynced = $derived(isFieldSynced('downPayment'));
-	let annualRateSynced = $derived(isFieldSynced('annualRate'));
-	let termMonthsSynced = $derived(isFieldSynced('termMonths'));
+	function handleFieldLockToggle(field: FieldKey) {
+		studiesStore.toggleFieldLock(field);
+	}
 
-	function updateField(field: 'principal' | 'downPayment' | 'termMonths' | 'annualRate', raw: string) {
+	function updateField(field: FieldKey, raw: string) {
 		studiesStore.updateField(field, raw);
 		handleFormChange();
+	}
+
+	function getFieldValue(field: FieldKey): string {
+		return studiesStore.getEffectiveValue($studiesStore.activeStudyId, field);
 	}
 
 	function handleAddStudy() {
@@ -63,10 +64,11 @@
 					id="m-principal"
 					inputmode="numeric"
 					placeholder="500.000"
-					value={$activeStudy?.principal ?? '500000'}
+					value={getFieldValue('principal')}
 					onchange={(v) => updateField('principal', v)}
+					locked={getFieldLocked('principal')}
+					onlocktoggle={() => handleFieldLockToggle('principal')}
 					min="1"
-					dimmed={$studiesStore.syncLocked && !principalSynced}
 				/>
 			</div>
 			<div>
@@ -75,10 +77,11 @@
 					id="m-downPayment"
 					inputmode="numeric"
 					placeholder="0"
-					value={$activeStudy?.downPayment ?? '0'}
+					value={getFieldValue('downPayment')}
 					onchange={(v) => updateField('downPayment', v)}
+					locked={getFieldLocked('downPayment')}
+					onlocktoggle={() => handleFieldLockToggle('downPayment')}
 					min="0"
-					dimmed={$studiesStore.syncLocked && !downPaymentSynced}
 				/>
 			</div>
 			<div>
@@ -88,10 +91,11 @@
 					inputmode="decimal"
 					placeholder="10"
 					decimal={true}
-					value={$activeStudy?.annualRate ?? '10'}
+					value={getFieldValue('annualRate')}
 					onchange={(v) => updateField('annualRate', v)}
+					locked={getFieldLocked('annualRate')}
+					onlocktoggle={() => handleFieldLockToggle('annualRate')}
 					min="0.01"
-					dimmed={$studiesStore.syncLocked && !annualRateSynced}
 				/>
 			</div>
 			<div>
@@ -100,10 +104,11 @@
 					id="m-term"
 					inputmode="numeric"
 					placeholder="360"
-					value={$activeStudy?.termMonths ?? '360'}
+					value={getFieldValue('termMonths')}
 					onchange={(v) => updateField('termMonths', v)}
+					locked={getFieldLocked('termMonths')}
+					onlocktoggle={() => handleFieldLockToggle('termMonths')}
 					min="1"
-					dimmed={$studiesStore.syncLocked && !termMonthsSynced}
 				/>
 			</div>
 		</div>
@@ -128,11 +133,12 @@
 					id="principal"
 					inputmode="numeric"
 					placeholder="Ex: 500.000"
-					value={$activeStudy?.principal ?? '500000'}
+					value={getFieldValue('principal')}
 					onchange={(v) => updateField('principal', v)}
+					locked={getFieldLocked('principal')}
+					onlocktoggle={() => handleFieldLockToggle('principal')}
 					min="1"
 					class="mt-1"
-					dimmed={$studiesStore.syncLocked && !principalSynced}
 				/>
 			</div>
 
@@ -142,11 +148,12 @@
 					id="downPayment"
 					inputmode="numeric"
 					placeholder="Ex: 100.000"
-					value={$activeStudy?.downPayment ?? '0'}
+					value={getFieldValue('downPayment')}
 					onchange={(v) => updateField('downPayment', v)}
+					locked={getFieldLocked('downPayment')}
+					onlocktoggle={() => handleFieldLockToggle('downPayment')}
 					min="0"
 					class="mt-1"
-					dimmed={$studiesStore.syncLocked && !downPaymentSynced}
 				/>
 			</div>
 		</div>
@@ -159,11 +166,12 @@
 					inputmode="decimal"
 					placeholder="Ex: 10,5"
 					decimal={true}
-					value={$activeStudy?.annualRate ?? '10'}
+					value={getFieldValue('annualRate')}
 					onchange={(v) => updateField('annualRate', v)}
+					locked={getFieldLocked('annualRate')}
+					onlocktoggle={() => handleFieldLockToggle('annualRate')}
 					min="0.01"
 					class="mt-1"
-					dimmed={$studiesStore.syncLocked && !annualRateSynced}
 				/>
 			</div>
 
@@ -173,11 +181,12 @@
 					id="termMonths"
 					inputmode="numeric"
 					placeholder="Ex: 360"
-					value={$activeStudy?.termMonths ?? '360'}
+					value={getFieldValue('termMonths')}
 					onchange={(v) => updateField('termMonths', v)}
+					locked={getFieldLocked('termMonths')}
+					onlocktoggle={() => handleFieldLockToggle('termMonths')}
 					min="1"
 					class="mt-1"
-					dimmed={$studiesStore.syncLocked && !termMonthsSynced}
 				/>
 			</div>
 		</div>
