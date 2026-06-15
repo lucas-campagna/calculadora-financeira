@@ -199,11 +199,11 @@
 
 				<!-- Real slides -->
 				{#each SLIDES as key}
-					<div class="w-full flex-shrink-0 overflow-y-auto">
-						<div class="p-4">
+					<div class="w-full flex-shrink-0 {key === 'chart' ? 'flex flex-col' : 'overflow-y-auto'}">
+						<div class={key === 'chart' ? 'flex-1 min-h-0 p-2' : 'p-4'}>
 							{#if key === 'chart'}
 								{#if $allResultsStore.price}
-									<ComparisonChart onlongpress={openExtraPayment} />
+									<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
 								{/if}
 							{:else if key === 'results'}
 								{#if $allResultsStore.price}
@@ -229,10 +229,10 @@
 				{/each}
 
 				<!-- Clone of first slide (chart) -->
-				<div class="w-full flex-shrink-0 overflow-y-auto">
-					<div class="p-4">
+				<div class="w-full flex-shrink-0 flex flex-col">
+					<div class="flex-1 min-h-0 p-2">
 						{#if $allResultsStore.price}
-							<ComparisonChart onlongpress={openExtraPayment} />
+							<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
 						{/if}
 					</div>
 				</div>

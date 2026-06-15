@@ -11,9 +11,11 @@
 	let hasMoved = false;
 
 	let {
-		onlongpress = (_month: number) => {}
+		onlongpress = (_month: number) => {},
+		fullHeight = false
 	}: {
 		onlongpress?: (month: number) => void;
+		fullHeight?: boolean;
 	} = $props();
 
 	async function renderChart() {
@@ -181,10 +183,10 @@
 </script>
 
 {#if $allResultsStore.price}
-	<div class="border rounded-lg p-3 sm:p-4">
-		<h2 class="text-sm font-semibold mb-1 sm:mb-2">Evolucao do Saldo Devedor</h2>
-		<p class="text-xs text-muted-foreground mb-1 sm:mb-2">Clique na legenda para mostrar/ocultar. Segure no grafico para adicionar pagamento extra.</p>
-		<div class="h-56 sm:h-80"
+	<div class="border rounded-lg p-2 sm:p-4 {fullHeight ? 'flex flex-col' : ''}" style={fullHeight ? 'height: 100%' : ''}>
+		<h2 class="text-sm font-semibold mb-1">Evolucao do Saldo Devedor</h2>
+		<p class="text-xs text-muted-foreground mb-1">Clique na legenda para mostrar/ocultar. Segure no grafico para adicionar pagamento extra.</p>
+		<div class={fullHeight ? 'flex-1 min-h-0' : 'h-56 sm:h-80'}
 			ontouchstart={handleCanvasTouchStart}
 			ontouchmove={handleCanvasTouchMove}
 			ontouchend={handleCanvasTouchEnd}
