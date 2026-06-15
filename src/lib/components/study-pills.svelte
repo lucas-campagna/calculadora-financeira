@@ -73,12 +73,6 @@
 				<p class="text-sm text-muted-foreground mb-4">Todos os estudos serão resetados para os valores iniciais. Esta ação não pode ser desfeita.</p>
 				<div class="flex gap-3">
 					<button
-						class="flex-1 h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer"
-						onclick={() => (showRestoreConfirm = false)}
-					>
-						Cancelar
-					</button>
-					<button
 						class="flex-1 h-10 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 cursor-pointer"
 						onclick={() => { studiesStore.restore(); showRestoreConfirm = false; }}
 					>
