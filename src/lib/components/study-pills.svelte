@@ -10,9 +10,6 @@
 		onedit?: (study: Study) => void;
 	} = $props();
 
-	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
-	let longPressTarget: string | null = null;
-
 	function handlePillClick(id: string) {
 		if (id === $studiesStore.activeStudyId) {
 			const study = $studiesStore.studies.find((s) => s.id === id);
@@ -20,25 +17,6 @@
 		} else {
 			studiesStore.setActive(id);
 		}
-	}
-
-	function handlePillTouchStart(id: string) {
-		longPressTimer = setTimeout(() => {
-			const study = $studiesStore.studies.find((s) => s.id === id);
-			if (study) onedit(study);
-		}, 500);
-	}
-
-	function handlePillTouchEnd() {
-		if (longPressTimer) {
-			clearTimeout(longPressTimer);
-			longPressTimer = null;
-		}
-	}
-
-	function handlePillContextMenu(study: Study, e: Event) {
-		e.preventDefault();
-		onedit(study);
 	}
 </script>
 
@@ -67,9 +45,6 @@
 		<button
 			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none {isActive ? 'bg-primary text-primary-foreground border-primary' : hasOverrides ? 'bg-background text-foreground border-input hover:bg-accent' : 'bg-muted text-muted-foreground border-muted'}"
 			onclick={() => handlePillClick(study.id)}
-			ontouchstart={() => handlePillTouchStart(study.id)}
-			ontouchend={handlePillTouchEnd}
-			oncontextmenu={(e) => handlePillContextMenu(study, e)}
 		>
 			{study.name}
 		</button>
