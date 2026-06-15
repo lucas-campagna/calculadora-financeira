@@ -10,6 +10,8 @@
 		onedit?: (study: Study) => void;
 	} = $props();
 
+	let showRestoreConfirm = $state(false);
+
 	function handlePillClick(id: string) {
 		if (id === $studiesStore.activeStudyId) {
 			const study = $studiesStore.studies.find((s) => s.id === id);
@@ -31,11 +33,36 @@
 
 	<button
 		class="shrink-0 w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer"
-		onclick={() => { studiesStore.restore(); }}
+		onclick={() => { showRestoreConfirm = true; }}
 		aria-label="Restaurar estudos"
 	>
 		<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
 	</button>
+
+	{#if showRestoreConfirm}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onclick={() => (showRestoreConfirm = false)} onkeydown={(e: KeyboardEvent) => { if (e.key === 'Escape') showRestoreConfirm = false; }} role="dialog" aria-modal="true" aria-label="Confirmar restauracao" tabindex="0">
+			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+			<div role="document" class="bg-background p-6 rounded-xl max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
+				<h2 class="text-base font-semibold mb-2">Restaurar valores?</h2>
+				<p class="text-sm text-muted-foreground mb-4">Todos os estudos serao resetados para os valores iniciais. Esta acao nao pode ser desfeita.</p>
+				<div class="flex gap-3">
+					<button
+						class="flex-1 h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer"
+						onclick={() => (showRestoreConfirm = false)}
+					>
+						Cancelar
+					</button>
+					<button
+						class="flex-1 h-10 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 cursor-pointer"
+						onclick={() => { studiesStore.restore(); showRestoreConfirm = false; }}
+					>
+						Restaurar
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 
 	<div class="flex-1 min-w-0 overflow-x-auto scrollbar-hide flex flex-nowrap items-center gap-2">
 		{#each $studiesStore.studies as study (study.id)}
