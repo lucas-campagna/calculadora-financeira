@@ -52,20 +52,20 @@
 	</button>
 
 	<button
-		class="shrink-0 w-8 h-8 rounded-full border {$studiesStore.syncLocked ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-input'} flex items-center justify-center transition-colors cursor-pointer"
-		onclick={() => $studiesStore.toggleLock()}
+		class="shrink-0 w-8 h-8 rounded-full border {$studiesStore.syncLocked ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-input hover:bg-accent'} flex items-center justify-center transition-colors cursor-pointer"
+		onclick={() => { $studiesStore.toggleLock(); }}
 		aria-label="{$studiesStore.syncLocked ? 'Desbloquear: editar apenas estudo ativo' : 'Bloquear: sincronizar valores entre estudos'}"
 	>
 		{#if $studiesStore.syncLocked}
 			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
 		{:else}
-			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 5-5 1.6 1.6 0 0 1 1 .4"/></svg>
 		{/if}
 	</button>
 
 	{#each $studiesStore.studies as study (study.id)}
 		<button
-			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none {$studiesStore.activeStudyId === study.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-foreground border-input hover:bg-accent'}"
+			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none {$studiesStore.syncLocked || $studiesStore.activeStudyId === study.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-foreground border-input hover:bg-accent'}"
 			onclick={() => handlePillClick(study.id)}
 			ontouchstart={() => handlePillTouchStart(study.id)}
 			ontouchend={handlePillTouchEnd}
