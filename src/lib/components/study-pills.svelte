@@ -14,16 +14,16 @@
 	let longPressTarget: string | null = null;
 
 	function handlePillClick(id: string) {
-		if (longPressTarget === id) {
-			longPressTarget = null;
-			return;
+		if (id === $studiesStore.activeStudyId) {
+			const study = $studiesStore.studies.find((s) => s.id === id);
+			if (study) onedit(study);
+		} else {
+			studiesStore.setActive(id);
 		}
-		studiesStore.setActive(id);
 	}
 
 	function handlePillTouchStart(id: string) {
 		longPressTimer = setTimeout(() => {
-			longPressTarget = id;
 			const study = $studiesStore.studies.find((s) => s.id === id);
 			if (study) onedit(study);
 		}, 500);
