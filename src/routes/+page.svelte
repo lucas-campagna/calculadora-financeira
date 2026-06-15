@@ -18,12 +18,12 @@
 	let previousResultHash = $state('');
 	let userHasInteracted = $state(false);
 
-	const SLIDES = ['chart', 'results', 'table'] as const;
+	const SLIDES = ['form', 'chart', 'results', 'table'] as const;
 	type SlideKey = typeof SLIDES[number];
 	const N = SLIDES.length;
 
-	let realIndex = $state<number>(0);
-	let carouselIndex = $state<number>(1);
+	let realIndex = $state<number>($isMobile && showResults ? 1 : 0);
+	let carouselIndex = $state<number>($isMobile && showResults ? 2 : 1);
 	let swipeContainerEl: HTMLElement | undefined = $state(undefined);
 	let touchStartX = 0;
 	let touchStartY = 0;
@@ -39,6 +39,7 @@
 	};
 
 	const slideLabels: Record<SlideKey, string> = {
+		form: 'Simular',
 		chart: 'Grafico',
 		results: 'Resultado',
 		table: 'Tabela'
@@ -120,6 +121,12 @@
 					showResults = false;
 				} else {
 					showResults = true;
+					if ($isMobile) {
+						animating = true;
+						carouselIndex = 2;
+						realIndex = 1;
+						dragDelta = 0;
+					}
 				}
 			}
 		}
@@ -128,6 +135,12 @@
 	function handleInterstitialClose() {
 		showInterstitial = false;
 		showResults = true;
+		if ($isMobile) {
+			animating = true;
+			carouselIndex = 2;
+			realIndex = 1;
+			dragDelta = 0;
+		}
 	}
 
 	$effect(() => {
@@ -150,90 +163,96 @@
 	});
 </script>
 
-{#if $isMobile && showResults}
-	<!-- MOBILE with results: full viewport, no page scroll -->
+{#if $isMobile}
+	<!-- MOBILE: full viewport carousel, no page scroll -->
 	<div class="h-[calc(100dvh-3.5rem)] flex flex-col overflow-hidden">
-		<div class="flex-shrink-0 px-4 pt-2">
-			<CalculatorForm onchange={() => (userHasInteracted = true)} />
+		<div class="flex border-b shrink-0">
+			{#each SLIDES as key, i}
+				<button
+					class="flex-1 py-2 text-sm font-medium text-center transition-colors {realIndex === i ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
+					onclick={() => goToSlide(i)}
+				>
+					{slideLabels[key]}
+				</button>
+			{/each}
 		</div>
 
-		<div class="flex-1 flex flex-col min-h-0 mt-2 px-4 pb-14">
-			<div class="flex border-b mb-1">
-				{#each SLIDES as key, i}
-					<button
-						class="flex-1 py-2 text-sm font-medium text-center transition-colors {realIndex === i ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
-						onclick={() => goToSlide(i)}
-					>
-						{slideLabels[key]}
-					</button>
-				{/each}
-			</div>
-
-			<div class="flex-1 min-h-0 overflow-hidden" bind:this={swipeContainerEl}>
-				<div
-					class="flex h-full {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
-					style="transform: translateX(calc(-{carouselIndex * 100}% + {dragDelta}px))"
-					ontransitionend={handleTransitionEnd}
-				>
-					<!-- Clone of last slide (table) -->
-					<div class="w-full flex-shrink-0 overflow-y-auto">
-						<div class="py-2">
-							<div class="flex items-center gap-2 overflow-x-auto">
-								{#each Object.entries(systemLabels) as [sysKey, label]}
-									<button
-										class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
-										onclick={() => selectSystem(sysKey as AmortizationSystem)}
-									>
-										{label}
-									</button>
-								{/each}
-							</div>
-							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
+		<div class="flex-1 min-h-0 overflow-hidden" bind:this={swipeContainerEl}>
+			<div
+				class="flex h-full {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
+				style="transform: translateX(calc(-{carouselIndex * 100}% + {dragDelta}px))"
+				ontransitionend={handleTransitionEnd}
+			>
+				<!-- Clone of last slide (table) -->
+				<div class="w-full flex-shrink-0 overflow-y-auto">
+					<div class="p-4">
+						<div class="flex items-center gap-2 overflow-x-auto pb-2">
+							{#each Object.entries(systemLabels) as [sysKey, label]}
+								<button
+									class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
+									onclick={() => selectSystem(sysKey as AmortizationSystem)}
+								>
+									{label}
+								</button>
+							{/each}
 						</div>
+						{#if $allResultsStore.price}
+							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
+						{/if}
 					</div>
+				</div>
 
-					<!-- Real slides -->
-					{#each SLIDES as key}
-						<div class="w-full flex-shrink-0 overflow-y-auto">
-							<div class="py-2">
-								{#if key === 'chart'}
+				<!-- Real slides -->
+				{#each SLIDES as key}
+					<div class="w-full flex-shrink-0 overflow-y-auto">
+						<div class="p-4">
+							{#if key === 'form'}
+								<h1 class="text-2xl font-bold mb-4">Calculadora de Financiamento</h1>
+								<CalculatorForm onchange={() => (userHasInteracted = true)} />
+							{:else if key === 'chart'}
+								{#if $allResultsStore.price}
 									<ComparisonChart onlongpress={openExtraPayment} />
-								{:else if key === 'results'}
+								{/if}
+							{:else if key === 'results'}
+								{#if $allResultsStore.price}
 									<ResultsSummary />
-								{:else}
-									<div class="flex items-center gap-2 overflow-x-auto">
-										{#each Object.entries(systemLabels) as [sysKey, label]}
-											<button
-												class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
-												onclick={() => selectSystem(sysKey as AmortizationSystem)}
-											>
-												{label}
-											</button>
-										{/each}
-									</div>
+								{/if}
+							{:else}
+								<div class="flex items-center gap-2 overflow-x-auto pb-2">
+									{#each Object.entries(systemLabels) as [sysKey, label]}
+										<button
+											class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
+											onclick={() => selectSystem(sysKey as AmortizationSystem)}
+										>
+											{label}
+										</button>
+									{/each}
+								</div>
+								{#if $allResultsStore.price}
 									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
 								{/if}
-							</div>
+							{/if}
 						</div>
-					{/each}
+					</div>
+				{/each}
 
-					<!-- Clone of first slide (chart) -->
-					<div class="w-full flex-shrink-0 overflow-y-auto">
-						<div class="py-2">
-							<ComparisonChart onlongpress={openExtraPayment} />
-						</div>
+				<!-- Clone of first slide (form) -->
+				<div class="w-full flex-shrink-0 overflow-y-auto">
+					<div class="p-4">
+						<h1 class="text-2xl font-bold mb-4">Calculadora de Financiamento</h1>
+						<CalculatorForm onchange={() => (userHasInteracted = true)} />
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-30">
+		<div class="shrink-0 bg-background border-t p-3 z-30">
 			<ExportButtons selectedSystem={selectedSystem} />
 		</div>
 	</div>
 {:else}
-	<!-- DEFAULT: scrollable layout (desktop or mobile before results) -->
-	<div class="sm:max-w-4xl sm:mx-auto px-4 sm:px-0">
+	<!-- DESKTOP: scrollable layout -->
+	<div class="max-w-4xl mx-auto">
 		<div class="mb-6">
 			<h1 class="text-3xl sm:text-4xl font-bold">Calculadora de Financiamento</h1>
 			<p class="text-lg text-muted-foreground mt-2">
@@ -244,7 +263,7 @@
 		<CalculatorForm onchange={() => (userHasInteracted = true)} />
 
 		{#if $allResultsStore.price && showResults}
-			<div class="mt-6 hidden sm:block space-y-6">
+			<div class="mt-6 space-y-6">
 				<ResultsSummary />
 				<ComparisonChart onlongpress={openExtraPayment} />
 
