@@ -21,6 +21,7 @@
 	const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 
 	let showScrollTop = $state(false);
+	let mobileHeight = $state('100dvh');
 
 	const SLIDES = ['chart', 'results', 'table'] as const;
 	type SlideKey = typeof SLIDES[number];
@@ -202,8 +203,22 @@ let touchStartX = 0;
 		function onScroll() {
 			showScrollTop = window.scrollY > 300;
 		}
+
+		function updateMobileHeight() {
+			const header = document.querySelector('header');
+			const headerH = header ? header.getBoundingClientRect().height : 56;
+			mobileHeight = `${window.visualViewport?.height ?? window.innerHeight - headerH}px`;
+		}
+
+		updateMobileHeight();
+		window.visualViewport?.addEventListener('resize', updateMobileHeight);
+		window.addEventListener('resize', updateMobileHeight);
 		window.addEventListener('scroll', onScroll, { passive: true });
-		return () => window.removeEventListener('scroll', onScroll);
+		return () => {
+			window.visualViewport?.removeEventListener('resize', updateMobileHeight);
+			window.removeEventListener('resize', updateMobileHeight);
+			window.removeEventListener('scroll', onScroll);
+		};
 	});
 
 	function scrollToTop() {
@@ -212,8 +227,8 @@ let touchStartX = 0;
 </script>
 
 {#if $isMobile}
-	<!-- MOBILE: full viewport, no page scroll -->
-	<div class="h-[calc(100dvh-3.5rem)] flex flex-col overflow-hidden">
+	<!-- MOBILE: full viewport height, adjusts for keyboard -->
+	<div class="flex flex-col overflow-hidden" style="height: {mobileHeight}">
 		<div class="flex border-b shrink-0">
 			{#each SLIDES as key, i}
 				<button
