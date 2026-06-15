@@ -26,8 +26,30 @@ const initialState: CalculatorState = {
 	extraPayments: []
 };
 
+const STORAGE_KEY = 'calcfin_state';
+
+function loadState(): CalculatorState {
+	if (typeof window === 'undefined') return initialState;
+	try {
+		const saved = sessionStorage.getItem(STORAGE_KEY);
+		if (saved) {
+			const parsed = JSON.parse(saved);
+			if (parsed.principal && parsed.annualRate && parsed.termMonths) {
+				return {
+					principal: parsed.principal ?? initialState.principal,
+					annualRate: parsed.annualRate ?? initialState.annualRate,
+					termMonths: parsed.termMonths ?? initialState.termMonths,
+					downPayment: parsed.downPayment ?? initialState.downPayment,
+					extraPayments: Array.isArray(parsed.extraPayments) ? parsed.extraPayments : []
+				};
+			}
+		}
+	} catch { /* ignore */ }
+	return initialState;
+}
+
 function createCalculatorStore() {
-	const { subscribe, set, update } = writable<CalculatorState>(initialState);
+	const { subscribe, set, update } = writable<CalculatorState>(loadState());
 
 	return {
 		subscribe,
@@ -38,6 +60,19 @@ function createCalculatorStore() {
 }
 
 export const calculatorStore = createCalculatorStore();
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+const SAVE_DELAY = 500;
+
+calculatorStore.subscribe((v) => {
+	if (typeof window === 'undefined') return;
+	if (saveTimer) clearTimeout(saveTimer);
+	saveTimer = setTimeout(() => {
+		try {
+			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(v));
+		} catch { /* ignore */ }
+	}, SAVE_DELAY);
+});
 
 export const allResultsStore = writable<AllResults>({
 	price: null,
