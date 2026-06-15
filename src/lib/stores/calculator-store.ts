@@ -251,12 +251,14 @@ function createStudiesStore() {
 			calculateAll();
 		},
 		restore() {
-			update((s) => ({
-				...s,
-				studies: JSON.parse(JSON.stringify(s.snapshot.studies)),
-				commonValues: { ...s.snapshot.commonValues },
-				overrides: {}
-			}));
+			const defaults = createDefaultStudies();
+			set({
+				studies: defaults,
+				activeStudyId: '1',
+				commonValues: { ...DEFAULT_VALUES },
+				overrides: {},
+				snapshot: { studies: JSON.parse(JSON.stringify(defaults)), commonValues: { ...DEFAULT_VALUES } }
+			});
 			calculateAll();
 		},
 		reset() {
