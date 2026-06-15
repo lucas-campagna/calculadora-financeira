@@ -231,7 +231,10 @@ let touchStartX = 0;
 				<!-- Clone of last slide (table) -->
 				<div class="w-full flex-shrink-0 overflow-y-auto">
 					<div class="p-4">
-						<div class="flex items-center gap-2 overflow-x-auto pb-2">
+						{#if $allResultsStore.price}
+							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
+						{/if}
+						<div class="flex items-center gap-2 overflow-x-auto pt-2 mt-2 border-t">
 							{#each Object.entries(systemLabels) as [sysKey, label]}
 								<button
 									class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
@@ -241,9 +244,6 @@ let touchStartX = 0;
 								</button>
 							{/each}
 						</div>
-						{#if $allResultsStore.price}
-							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
-						{/if}
 					</div>
 				</div>
 
@@ -260,7 +260,10 @@ let touchStartX = 0;
 									<ResultsSummary />
 								{/if}
 							{:else}
-								<div class="flex items-center gap-2 overflow-x-auto pb-2">
+								{#if $allResultsStore.price}
+									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
+								{/if}
+								<div class="flex items-center gap-2 overflow-x-auto pt-2 mt-2 border-t">
 									{#each Object.entries(systemLabels) as [sysKey, label]}
 										<button
 											class="px-3 py-1.5 text-sm rounded-lg border whitespace-nowrap transition-colors {selectedSystem === sysKey ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input'}"
@@ -270,9 +273,6 @@ let touchStartX = 0;
 										</button>
 									{/each}
 								</div>
-								{#if $allResultsStore.price}
-<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
-								{/if}
 							{/if}
 						</div>
 					</div>
@@ -311,23 +311,20 @@ let touchStartX = 0;
 				<ResultsSummary />
 				<ComparisonChart onlongpress={openExtraPayment} />
 
-				<div>
-					<h2 class="text-base font-semibold mb-2">Ver tabela de amortizacao</h2>
-					<div class="flex flex-wrap gap-2">
-						{#each Object.entries(systemLabels) as [key, label]}
-							<button
-								class="px-4 py-2 text-sm rounded-md border transition-colors {selectedSystem === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input hover:bg-accent'}"
-								onclick={() => selectSystem(key as AmortizationSystem)}
-							>
-								{label}
-							</button>
-						{/each}
-					</div>
-				</div>
-
 				{#key selectedSystem}
 					<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} />
 				{/key}
+
+				<div class="flex flex-wrap gap-2">
+					{#each Object.entries(systemLabels) as [key, label]}
+						<button
+							class="px-4 py-2 text-sm rounded-md border transition-colors {selectedSystem === key ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input hover:bg-accent'}"
+							onclick={() => selectSystem(key as AmortizationSystem)}
+						>
+							{label}
+						</button>
+					{/each}
+				</div>
 
 				<ExportButtons selectedSystem={selectedSystem} />
 			</div>

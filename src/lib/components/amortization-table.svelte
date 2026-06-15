@@ -20,17 +20,6 @@
 
 {#if currentResult}
 	<div class="mt-2">
-		<div class="flex items-center justify-between mb-2">
-			<h3 class="text-sm font-semibold">Tabela — {currentResult.systemLabel}</h3>
-			{#if !defaultExpanded}
-				<button class="text-sm text-primary hover:underline py-1" onclick={() => (expanded = !expanded)}>
-					{expanded ? '▲ Ver resumo' : '▼ Ver tudo'}
-				</button>
-			{/if}
-		</div>
-
-		<p class="text-xs text-muted-foreground mb-2">Toque em uma parcela para adicionar pagamento extra.</p>
-
 		<div class="overflow-auto border rounded-lg" style="max-height: 50vh">
 			<table class="w-full text-sm border-collapse min-w-[600px]">
 				<thead class="sticky top-0 z-10">
@@ -70,5 +59,14 @@
 			</table>
 		</div>
 
-		</div>
+		{#if !defaultExpanded}
+			<div class="flex justify-end mt-2">
+				<button class="text-sm text-primary hover:underline py-1" onclick={() => (expanded = !expanded)}>
+					{expanded ? '▲ Ver resumo' : '▼ Ver tudo'}
+				</button>
+			</div>
+		{/if}
+
+		<p class="text-xs text-muted-foreground mt-1">Toque em uma parcela para adicionar pagamento extra.</p>
+	</div>
 {/if}
