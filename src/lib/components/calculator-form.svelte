@@ -206,4 +206,4 @@
 	</div>
 {/if}
 
-<StudyEditModal bind:open={editModalOpen} mode={editMode} editStudy={editStudy} />
+<StudyEditModal bind:open={editModalOpen} mode={editMode} editStudy={editStudy} /><StudyEditModal bind:open={editModalOpen} mode={editMode} editStudy={editStudy} />

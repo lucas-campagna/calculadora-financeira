@@ -12,6 +12,26 @@
 
 	let showRestoreConfirm = $state(false);
 
+	function isInitialState(): boolean {
+		const s = $studiesStore;
+		if (s.studies.length !== 4) return false;
+		if (Object.keys(s.overrides).length > 0) return false;
+		const defaults = [
+			{ name: 'PRICE', system: 'price' as const },
+			{ name: 'SAC', system: 'sac' as const },
+			{ name: 'SAM', system: 'sam' as const },
+			{ name: 'Americano', system: 'americano' as const }
+		];
+		for (let i = 0; i < 4; i++) {
+			const st = s.studies[i];
+			const df = defaults[i];
+			if (!st || st.name !== df.name || st.system !== df.system) return false;
+		}
+		return true;
+	}
+
+	let isRestored = $derived(isInitialState());
+
 	function handlePillClick(id: string) {
 		if (id === $studiesStore.activeStudyId) {
 			const study = $studiesStore.studies.find((s) => s.id === id);
@@ -32,9 +52,10 @@
 	</button>
 
 	<button
-		class="shrink-0 w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer"
-		onclick={() => { showRestoreConfirm = true; }}
+		class="shrink-0 w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center transition-colors {isRestored ? 'opacity-40 cursor-not-allowed' : 'hover:bg-primary/10 cursor-pointer'}"
+		onclick={() => { if (!isRestored) showRestoreConfirm = true; }}
 		aria-label="Restaurar estudos"
+		disabled={isRestored}
 	>
 		<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
 	</button>
