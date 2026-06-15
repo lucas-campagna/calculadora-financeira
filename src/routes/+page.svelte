@@ -130,23 +130,23 @@
 		showResults = true;
 	}
 
+	$effect(() => {
+		if (!swipeContainerEl) return;
+		const el = swipeContainerEl;
+		el.addEventListener('touchstart', handleSwipeStart, { passive: true });
+		el.addEventListener('touchmove', handleSwipeMove, { passive: false });
+		el.addEventListener('touchend', handleSwipeEnd, { passive: true });
+		el.addEventListener('touchcancel', handleSwipeEnd, { passive: true });
+		return () => {
+			el.removeEventListener('touchstart', handleSwipeStart);
+			el.removeEventListener('touchmove', handleSwipeMove);
+			el.removeEventListener('touchend', handleSwipeEnd);
+			el.removeEventListener('touchcancel', handleSwipeEnd);
+		};
+	});
+
 	onMount(() => {
 		calculateAll();
-
-		if (swipeContainerEl) {
-			swipeContainerEl.addEventListener('touchstart', handleSwipeStart, { passive: true });
-			swipeContainerEl.addEventListener('touchmove', handleSwipeMove, { passive: false });
-			swipeContainerEl.addEventListener('touchend', handleSwipeEnd, { passive: true });
-			swipeContainerEl.addEventListener('touchcancel', handleSwipeEnd, { passive: true });
-		}
-		return () => {
-			if (swipeContainerEl) {
-				swipeContainerEl.removeEventListener('touchstart', handleSwipeStart);
-				swipeContainerEl.removeEventListener('touchmove', handleSwipeMove);
-				swipeContainerEl.removeEventListener('touchend', handleSwipeEnd);
-				swipeContainerEl.removeEventListener('touchcancel', handleSwipeEnd);
-			}
-		};
 	});
 </script>
 
@@ -176,7 +176,7 @@
 					ontransitionend={handleTransitionEnd}
 				>
 					<!-- Clone of last slide (table) -->
-					<div class="w-full flex-shrink-0 h-full overflow-y-auto">
+					<div class="w-full flex-shrink-0 overflow-y-auto">
 						<div class="py-2">
 							<div class="flex items-center gap-2 overflow-x-auto">
 								{#each Object.entries(systemLabels) as [sysKey, label]}
@@ -194,7 +194,7 @@
 
 					<!-- Real slides -->
 					{#each SLIDES as key}
-						<div class="w-full flex-shrink-0 h-full overflow-y-auto">
+						<div class="w-full flex-shrink-0 overflow-y-auto">
 							<div class="py-2">
 								{#if key === 'chart'}
 									<ComparisonChart onlongpress={openExtraPayment} />
@@ -218,7 +218,7 @@
 					{/each}
 
 					<!-- Clone of first slide (chart) -->
-					<div class="w-full flex-shrink-0 h-full overflow-y-auto">
+					<div class="w-full flex-shrink-0 overflow-y-auto">
 						<div class="py-2">
 							<ComparisonChart onlongpress={openExtraPayment} />
 						</div>
@@ -233,7 +233,7 @@
 	</div>
 {:else}
 	<!-- DEFAULT: scrollable layout (desktop or mobile before results) -->
-	<div class="max-w-4xl mx-auto">
+	<div class="sm:max-w-4xl sm:mx-auto px-4 sm:px-0">
 		<div class="mb-6">
 			<h1 class="text-3xl sm:text-4xl font-bold">Calculadora de Financiamento</h1>
 			<p class="text-lg text-muted-foreground mt-2">
@@ -244,7 +244,7 @@
 		<CalculatorForm onchange={() => (userHasInteracted = true)} />
 
 		{#if $allResultsStore.price && showResults}
-			<div class="mt-6 space-y-6">
+			<div class="mt-6 hidden sm:block space-y-6">
 				<ResultsSummary />
 				<ComparisonChart onlongpress={openExtraPayment} />
 
