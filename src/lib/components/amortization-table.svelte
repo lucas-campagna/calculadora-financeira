@@ -6,11 +6,13 @@
 	let {
 		system = 'price' as AmortizationSystem,
 		onrowclick = (_month: number) => {},
-		defaultExpanded = false
+		defaultExpanded = false,
+		flexMode = false
 	}: {
 		system?: AmortizationSystem;
 		onrowclick?: (month: number) => void;
 		defaultExpanded?: boolean;
+		flexMode?: boolean;
 	} = $props();
 
 	let expanded = $state(defaultExpanded);
@@ -19,8 +21,8 @@
 </script>
 
 {#if currentResult}
-	<div>
-		<div class="overflow-auto border rounded-lg" style="max-height: 45vh">
+	<div class={flexMode ? 'flex flex-col h-full' : ''}>
+		<div class={flexMode ? 'flex-1 min-h-0 overflow-auto border rounded-lg' : 'overflow-auto border rounded-lg'} style={flexMode ? '' : 'max-height: 45vh'}>
 			<table class="w-full text-xs border-collapse min-w-[500px]">
 				<thead class="sticky top-0 z-10">
 					<tr class="border-b bg-muted">

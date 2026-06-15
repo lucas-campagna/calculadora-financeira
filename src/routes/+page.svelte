@@ -232,10 +232,10 @@ let touchStartX = 0;
 				ontransitionend={handleTransitionEnd}
 			>
 				<!-- Clone of last slide (table) -->
-				<div class="w-full flex-shrink-0 h-full overflow-y-auto">
-					<div class="p-3">
+				<div class="w-full flex-shrink-0 h-full flex flex-col">
+					<div class="flex-1 min-h-0 p-3 flex flex-col gap-2">
 						{#if $allResultsStore.price}
-							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
+							<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
 						{/if}
 						<div class="flex items-center gap-2 overflow-x-auto pt-2 border-t">
 							{#each Object.entries(systemLabels) as [sysKey, label]}
@@ -252,8 +252,8 @@ let touchStartX = 0;
 
 				<!-- Real slides -->
 				{#each SLIDES as key}
-					<div class="w-full flex-shrink-0 h-full {key === 'chart' ? 'flex flex-col' : 'overflow-y-auto'}">
-						<div class={key === 'chart' ? 'flex-1 min-h-0 p-2' : 'p-3'}>
+					<div class="w-full flex-shrink-0 h-full {key === 'chart' ? 'flex flex-col' : key === 'table' ? 'flex flex-col' : 'overflow-y-auto'}">
+						<div class={key === 'chart' ? 'flex-1 min-h-0 p-2' : key === 'table' ? 'flex-1 min-h-0 p-3 flex flex-col gap-2' : 'p-3'}>
 							{#if key === 'chart'}
 								{#if $allResultsStore.price}
 									<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
@@ -264,7 +264,7 @@ let touchStartX = 0;
 								{/if}
 							{:else}
 								{#if $allResultsStore.price}
-									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} />
+									<AmortizationTable system={selectedSystem} onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
 								{/if}
 								<div class="flex items-center gap-2 overflow-x-auto pt-2 border-t">
 									{#each Object.entries(systemLabels) as [sysKey, label]}
