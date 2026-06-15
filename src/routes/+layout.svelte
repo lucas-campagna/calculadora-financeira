@@ -9,18 +9,11 @@
 <AdsenseScript />
 
 <div class="min-h-screen flex flex-col">
-	<header class="border-b bg-background sticky top-0 z-40 h-14 flex items-center">
-		<div class="container mx-auto px-4 flex items-center justify-between">
-			<a href="/" class="text-lg font-bold text-primary">
-				CalcFinanciamento
-			</a>
-			<a href="/comparar" class="text-base text-primary hover:underline hidden sm:inline">
-				Comparar Sistemas
-			</a>
+	<header class="border-b bg-background sticky top-0 z-40 flex items-center justify-center">
+		<div class="container mx-auto px-4">
+			<AdUnit slot="" format="auto" />
 		</div>
 	</header>
-
-	<AdUnit slot="" format="auto" class="container mx-auto px-4 mt-4 hidden sm:block" />
 
 	<main class="flex-1 sm:container sm:mx-auto sm:px-4 sm:py-6">
 		{@render children()}
