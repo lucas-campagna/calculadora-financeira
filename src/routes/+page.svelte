@@ -20,6 +20,8 @@
 	let lastInterstitialTime = 0;
 	const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 
+	let showScrollTop = $state(false);
+
 	const SLIDES = ['chart', 'results', 'table'] as const;
 	type SlideKey = typeof SLIDES[number];
 	const N = SLIDES.length;
@@ -155,7 +157,17 @@
 
 	onMount(() => {
 		calculateAll();
+
+		function onScroll() {
+			showScrollTop = window.scrollY > 300;
+		}
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
 	});
+
+	function scrollToTop() {
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
 </script>
 
 {#if $isMobile}
@@ -283,6 +295,16 @@
 			</div>
 		{/if}
 	</div>
+{/if}
+
+{#if showScrollTop}
+	<button
+		onclick={scrollToTop}
+		class="fixed bottom-6 right-6 z-40 h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-opacity"
+		aria-label="Voltar ao topo"
+	>
+		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+	</button>
 {/if}
 
 <AdInterstitial open={showInterstitial} onclose={handleInterstitialClose} />
