@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { studiesStore, calculateAll, activeStudy } from '$lib/stores/calculator-store';
+	import { studiesStore, calculateAll } from '$lib/stores/calculator-store';
 	import type { FieldKey } from '$lib/stores/calculator-store';
 	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 	import Label from '$lib/components/ui/label.svelte';
@@ -21,8 +21,13 @@
 	let editMode = $state<'add' | 'edit'>('add');
 	let editStudy: Study | undefined = $state(undefined);
 
-	function getFieldLocked(field: FieldKey): boolean {
-		return studiesStore.isFieldLocked(field);
+	function effectiveValue(field: FieldKey): string {
+		const overrides = $studiesStore.overrides[$studiesStore.activeStudyId];
+		return overrides?.[field] ?? $studiesStore.commonValues[field];
+	}
+
+	function isLocked(field: FieldKey): boolean {
+		return $studiesStore.overrides[$studiesStore.activeStudyId]?.[field] === undefined;
 	}
 
 	function handleFieldLockToggle(field: FieldKey) {
@@ -32,10 +37,6 @@
 	function updateField(field: FieldKey, raw: string) {
 		studiesStore.updateField(field, raw);
 		handleFormChange();
-	}
-
-	function getFieldValue(field: FieldKey): string {
-		return studiesStore.getEffectiveValue($studiesStore.activeStudyId, field);
 	}
 
 	function handleAddStudy() {
@@ -64,9 +65,9 @@
 					id="m-principal"
 					inputmode="numeric"
 					placeholder="500.000"
-					value={getFieldValue('principal')}
+					value={effectiveValue('principal')}
 					onchange={(v) => updateField('principal', v)}
-					locked={getFieldLocked('principal')}
+					locked={isLocked('principal')}
 					onlocktoggle={() => handleFieldLockToggle('principal')}
 					min="1"
 				/>
@@ -77,9 +78,9 @@
 					id="m-downPayment"
 					inputmode="numeric"
 					placeholder="0"
-					value={getFieldValue('downPayment')}
+					value={effectiveValue('downPayment')}
 					onchange={(v) => updateField('downPayment', v)}
-					locked={getFieldLocked('downPayment')}
+					locked={isLocked('downPayment')}
 					onlocktoggle={() => handleFieldLockToggle('downPayment')}
 					min="0"
 				/>
@@ -91,9 +92,9 @@
 					inputmode="decimal"
 					placeholder="10"
 					decimal={true}
-					value={getFieldValue('annualRate')}
+					value={effectiveValue('annualRate')}
 					onchange={(v) => updateField('annualRate', v)}
-					locked={getFieldLocked('annualRate')}
+					locked={isLocked('annualRate')}
 					onlocktoggle={() => handleFieldLockToggle('annualRate')}
 					min="0.01"
 				/>
@@ -104,9 +105,9 @@
 					id="m-term"
 					inputmode="numeric"
 					placeholder="360"
-					value={getFieldValue('termMonths')}
+					value={effectiveValue('termMonths')}
 					onchange={(v) => updateField('termMonths', v)}
-					locked={getFieldLocked('termMonths')}
+					locked={isLocked('termMonths')}
 					onlocktoggle={() => handleFieldLockToggle('termMonths')}
 					min="1"
 				/>
@@ -133,9 +134,9 @@
 					id="principal"
 					inputmode="numeric"
 					placeholder="Ex: 500.000"
-					value={getFieldValue('principal')}
+					value={effectiveValue('principal')}
 					onchange={(v) => updateField('principal', v)}
-					locked={getFieldLocked('principal')}
+					locked={isLocked('principal')}
 					onlocktoggle={() => handleFieldLockToggle('principal')}
 					min="1"
 					class="mt-1"
@@ -148,9 +149,9 @@
 					id="downPayment"
 					inputmode="numeric"
 					placeholder="Ex: 100.000"
-					value={getFieldValue('downPayment')}
+					value={effectiveValue('downPayment')}
 					onchange={(v) => updateField('downPayment', v)}
-					locked={getFieldLocked('downPayment')}
+					locked={isLocked('downPayment')}
 					onlocktoggle={() => handleFieldLockToggle('downPayment')}
 					min="0"
 					class="mt-1"
@@ -166,9 +167,9 @@
 					inputmode="decimal"
 					placeholder="Ex: 10,5"
 					decimal={true}
-					value={getFieldValue('annualRate')}
+					value={effectiveValue('annualRate')}
 					onchange={(v) => updateField('annualRate', v)}
-					locked={getFieldLocked('annualRate')}
+					locked={isLocked('annualRate')}
 					onlocktoggle={() => handleFieldLockToggle('annualRate')}
 					min="0.01"
 					class="mt-1"
@@ -181,9 +182,9 @@
 					id="termMonths"
 					inputmode="numeric"
 					placeholder="Ex: 360"
-					value={getFieldValue('termMonths')}
+					value={effectiveValue('termMonths')}
 					onchange={(v) => updateField('termMonths', v)}
-					locked={getFieldLocked('termMonths')}
+					locked={isLocked('termMonths')}
 					onlocktoggle={() => handleFieldLockToggle('termMonths')}
 					min="1"
 					class="mt-1"
