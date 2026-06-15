@@ -189,6 +189,20 @@ function createStudiesStore() {
 			});
 			calculateAll();
 		},
+		revertFieldToCommon(field: FieldKey) {
+			update((s) => {
+				const studyId = s.activeStudyId;
+				const common = s.commonValues[field];
+				return {
+					...s,
+					overrides: {
+						...s.overrides,
+						[studyId]: { ...(s.overrides[studyId] ?? {}), [field]: common }
+					}
+				};
+			});
+			calculateAll();
+		},
 		commitFieldToCommon(field: FieldKey) {
 			update((s) => {
 				const studyId = s.activeStudyId;

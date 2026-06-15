@@ -15,6 +15,7 @@
 		decimal = false,
 		min = '0',
 		locked = false,
+		showRevert = undefined as boolean | undefined,
 		onlocktoggle = () => {},
 		onrevert = () => {},
 		onchange: handleChange = (_v: string) => {},
@@ -28,6 +29,7 @@
 		decimal?: boolean;
 		min?: string;
 		locked?: boolean;
+		showRevert?: boolean;
 		onlocktoggle?: () => void;
 		onrevert?: () => void;
 		onchange?: (v: string) => void;
@@ -179,7 +181,7 @@
 		</div>
 	{:else}
 		<div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-			{#if !locked}
+			{#if showRevert ?? !locked}
 				<button
 					class="text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
 					onclick={(e) => { e.stopPropagation(); onrevert(); }}

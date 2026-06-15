@@ -30,12 +30,18 @@
 		return $studiesStore.overrides[$studiesStore.activeStudyId]?.[field] === undefined;
 	}
 
+	function isOverridden(field: FieldKey): boolean {
+		const overrides = $studiesStore.overrides[$studiesStore.activeStudyId];
+		if (!overrides) return false;
+		return overrides[field] !== undefined;
+	}
+
 	function handleFieldLockToggle(field: FieldKey) {
 		studiesStore.toggleFieldLock(field);
 	}
 
 	function handleFieldRevert(field: FieldKey) {
-		studiesStore.revertField(field);
+		studiesStore.revertFieldToCommon(field);
 	}
 
 	function updateField(field: FieldKey, raw: string) {
@@ -57,7 +63,6 @@
 </script>
 
 {#if compact}
-	<!-- Mobile: pills + 2x2 grid + export button -->
 	<div>
 		<div class="mb-2">
 			<StudyPills onadd={handleAddStudy} onedit={handleEditStudy} />
@@ -72,6 +77,7 @@
 					value={effectiveValue('principal')}
 					onchange={(v) => updateField('principal', v)}
 					locked={isLocked('principal')}
+					showRevert={isOverridden('principal')}
 					onlocktoggle={() => handleFieldLockToggle('principal')}
 					onrevert={() => handleFieldRevert('principal')}
 					min="1"
@@ -86,6 +92,7 @@
 					value={effectiveValue('downPayment')}
 					onchange={(v) => updateField('downPayment', v)}
 					locked={isLocked('downPayment')}
+					showRevert={isOverridden('downPayment')}
 					onlocktoggle={() => handleFieldLockToggle('downPayment')}
 					onrevert={() => handleFieldRevert('downPayment')}
 					min="0"
@@ -101,6 +108,7 @@
 					value={effectiveValue('annualRate')}
 					onchange={(v) => updateField('annualRate', v)}
 					locked={isLocked('annualRate')}
+					showRevert={isOverridden('annualRate')}
 					onlocktoggle={() => handleFieldLockToggle('annualRate')}
 					onrevert={() => handleFieldRevert('annualRate')}
 					min="0.01"
@@ -115,6 +123,7 @@
 					value={effectiveValue('termMonths')}
 					onchange={(v) => updateField('termMonths', v)}
 					locked={isLocked('termMonths')}
+					showRevert={isOverridden('termMonths')}
 					onlocktoggle={() => handleFieldLockToggle('termMonths')}
 					onrevert={() => handleFieldRevert('termMonths')}
 					min="1"
@@ -131,7 +140,6 @@
 
 	<ExportModal bind:open={exportModalOpen} />
 {:else}
-	<!-- Desktop: pills + full form -->
 	<div class="space-y-4">
 		<StudyPills onadd={handleAddStudy} onedit={handleEditStudy} />
 
@@ -145,6 +153,7 @@
 					value={effectiveValue('principal')}
 					onchange={(v) => updateField('principal', v)}
 					locked={isLocked('principal')}
+					showRevert={isOverridden('principal')}
 					onlocktoggle={() => handleFieldLockToggle('principal')}
 					onrevert={() => handleFieldRevert('principal')}
 					min="1"
@@ -161,6 +170,7 @@
 					value={effectiveValue('downPayment')}
 					onchange={(v) => updateField('downPayment', v)}
 					locked={isLocked('downPayment')}
+					showRevert={isOverridden('downPayment')}
 					onlocktoggle={() => handleFieldLockToggle('downPayment')}
 					onrevert={() => handleFieldRevert('downPayment')}
 					min="0"
@@ -180,6 +190,7 @@
 					value={effectiveValue('annualRate')}
 					onchange={(v) => updateField('annualRate', v)}
 					locked={isLocked('annualRate')}
+					showRevert={isOverridden('annualRate')}
 					onlocktoggle={() => handleFieldLockToggle('annualRate')}
 					onrevert={() => handleFieldRevert('annualRate')}
 					min="0.01"
@@ -196,6 +207,7 @@
 					value={effectiveValue('termMonths')}
 					onchange={(v) => updateField('termMonths', v)}
 					locked={isLocked('termMonths')}
+					showRevert={isOverridden('termMonths')}
 					onlocktoggle={() => handleFieldLockToggle('termMonths')}
 					onrevert={() => handleFieldRevert('termMonths')}
 					min="1"
@@ -206,4 +218,4 @@
 	</div>
 {/if}
 
-<StudyEditModal bind:open={editModalOpen} mode={editMode} editStudy={editStudy} /><StudyEditModal bind:open={editModalOpen} mode={editMode} editStudy={editStudy} />
+<StudyEditModal bind:open={editModalOpen} mode={editMode} editStudy={editStudy} />
