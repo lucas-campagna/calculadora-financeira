@@ -42,7 +42,6 @@
 	let isSwiping = $state(false);
 	let swipeDirection = $state<'up' | 'down' | null>(null);
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
-	let rawInput = $state('');
 	let isTyping = $state(false);
 	let lastEmittedValue = '';
 
@@ -52,7 +51,7 @@
 
 	$effect(() => {
 		if (!isTyping && value !== lastEmittedValue) {
-			rawInput = value;
+      displayValue = decimal ? value : formatInputValue(value);
 		}
 	});
 
@@ -126,7 +125,7 @@
 			let v = target.value;
 			const num = parseFloat(v.replace(/\./g, '').replace(',', '.')) || 0;
 			v = applyMin(num).toFixed(2).replace('.', ',');
-			rawInput = v;
+			displayValue = v;
 			lastEmittedValue = v;
 			handleChange(v);
 		} else {
@@ -134,7 +133,7 @@
 			if (raw === '') raw = min;
 			const num = parseInt(raw, 10) || 0;
 			const formatted = num.toLocaleString('pt-BR');
-			rawInput = formatted;
+			displayValue = formatted;
 			const emitted = String(applyMin(num));
 			lastEmittedValue = emitted;
 			handleChange(emitted);
@@ -188,7 +187,7 @@
 		type="text"
 		{placeholder}
 		{inputmode}
-		bind:value={rawInput}
+		bind:value={displayValue}
 		onblur={handleBlur}
 		oninput={handleInput}
 		class={cn(
@@ -200,10 +199,6 @@
 	{#if swipeIndicator}
 		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-bold text-sm pointer-events-none">
 			{swipeIndicator}
-		</div>
-	{:else if rawInput !== (decimal ? value : formatInputValue(value))}
-		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs pointer-events-none">
-			{decimal ? value : formatInputValue(value)}
 		</div>
 	{:else}
 		<div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
