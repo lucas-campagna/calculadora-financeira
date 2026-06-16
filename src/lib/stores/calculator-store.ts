@@ -266,6 +266,36 @@ function createStudiesStore() {
 			});
 			calculateAll();
 		},
+		updateExtraPayment(studyId: string, payment: ExtraPayment) {
+			update((s) => {
+				const study = s.studies.find((st) => st.id === studyId);
+				if (!study) return s;
+				const newPayments = study.extraPayments.map((ep) =>
+					ep.month === payment.month ? payment : ep
+				);
+				return {
+					...s,
+					studies: s.studies.map((st) =>
+						st.id === studyId ? { ...st, extraPayments: newPayments } : st
+					)
+				};
+			});
+			calculateAll();
+		},
+		removeExtraPayment(studyId: string, month: number) {
+			update((s) => {
+				const study = s.studies.find((st) => st.id === studyId);
+				if (!study) return s;
+				const newPayments = study.extraPayments.filter((ep) => ep.month !== month);
+				return {
+					...s,
+					studies: s.studies.map((st) =>
+						st.id === studyId ? { ...st, extraPayments: newPayments } : st
+					)
+				};
+			});
+			calculateAll();
+		},
 		restore() {
 			const defaults = createDefaultStudies();
 			set({

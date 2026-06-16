@@ -8,9 +8,11 @@
 	import AdInterstitial from '$lib/components/ads/ad-interstitial.svelte';
 	import ExtraPaymentModal from '$lib/components/extra-payment-modal.svelte';
 	import { allResultsStore, isMobile, calculateAll, studiesStore } from '$lib/stores/calculator-store';
+	import type { ExtraPayment } from '$lib/calculator/types';
 
 	let extraPaymentModalOpen = $state(false);
 	let extraPaymentMonth = $state(1);
+	let extraPaymentEdit = $state<ExtraPayment | undefined>(undefined);
 	let showInterstitial = $state(false);
 	let showResults = $state(false);
 	let previousResultHash = $state('');
@@ -112,6 +114,9 @@
 
 	function openExtraPayment(month: number) {
 		extraPaymentMonth = month;
+		const activeStudy = $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId);
+		const existing = activeStudy?.extraPayments.find((ep) => ep.month === month);
+		extraPaymentEdit = existing;
 		extraPaymentModalOpen = true;
 	}
 
@@ -325,4 +330,4 @@
 
 <AdInterstitial open={showInterstitial} onclose={handleInterstitialClose} />
 
-<ExtraPaymentModal bind:open={extraPaymentModalOpen} month={extraPaymentMonth} onclose={() => (extraPaymentModalOpen = false)} />
+<ExtraPaymentModal bind:open={extraPaymentModalOpen} month={extraPaymentMonth} editPayment={extraPaymentEdit} onclose={() => { extraPaymentModalOpen = false; extraPaymentEdit = undefined; }} />

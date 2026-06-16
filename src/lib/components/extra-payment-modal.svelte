@@ -6,10 +6,12 @@
 	let {
 		open = $bindable(false),
 		month = 1,
+		editPayment = undefined,
 		onclose
 	}: {
 		open?: boolean;
 		month?: number;
+		editPayment?: ExtraPayment | undefined;
 		onclose?: () => void;
 	} = $props();
 
@@ -17,11 +19,19 @@
 	let extraAmount = $state('');
 	let extraType = $state<'reduce_term' | 'reduce_installment'>('reduce_term');
 
+	const isEdit = $derived(editPayment !== undefined);
+
 	$effect(() => {
 		if (open) {
-			extraMonth = String(month);
-			extraAmount = '';
-			extraType = 'reduce_term';
+			if (editPayment) {
+				extraMonth = String(editPayment.month);
+				extraAmount = String(editPayment.amount);
+				extraType = editPayment.type;
+			} else {
+				extraMonth = String(month);
+				extraAmount = '';
+				extraType = 'reduce_term';
+			}
 			setTimeout(() => {
 				const el = document.getElementById('extra-modal-amount');
 				el?.focus();
@@ -43,7 +53,11 @@
 		if (m <= 0 || a <= 0) return;
 
 		const payment: ExtraPayment = { month: m, amount: a, type: extraType };
-		studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
+		if (isEdit) {
+			studiesStore.updateExtraPayment($studiesStore.activeStudyId, payment);
+		} else {
+			studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
+		}
 		open = false;
 		onclose?.();
 	}
@@ -58,7 +72,7 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" onclick={handleCancel} onkeydown={(e: KeyboardEvent) => { if (e.key === 'Escape') handleCancel(); }} role="dialog" aria-modal="true" aria-label="Pagamento extra" tabindex="0">
 		<div role="document" class="bg-background p-6 rounded-xl max-w-sm w-full mx-4" onclick={(e) => e.stopPropagation()}>
-			<h2 class="text-base font-semibold mb-3">Pagamento Extra</h2>
+			<h2 class="text-base font-semibold mb-3">{isEdit ? 'Editar Pagamento Extra' : 'Pagamento Extra'}</h2>
 
 			<div class="space-y-4">
 				<div>
@@ -70,6 +84,7 @@
 						value={extraMonth}
 						onchange={updateMonth}
 						min="1"
+						locked={isEdit}
 						class="mt-1.5"
 					/>
 				</div>
@@ -103,7 +118,7 @@
 
 			<div class="flex gap-3 mt-5">
 				<button class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer" onclick={handleSave}>
-					Adicionar
+					{isEdit ? 'Salvar' : 'Adicionar'}
 				</button>
 			</div>
 		</div>
