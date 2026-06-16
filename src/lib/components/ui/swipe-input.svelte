@@ -45,13 +45,14 @@
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
 	let rawInput = $state('');
 	let isTyping = $state(false);
+	let lastEmittedValue = '';
 
 	$effect(() => {
 		inputRef = inputEl;
 	});
 
 	$effect(() => {
-		if (!isTyping) {
+		if (!isTyping && value !== lastEmittedValue) {
 			rawInput = value;
 		}
 	});
@@ -127,6 +128,7 @@
 			const num = parseFloat(v.replace(/\./g, '').replace(',', '.')) || 0;
 			v = applyMin(num).toFixed(2).replace('.', ',');
 			rawInput = v;
+			lastEmittedValue = v;
 			handleChange(v);
 		} else {
 			let raw = target.value.replace(/[^\d]/g, '');
@@ -134,7 +136,9 @@
 			const num = parseInt(raw, 10) || 0;
 			const formatted = num.toLocaleString('pt-BR');
 			rawInput = formatted;
-			handleChange(String(applyMin(num)));
+			const emitted = String(applyMin(num));
+			lastEmittedValue = emitted;
+			handleChange(emitted);
 		}
 		isTyping = false;
 	}
@@ -143,11 +147,15 @@
 		isTyping = false;
 		if (decimal) {
 			if (!value || value === '' || value === ',') {
-				handleChange(applyMin(0).toFixed(2).replace('.', ','));
+				const v = applyMin(0).toFixed(2).replace('.', ',');
+				lastEmittedValue = v;
+				handleChange(v);
 			}
 		} else {
 			const num = parseInt(value.replace(/[^\d]/g, ''), 10) || 0;
-			handleChange(String(applyMin(num)));
+			const emitted = String(applyMin(num));
+			lastEmittedValue = emitted;
+			handleChange(emitted);
 		}
 	}
 
