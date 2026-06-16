@@ -43,9 +43,17 @@
 	let isSwiping = $state(false);
 	let swipeDirection = $state<'up' | 'down' | null>(null);
 	let inputEl: HTMLInputElement | undefined = $state(undefined);
+	let rawInput = $state('');
+	let isTyping = $state(false);
 
 	$effect(() => {
 		inputRef = inputEl;
+	});
+
+	$effect(() => {
+		if (!isTyping) {
+			rawInput = value;
+		}
 	});
 
 	function getNumericValue(): number {
@@ -112,21 +120,27 @@
 	}
 
 	function handleInput(e: Event) {
+		isTyping = true;
 		const target = e.target as HTMLInputElement;
 		if (decimal) {
 			let v = target.value;
 			const num = parseFloat(v.replace(/\./g, '').replace(',', '.')) || 0;
 			v = applyMin(num).toFixed(2).replace('.', ',');
+			rawInput = v;
 			handleChange(v);
 		} else {
 			let raw = target.value.replace(/[^\d]/g, '');
 			if (raw === '') raw = min;
 			const num = parseInt(raw, 10) || 0;
+			const formatted = num.toLocaleString('pt-BR');
+			rawInput = formatted;
 			handleChange(String(applyMin(num)));
 		}
+		isTyping = false;
 	}
 
 	function handleBlur() {
+		isTyping = false;
 		if (decimal) {
 			if (!value || value === '' || value === ',') {
 				handleChange(applyMin(0).toFixed(2).replace('.', ','));
@@ -168,8 +182,9 @@
 		type="text"
 		{placeholder}
 		{inputmode}
-		bind:value={displayValue}
+		bind:value={rawInput}
 		onblur={handleBlur}
+		oninput={handleInput}
 		class={cn(
 			'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none transition-colors',
 			isSwiping ? 'border-primary bg-primary/5' : '',
@@ -179,6 +194,10 @@
 	{#if swipeIndicator}
 		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-bold text-sm pointer-events-none">
 			{swipeIndicator}
+		</div>
+	{:else if rawInput !== value && !isSwiping}
+		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs pointer-events-none">
+			{decimal ? value : formatInputValue(value)}
 		</div>
 	{:else}
 		<div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
