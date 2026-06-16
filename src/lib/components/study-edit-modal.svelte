@@ -178,6 +178,7 @@
 							value={annualRate}
 							onchange={(v) => (annualRate = v)}
 							min="0.01"
+							decimal={true}
 							showLock={false}
 							showRevert={annualRate !== initialValues.annualRate}
 							onrevert={() => handleRevert('annualRate')}

@@ -52,13 +52,13 @@
 
 	function handleAddStudy() {
 		editMode = 'add';
-		editStudy = undefined;
+		editStudy = {...$studiesStore.commonValues, ...$studiesStore.overrides};
 		editModalOpen = true;
 	}
 
-	function handleEditStudy(study: Study) {
+	function handleEditStudy() {
 		editMode = 'edit';
-		editStudy = study;
+		editStudy = {...$studiesStore.commonValues, ...$studiesStore.overrides};
 		editModalOpen = true;
 	}
 </script>

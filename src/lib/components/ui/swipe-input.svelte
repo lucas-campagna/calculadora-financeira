@@ -84,9 +84,16 @@
 			next = applyMin(current - tick);
 		}
 		if (decimal) {
-			handleChange(next.toFixed(2).replace('.', ','));
+			const v = next.toFixed(2).replace('.', ',');
+			displayValue = v;
+			lastEmittedValue = v;
+			handleChange(v);
 		} else {
-			handleChange(String(next));
+			const finalVal = applyMin(next);
+			const numStr = String(finalVal);
+			displayValue = finalVal.toLocaleString('pt-BR');
+			lastEmittedValue = numStr;
+			handleChange(numStr);
 		}
 	}
 
@@ -94,6 +101,7 @@
 		touchStartY = e.touches[0].clientY;
 		lastTickY = touchStartY;
 		isSwiping = true;
+		isTyping = true;
 		swipeDirection = null;
 	}
 
@@ -119,6 +127,7 @@
 
 	function handleTouchEnd() {
 		isSwiping = false;
+		isTyping = false;
 		swipeDirection = null;
 	}
 
