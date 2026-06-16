@@ -85,6 +85,7 @@
 						onchange={updateMonth}
 						min="1"
 						locked={isEdit}
+						showLock={false}
 						class="mt-1.5"
 					/>
 				</div>
@@ -98,6 +99,8 @@
 						value={extraAmount}
 						onchange={updateAmount}
 						min="0"
+						showLock={false}
+						showRevert={false}
 						class="mt-1.5"
 					/>
 					<p class="text-xs text-muted-foreground mt-1">Arraste para cima/baixo para ajustar o valor</p>

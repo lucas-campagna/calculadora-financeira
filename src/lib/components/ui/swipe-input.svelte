@@ -16,6 +16,7 @@
 		min = '0',
 		locked = false,
 		showRevert = undefined as boolean | undefined,
+		showLock = true,
 		onlocktoggle = () => {},
 		onrevert = () => {},
 		onchange: handleChange = (_v: string) => {},
@@ -30,6 +31,7 @@
 		min?: string;
 		locked?: boolean;
 		showRevert?: boolean;
+		showLock?: boolean;
 		onlocktoggle?: () => void;
 		onrevert?: () => void;
 		onchange?: (v: string) => void;
@@ -191,18 +193,20 @@
 					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
 				</button>
 			{/if}
-			<button
-				class="text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
-				onclick={(e) => { e.stopPropagation(); onlocktoggle(); }}
-				aria-label={locked ? 'Desbloquear campo' : 'Bloquear campo'}
-				type="button"
-			>
-				{#if locked}
-					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-				{:else}
-					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 5-5 1.6 1.6 0 0 1 1 .4"/></svg>
-				{/if}
-			</button>
+			{#if showLock}
+				<button
+					class="text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
+					onclick={(e) => { e.stopPropagation(); onlocktoggle(); }}
+					aria-label={locked ? 'Desbloquear campo' : 'Bloquear campo'}
+					type="button"
+				>
+					{#if locked}
+						<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+					{:else}
+						<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 5-5 1.6 1.6 0 0 1 1 .4"/></svg>
+					{/if}
+				</button>
+			{/if}
 		</div>
 	{/if}
 </div>
