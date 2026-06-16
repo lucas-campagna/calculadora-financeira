@@ -49,10 +49,18 @@
 		inputRef = inputEl;
 	});
 
+	function getDisplayValue(): string {
+		return decimal ? value : formatInputValue(value);
+	}
+
 	$effect(() => {
 		if (!isTyping && value !== lastEmittedValue) {
-      displayValue = decimal ? value : formatInputValue(value);
+			displayValue = getDisplayValue();
 		}
+	});
+
+	$effect(() => {
+		displayValue = getDisplayValue();
 	});
 
 	function getNumericValue(): number {
@@ -156,7 +164,7 @@
 		}
 	}
 
-	let displayValue = $derived(decimal ? value : formatInputValue(value));
+	let displayValue = $state('');
 
 	let swipeIndicator = $derived(
 		isSwiping && swipeDirection === 'up' ? '▲' : isSwiping && swipeDirection === 'down' ? '▼' : ''
