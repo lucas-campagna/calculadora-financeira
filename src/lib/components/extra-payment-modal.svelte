@@ -18,11 +18,13 @@
 	let extraMonth = $state('1');
 	let extraAmount = $state('');
 	let extraType = $state<'reduce_term' | 'reduce_installment'>('reduce_term');
+	let showRemoveConfirm = $state(false);
 
 	const isEdit = $derived(editPayment !== undefined);
 
 	$effect(() => {
 		if (open) {
+			showRemoveConfirm = false;
 			if (editPayment) {
 				extraMonth = String(editPayment.month);
 				extraAmount = String(editPayment.amount);
@@ -67,6 +69,13 @@
 		} else {
 			studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
 		}
+		open = false;
+		onclose?.();
+	}
+
+	function handleRemove() {
+		if (originalMonth === null) return;
+		studiesStore.removeExtraPayment($studiesStore.activeStudyId, originalMonth);
 		open = false;
 		onclose?.();
 	}
@@ -129,6 +138,25 @@
 			</div>
 
 			<div class="flex gap-3 mt-5">
+				{#if isEdit}
+					{#if showRemoveConfirm}
+						<button
+							class="h-10 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 cursor-pointer px-4 transition-all duration-200 ease-out"
+							style="min-width: 100px;"
+							onclick={handleRemove}
+						>
+							Remover?
+						</button>
+					{:else}
+						<button
+							class="shrink-0 w-10 h-10 rounded-md border border-destructive text-destructive flex items-center justify-center hover:bg-destructive/10 cursor-pointer"
+							onclick={() => (showRemoveConfirm = true)}
+							aria-label="Remover pagamento extra"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+						</button>
+					{/if}
+				{/if}
 				<button class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer" onclick={handleSave}>
 					{isEdit ? 'Salvar' : 'Adicionar'}
 				</button>
