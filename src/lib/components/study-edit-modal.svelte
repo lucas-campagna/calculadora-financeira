@@ -28,6 +28,8 @@
 	let downPayment = $state('0');
 	let showRemoveConfirm = $state(false);
 
+	let initialValues = $state({ principal: '', annualRate: '', termMonths: '', downPayment: '' });
+
 	$effect(() => {
 		if (open) {
 			showRemoveConfirm = false;
@@ -38,17 +40,26 @@
 				annualRate = editStudy.annualRate;
 				termMonths = editStudy.termMonths;
 				downPayment = editStudy.downPayment;
+				initialValues = { principal: editStudy.principal, annualRate: editStudy.annualRate, termMonths: editStudy.termMonths, downPayment: editStudy.downPayment };
 			} else {
 				const active = $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId);
-				name = SYSTEMS.find((s) => s.key === system)?.label ?? 'Novo';
-				system = 'price';
+				name = active?.name ?? SYSTEMS.find((s) => s.key === active?.system)?.label ?? 'Novo';
+				system = active?.system ?? 'price';
 				principal = active?.principal ?? '500000';
 				annualRate = active?.annualRate ?? '10';
 				termMonths = active?.termMonths ?? '360';
 				downPayment = active?.downPayment ?? '0';
+				initialValues = { principal, annualRate, termMonths, downPayment };
 			}
 		}
 	});
+
+	function handleRevert(field: 'principal' | 'annualRate' | 'termMonths' | 'downPayment') {
+		if (field === 'principal') principal = initialValues.principal;
+		else if (field === 'annualRate') annualRate = initialValues.annualRate;
+		else if (field === 'termMonths') termMonths = initialValues.termMonths;
+		else if (field === 'downPayment') downPayment = initialValues.downPayment;
+	}
 
 	function handleConfirm() {
 		if (mode === 'add') {
@@ -138,7 +149,8 @@
 							onchange={(v) => (principal = v)}
 							min="1"
 							showLock={false}
-							showRevert={false}
+							showRevert={principal !== initialValues.principal}
+							onrevert={() => handleRevert('principal')}
 							class="mt-1"
 						/>
 					</div>
@@ -152,7 +164,8 @@
 							onchange={(v) => (downPayment = v)}
 							min="0"
 							showLock={false}
-							showRevert={false}
+							showRevert={downPayment !== initialValues.downPayment}
+							onrevert={() => handleRevert('downPayment')}
 							class="mt-1"
 						/>
 					</div>
@@ -167,7 +180,8 @@
 							min="0.01"
 							decimal={true}
 							showLock={false}
-							showRevert={false}
+							showRevert={annualRate !== initialValues.annualRate}
+							onrevert={() => handleRevert('annualRate')}
 							class="mt-1"
 						/>
 					</div>
@@ -181,7 +195,8 @@
 							onchange={(v) => (termMonths = v)}
 							min="1"
 							showLock={false}
-							showRevert={false}
+							showRevert={termMonths !== initialValues.termMonths}
+							onrevert={() => handleRevert('termMonths')}
 							class="mt-1"
 						/>
 					</div>
