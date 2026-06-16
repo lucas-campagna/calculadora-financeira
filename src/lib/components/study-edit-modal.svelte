@@ -138,6 +138,7 @@
 							onchange={(v) => (principal = v)}
 							min="1"
 							showLock={false}
+							showRevert={false}
 							class="mt-1"
 						/>
 					</div>
@@ -151,6 +152,7 @@
 							onchange={(v) => (downPayment = v)}
 							min="0"
 							showLock={false}
+							showRevert={false}
 							class="mt-1"
 						/>
 					</div>
@@ -165,6 +167,7 @@
 							min="0.01"
 							decimal={true}
 							showLock={false}
+							showRevert={false}
 							class="mt-1"
 						/>
 					</div>
@@ -178,6 +181,7 @@
 							onchange={(v) => (termMonths = v)}
 							min="1"
 							showLock={false}
+							showRevert={false}
 							class="mt-1"
 						/>
 					</div>
