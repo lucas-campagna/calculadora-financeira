@@ -112,6 +112,11 @@
 		syncRealIndex();
 	}
 
+	function closeAllPopups() {
+		(document.activeElement as HTMLElement)?.blur();
+		extraPaymentModalOpen = false;
+	}
+
 	function openExtraPayment(month: number) {
 		extraPaymentMonth = month;
 		const activeStudy = $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId);
@@ -158,6 +163,7 @@
 					const now = Date.now();
 					const timeout = lastInterstitialTime === 0 ? FIRST_INTERSTITIAL_MS : INTERSTITIAL_COOLDOWN_MS;
 					if (now - lastInterstitialTime >= timeout) {
+						closeAllPopups();
 						showInterstitial = true;
 						showResults = false;
 						lastInterstitialTime = now;
