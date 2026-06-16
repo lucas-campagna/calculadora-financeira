@@ -72,8 +72,7 @@
 				},
 				plugins: {
 					legend: {
-						position: 'top',
-						labels: { font: { size: 14 } }
+						display: false
 					},
 					tooltip: {
 						callbacks: {
@@ -170,7 +169,6 @@
 {#if Object.keys($allResultsStore).length > 0}
 	<div class="border rounded-lg p-2 sm:p-4 {fullHeight ? 'flex flex-col' : ''}" style={fullHeight ? 'height: 100%' : ''}>
 		<h2 class="text-sm font-semibold mb-1">Evolucao do Saldo Devedor</h2>
-		<p class="text-xs text-muted-foreground mb-1">Clique na legenda para mostrar/ocultar. Segure no gráfico para adicionar pagamento extra.</p>
 		<div class={fullHeight ? 'flex-1 min-h-0' : 'h-56 sm:h-80'} role="img" aria-label="Gráfico de evolucao do saldo devedor"
 			ontouchstart={handleCanvasTouchStart}
 			ontouchmove={handleCanvasTouchMove}
@@ -179,5 +177,6 @@
 		>
 			<canvas bind:this={canvasEl}></canvas>
 		</div>
+		<p class="text-xs text-muted-foreground mt-1">Segure no gráfico para adicionar pagamento extra.</p>
 	</div>
 {/if}
