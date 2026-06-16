@@ -105,7 +105,6 @@
 					id="m-rate"
 					inputmode="decimal"
 					placeholder="10"
-					decimal={true}
 					value={effectiveValue('annualRate')}
 					onchange={(v) => updateField('annualRate', v)}
 					locked={isLocked('annualRate')}
@@ -187,7 +186,6 @@
 					id="annualRate"
 					inputmode="decimal"
 					placeholder="Ex: 10,5"
-					decimal={true}
 					value={effectiveValue('annualRate')}
 					onchange={(v) => updateField('annualRate', v)}
 					locked={isLocked('annualRate')}

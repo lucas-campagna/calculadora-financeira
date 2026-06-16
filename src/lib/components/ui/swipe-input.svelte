@@ -12,7 +12,6 @@
 		placeholder = '',
 		value = '',
 		inputmode = 'numeric' as 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none',
-		decimal = false,
 		min = '0',
 		locked = false,
 		showRevert = undefined as boolean | undefined,
@@ -27,7 +26,6 @@
 		placeholder?: string;
 		value?: string;
 		inputmode?: 'numeric' | 'decimal' | 'text' | 'tel' | 'search' | 'email' | 'url' | 'none';
-		decimal?: boolean;
 		min?: string;
 		locked?: boolean;
 		showRevert?: boolean;
@@ -38,6 +36,7 @@
 		this?: HTMLInputElement | undefined;
 	} = $props();
 
+	const decimal = inputmode === 'decimal';
 	let touchStartY = 0;
 	let lastTickY = 0;
 	let isSwiping = $state(false);
