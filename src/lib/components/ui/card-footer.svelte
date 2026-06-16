@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+  import { cn } from "$lib/utils";
 
-	let {
-		className = '',
-		children
-	}: {
-		className?: string;
-		children: import('svelte').Snippet;
-	} = $props();
+  let {
+    className = "",
+    children,
+  }: {
+    className?: string;
+    children: import("svelte").Snippet;
+  } = $props();
 
-	let classes = $derived(cn('flex items-center p-6 pt-0', className));
+  let classes = $derived(cn("flex items-center p-6 pt-0", className));
 </script>
 
 <div class={classes}>
-	{@render children()}
+  {@render children()}
 </div>

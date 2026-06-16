@@ -1,339 +1,407 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import CalculatorForm from '$lib/components/calculator-form.svelte';
-	import ResultsSummary from '$lib/components/results-summary.svelte';
-	import AmortizationTable from '$lib/components/amortization-table.svelte';
-	import ComparisonChart from '$lib/components/comparison-chart.svelte';
-	import ExportButtons from '$lib/components/export-buttons.svelte';
-	import AdInterstitial from '$lib/components/ads/ad-interstitial.svelte';
-	import ExtraPaymentModal from '$lib/components/extra-payment-modal.svelte';
-	import { allResultsStore, isMobile, calculateAll, studiesStore } from '$lib/stores/calculator-store';
-	import type { ExtraPayment } from '$lib/calculator/types';
+  import { onMount } from "svelte";
+  import CalculatorForm from "$lib/components/calculator-form.svelte";
+  import ResultsSummary from "$lib/components/results-summary.svelte";
+  import AmortizationTable from "$lib/components/amortization-table.svelte";
+  import ComparisonChart from "$lib/components/comparison-chart.svelte";
+  import ExportButtons from "$lib/components/export-buttons.svelte";
+  import AdInterstitial from "$lib/components/ads/ad-interstitial.svelte";
+  import ExtraPaymentModal from "$lib/components/extra-payment-modal.svelte";
+  import {
+    allResultsStore,
+    isMobile,
+    calculateAll,
+    studiesStore,
+  } from "$lib/stores/calculator-store";
+  import type { ExtraPayment } from "$lib/calculator/types";
 
-	let extraPaymentModalOpen = $state(false);
-	let extraPaymentMonth = $state(1);
-	let extraPaymentEdit = $state<ExtraPayment | undefined>(undefined);
-	let showInterstitial = $state(false);
-	let showResults = $state(false);
-	let previousResultHash = $state('');
-	let userHasInteracted = $state(false);
-	let lastInterstitialTime = 0;
-	const FIRST_INTERSTITIAL_MS = 1 * 60 * 1000;
-	const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
+  let extraPaymentModalOpen = $state(false);
+  let extraPaymentMonth = $state(1);
+  let extraPaymentEdit = $state<ExtraPayment | undefined>(undefined);
+  let showInterstitial = $state(false);
+  let showResults = $state(false);
+  let previousResultHash = $state("");
+  let userHasInteracted = $state(false);
+  let lastInterstitialTime = 0;
+  const FIRST_INTERSTITIAL_MS = 1 * 60 * 1000;
+  const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 
-	let showScrollTop = $state(false);
-	let mobileHeight = $state('100dvh');
+  let showScrollTop = $state(false);
+  let mobileHeight = $state("100dvh");
 
-	const SLIDES = ['chart', 'results', 'table'] as const;
-	type SlideKey = typeof SLIDES[number];
-	const N = SLIDES.length;
+  const SLIDES = ["chart", "results", "table"] as const;
+  type SlideKey = (typeof SLIDES)[number];
+  const N = SLIDES.length;
 
-	let realIndex = $state<number>(0);
-	let carouselIndex = $state<number>(1);
-	let swipeContainerEl: HTMLElement | undefined = $state(undefined);
-	let touchStartX = 0;
-	let touchStartY = 0;
-	let isDragging = false;
-	let directionLocked: 'h' | 'v' | null = null;
-	let dragDelta = $state(0);
-	let animating = $state(true);
-	const LOCK_DISTANCE = 10;
+  let realIndex = $state<number>(0);
+  let carouselIndex = $state<number>(1);
+  let swipeContainerEl: HTMLElement | undefined = $state(undefined);
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isDragging = false;
+  let directionLocked: "h" | "v" | null = null;
+  let dragDelta = $state(0);
+  let animating = $state(true);
+  const LOCK_DISTANCE = 10;
 
-	function getScrollParent(el: HTMLElement | null): HTMLElement | null {
-		while (el && el !== swipeContainerEl) {
-			const style = window.getComputedStyle(el);
-			const overflowX = style.overflowX;
-			if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
-				return el;
-			}
-			el = el.parentElement;
-		}
-		return null;
-	}
+  function getScrollParent(el: HTMLElement | null): HTMLElement | null {
+    while (el && el !== swipeContainerEl) {
+      const style = window.getComputedStyle(el);
+      const overflowX = style.overflowX;
+      if (
+        (overflowX === "auto" || overflowX === "scroll") &&
+        el.scrollWidth > el.clientWidth
+      ) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
 
-	function handleSwipeStart(e: TouchEvent) {
-		touchStartX = e.touches[0].clientX;
-		touchStartY = e.touches[0].clientY;
-		isDragging = true;
-		directionLocked = null;
-		animating = false;
-	}
+  function handleSwipeStart(e: TouchEvent) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isDragging = true;
+    directionLocked = null;
+    animating = false;
+  }
 
-	function handleSwipeMove(e: TouchEvent) {
-		if (!isDragging) return;
-		const dx = e.touches[0].clientX - touchStartX;
-		const dy = e.touches[0].clientY - touchStartY;
+  function handleSwipeMove(e: TouchEvent) {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
 
-		if (!directionLocked) {
-			if (Math.sqrt(dx * dx + dy * dy) < LOCK_DISTANCE) return;
-			const angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * (180 / Math.PI);
-			directionLocked = angle < 45 ? 'h' : 'v';
-		}
+    if (!directionLocked) {
+      if (Math.sqrt(dx * dx + dy * dy) < LOCK_DISTANCE) return;
+      const angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * (180 / Math.PI);
+      directionLocked = angle < 45 ? "h" : "v";
+    }
 
-		if (directionLocked === 'v') {
-			isDragging = false;
-			return;
-		}
+    if (directionLocked === "v") {
+      isDragging = false;
+      return;
+    }
 
-		const scrollEl = getScrollParent(e.target as HTMLElement);
-		if (scrollEl) {
-			const atLeft = scrollEl.scrollLeft <= 0 && dx > 0;
-			const atRight = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth && dx < 0;
-			if (!atLeft && !atRight) {
-				isDragging = false;
-				return;
-			}
-		}
-		e.preventDefault();
-		dragDelta = dx;
-	}
+    const scrollEl = getScrollParent(e.target as HTMLElement);
+    if (scrollEl) {
+      const atLeft = scrollEl.scrollLeft <= 0 && dx > 0;
+      const atRight =
+        scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth &&
+        dx < 0;
+      if (!atLeft && !atRight) {
+        isDragging = false;
+        return;
+      }
+    }
+    e.preventDefault();
+    dragDelta = dx;
+  }
 
-	function handleSwipeEnd(e: TouchEvent) {
-		if (!isDragging) {
-			isDragging = false;
-			dragDelta = 0;
-			directionLocked = null;
-			animating = true;
-			return;
-		}
-		isDragging = false;
-		const diff = touchStartX - e.changedTouches[0].clientX;
-		animating = true;
-		directionLocked = null;
+  function handleSwipeEnd(e: TouchEvent) {
+    if (!isDragging) {
+      isDragging = false;
+      dragDelta = 0;
+      directionLocked = null;
+      animating = true;
+      return;
+    }
+    isDragging = false;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    animating = true;
+    directionLocked = null;
 
-		if (Math.abs(diff) > 50) {
-			if (diff > 0) {
-				carouselIndex++;
-			} else {
-				carouselIndex--;
-			}
-		}
-		dragDelta = 0;
-		syncRealIndex();
-	}
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        carouselIndex++;
+      } else {
+        carouselIndex--;
+      }
+    }
+    dragDelta = 0;
+    syncRealIndex();
+  }
 
-	function closeAllPopups() {
-		(document.activeElement as HTMLElement)?.blur();
-		extraPaymentModalOpen = false;
-	}
+  function closeAllPopups() {
+    (document.activeElement as HTMLElement)?.blur();
+    extraPaymentModalOpen = false;
+  }
 
-	function openExtraPayment(month: number) {
-		extraPaymentMonth = month;
-		const activeStudy = $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId);
-		const existing = activeStudy?.extraPayments.find((ep) => ep.month === month);
-		extraPaymentEdit = existing;
-		extraPaymentModalOpen = true;
-	}
+  function openExtraPayment(month: number) {
+    extraPaymentMonth = month;
+    const activeStudy = $studiesStore.studies.find(
+      (s) => s.id === $studiesStore.activeStudyId,
+    );
+    const existing = activeStudy?.extraPayments.find(
+      (ep) => ep.month === month,
+    );
+    extraPaymentEdit = existing;
+    extraPaymentModalOpen = true;
+  }
 
-	function syncRealIndex() {
-		realIndex = ((carouselIndex - 1) % N + N) % N;
-	}
+  function syncRealIndex() {
+    realIndex = (((carouselIndex - 1) % N) + N) % N;
+  }
 
-	function goToSlide(index: number) {
-		animating = true;
-		carouselIndex = index + 1;
-		dragDelta = 0;
-		syncRealIndex();
-	}
+  function goToSlide(index: number) {
+    animating = true;
+    carouselIndex = index + 1;
+    dragDelta = 0;
+    syncRealIndex();
+  }
 
-	function handleTransitionEnd() {
-		if (carouselIndex === 0) {
-			animating = false;
-			carouselIndex = N;
-			syncRealIndex();
-		} else if (carouselIndex === N + 1) {
-			animating = false;
-			carouselIndex = 1;
-			syncRealIndex();
-		}
-	}
+  function handleTransitionEnd() {
+    if (carouselIndex === 0) {
+      animating = false;
+      carouselIndex = N;
+      syncRealIndex();
+    } else if (carouselIndex === N + 1) {
+      animating = false;
+      carouselIndex = 1;
+      syncRealIndex();
+    }
+  }
 
-	const slideLabels: Record<SlideKey, string> = {
-		chart: 'Gráfico',
-		results: 'Resultado',
-		table: 'Tabela'
-	};
+  const slideLabels: Record<SlideKey, string> = {
+    chart: "Gráfico",
+    results: "Resultado",
+    table: "Tabela",
+  };
 
-	$effect(() => {
-		if (Object.keys($allResultsStore).length > 0) {
-			const hash = Object.values($allResultsStore).map((r) => r?.totalPaid ?? 0).join(',');
-			if (hash !== previousResultHash) {
-				previousResultHash = hash;
-				if (userHasInteracted && $isMobile) {
-					const now = Date.now();
-					const timeout = lastInterstitialTime === 0 ? FIRST_INTERSTITIAL_MS : INTERSTITIAL_COOLDOWN_MS;
-					if (now - lastInterstitialTime >= timeout) {
-						closeAllPopups();
-						showInterstitial = true;
-						showResults = false;
-						lastInterstitialTime = now;
-					} else {
-						showResults = true;
-					}
-				} else {
-					showResults = true;
-				}
-			}
-		}
-	});
+  $effect(() => {
+    if (Object.keys($allResultsStore).length > 0) {
+      const hash = Object.values($allResultsStore)
+        .map((r) => r?.totalPaid ?? 0)
+        .join(",");
+      if (hash !== previousResultHash) {
+        previousResultHash = hash;
+        if (userHasInteracted && $isMobile) {
+          const now = Date.now();
+          const timeout =
+            lastInterstitialTime === 0
+              ? FIRST_INTERSTITIAL_MS
+              : INTERSTITIAL_COOLDOWN_MS;
+          if (now - lastInterstitialTime >= timeout) {
+            closeAllPopups();
+            showInterstitial = true;
+            showResults = false;
+            lastInterstitialTime = now;
+          } else {
+            showResults = true;
+          }
+        } else {
+          showResults = true;
+        }
+      }
+    }
+  });
 
-	function handleInterstitialClose() {
-		showInterstitial = false;
-		showResults = true;
-	}
+  function handleInterstitialClose() {
+    showInterstitial = false;
+    showResults = true;
+  }
 
-	$effect(() => {
-		if (!swipeContainerEl) return;
-		const el = swipeContainerEl;
-		el.addEventListener('touchstart', handleSwipeStart, { passive: true });
-		el.addEventListener('touchmove', handleSwipeMove, { passive: false });
-		el.addEventListener('touchend', handleSwipeEnd, { passive: true });
-		el.addEventListener('touchcancel', handleSwipeEnd, { passive: true });
-		return () => {
-			el.removeEventListener('touchstart', handleSwipeStart);
-			el.removeEventListener('touchmove', handleSwipeMove);
-			el.removeEventListener('touchend', handleSwipeEnd);
-			el.removeEventListener('touchcancel', handleSwipeEnd);
-		};
-	});
+  $effect(() => {
+    if (!swipeContainerEl) return;
+    const el = swipeContainerEl;
+    el.addEventListener("touchstart", handleSwipeStart, { passive: true });
+    el.addEventListener("touchmove", handleSwipeMove, { passive: false });
+    el.addEventListener("touchend", handleSwipeEnd, { passive: true });
+    el.addEventListener("touchcancel", handleSwipeEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", handleSwipeStart);
+      el.removeEventListener("touchmove", handleSwipeMove);
+      el.removeEventListener("touchend", handleSwipeEnd);
+      el.removeEventListener("touchcancel", handleSwipeEnd);
+    };
+  });
 
-	onMount(() => {
-		calculateAll();
+  onMount(() => {
+    calculateAll();
 
-		function onScroll() {
-			showScrollTop = window.scrollY > 300;
-		}
+    function onScroll() {
+      showScrollTop = window.scrollY > 300;
+    }
 
-		function updateMobileHeight() {
-			const header = document.querySelector('header');
-			const headerH = header ? header.getBoundingClientRect().height : 56;
-			mobileHeight = `${(window.visualViewport?.height ?? window.innerHeight) - headerH}px`;
-		}
+    function updateMobileHeight() {
+      const header = document.querySelector("header");
+      const headerH = header ? header.getBoundingClientRect().height : 56;
+      mobileHeight = `${(window.visualViewport?.height ?? window.innerHeight) - headerH}px`;
+    }
 
-		updateMobileHeight();
-		window.visualViewport?.addEventListener('resize', updateMobileHeight);
-		window.addEventListener('resize', updateMobileHeight);
-		window.addEventListener('scroll', onScroll, { passive: true });
-		return () => {
-			window.visualViewport?.removeEventListener('resize', updateMobileHeight);
-			window.removeEventListener('resize', updateMobileHeight);
-			window.removeEventListener('scroll', onScroll);
-		};
-	});
+    updateMobileHeight();
+    window.visualViewport?.addEventListener("resize", updateMobileHeight);
+    window.addEventListener("resize", updateMobileHeight);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateMobileHeight);
+      window.removeEventListener("resize", updateMobileHeight);
+      window.removeEventListener("scroll", onScroll);
+    };
+  });
 
-	function scrollToTop() {
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	}
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-	let hasResults = $derived(Object.keys($allResultsStore).length > 0 && $allResultsStore[$studiesStore.activeStudyId] != null);
+  let hasResults = $derived(
+    Object.keys($allResultsStore).length > 0 &&
+      $allResultsStore[$studiesStore.activeStudyId] != null,
+  );
 </script>
 
 {#if $isMobile}
-<div class="flex flex-col overflow-hidden" style="height: {mobileHeight}">
-	<!-- MOBILE -->
-		<div class="flex border-b shrink-0">
-			{#each SLIDES as key, i}
-				<button
-					class="flex-1 py-2 text-sm font-medium text-center transition-colors {realIndex === i ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}"
-					onclick={() => goToSlide(i)}
-				>
-					{slideLabels[key]}
-				</button>
-			{/each}
-		</div>
+  <div class="flex flex-col overflow-hidden" style="height: {mobileHeight}">
+    <!-- MOBILE -->
+    <div class="flex border-b shrink-0">
+      {#each SLIDES as key, i}
+        <button
+          class="flex-1 py-2 text-sm font-medium text-center transition-colors {realIndex ===
+          i
+            ? 'text-primary border-b-2 border-primary'
+            : 'text-muted-foreground'}"
+          onclick={() => goToSlide(i)}
+        >
+          {slideLabels[key]}
+        </button>
+      {/each}
+    </div>
 
-		<div class="flex-1 min-h-0 overflow-hidden" style="touch-action: pan-y" bind:this={swipeContainerEl}>
-			<div
-				class="flex h-full {animating ? 'transition-transform duration-300 ease-in-out' : ''}"
-				style="transform: translateX(calc(-{carouselIndex * 100}% + {dragDelta}px))"
-				ontransitionend={handleTransitionEnd}
-			>
-				<!-- Clone of last slide (table) -->
-				<div class="w-full flex-shrink-0 h-full flex flex-col">
-					<div class="flex-1 min-h-0 p-3 flex flex-col">
-						{#if hasResults}
-							<AmortizationTable onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
-						{/if}
-					</div>
-				</div>
+    <div
+      class="flex-1 min-h-0 overflow-hidden"
+      style="touch-action: pan-y"
+      bind:this={swipeContainerEl}
+    >
+      <div
+        class="flex h-full {animating
+          ? 'transition-transform duration-300 ease-in-out'
+          : ''}"
+        style="transform: translateX(calc(-{carouselIndex *
+          100}% + {dragDelta}px))"
+        ontransitionend={handleTransitionEnd}
+      >
+        <!-- Clone of last slide (table) -->
+        <div class="w-full flex-shrink-0 h-full flex flex-col">
+          <div class="flex-1 min-h-0 p-3 flex flex-col">
+            {#if hasResults}
+              <AmortizationTable
+                onrowclick={openExtraPayment}
+                defaultExpanded={true}
+                flexMode={true}
+              />
+            {/if}
+          </div>
+        </div>
 
-				<!-- Real slides -->
-				{#each SLIDES as key}
-					{#if key === 'chart'}
-						<div class="w-full flex-shrink-0 h-full flex flex-col">
-							<div class="flex-1 min-h-0 p-2">
-								{#if hasResults}
-									<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
-								{/if}
-							</div>
-						</div>
-					{:else if key === 'results'}
-						<div class="w-full flex-shrink-0 h-full overflow-y-auto">
-							<div class="p-3">
-								{#if hasResults}
-									<ResultsSummary />
-								{/if}
-							</div>
-						</div>
-					{:else}
-						<div class="w-full flex-shrink-0 h-full flex flex-col">
-							<div class="flex-1 min-h-0 p-3 flex flex-col">
-								{#if hasResults}
-									<AmortizationTable onrowclick={openExtraPayment} defaultExpanded={true} flexMode={true} />
-								{/if}
-							</div>
-						</div>
-					{/if}
-				{/each}
+        <!-- Real slides -->
+        {#each SLIDES as key}
+          {#if key === "chart"}
+            <div class="w-full flex-shrink-0 h-full flex flex-col">
+              <div class="flex-1 min-h-0 p-2">
+                {#if hasResults}
+                  <ComparisonChart
+                    onlongpress={openExtraPayment}
+                    fullHeight={true}
+                  />
+                {/if}
+              </div>
+            </div>
+          {:else if key === "results"}
+            <div class="w-full flex-shrink-0 h-full overflow-y-auto">
+              <div class="p-3">
+                {#if hasResults}
+                  <ResultsSummary />
+                {/if}
+              </div>
+            </div>
+          {:else}
+            <div class="w-full flex-shrink-0 h-full flex flex-col">
+              <div class="flex-1 min-h-0 p-3 flex flex-col">
+                {#if hasResults}
+                  <AmortizationTable
+                    onrowclick={openExtraPayment}
+                    defaultExpanded={true}
+                    flexMode={true}
+                  />
+                {/if}
+              </div>
+            </div>
+          {/if}
+        {/each}
 
-				<!-- Clone of first slide (chart) -->
-				<div class="w-full flex-shrink-0 h-full flex flex-col">
-					<div class="flex-1 min-h-0 p-2">
-						{#if hasResults}
-							<ComparisonChart onlongpress={openExtraPayment} fullHeight={true} />
-						{/if}
-					</div>
-				</div>
-			</div>
-		</div>
+        <!-- Clone of first slide (chart) -->
+        <div class="w-full flex-shrink-0 h-full flex flex-col">
+          <div class="flex-1 min-h-0 p-2">
+            {#if hasResults}
+              <ComparisonChart
+                onlongpress={openExtraPayment}
+                fullHeight={true}
+              />
+            {/if}
+          </div>
+        </div>
+      </div>
+    </div>
 
-		<div class="shrink-0 bg-background border-t px-3 pt-2 pb-3">
-			<CalculatorForm compact={true} onchange={() => (userHasInteracted = true)} />
-		</div>
-	</div>
+    <div class="shrink-0 bg-background border-t px-3 pt-2 pb-3">
+      <CalculatorForm
+        compact={true}
+        onchange={() => (userHasInteracted = true)}
+      />
+    </div>
+  </div>
 {:else}
-	<!-- DESKTOP -->
-	<div class="max-w-4xl mx-auto">
-		<div class="mb-6">
-			<h1 class="text-2xl font-bold">Calculadora de Financiamento</h1>
-			<p class="text-sm text-muted-foreground mt-1">
-				Simule PRICE, SAC, SAM e Americano. Ajuste os valores e veja o resultado automaticamente.
-			</p>
-		</div>
+  <!-- DESKTOP -->
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold">Calculadora de Financiamento</h1>
+      <p class="text-sm text-muted-foreground mt-1">
+        Simule PRICE, SAC, SAM e Americano. Ajuste os valores e veja o resultado
+        automaticamente.
+      </p>
+    </div>
 
-		<CalculatorForm onchange={() => (userHasInteracted = true)} />
+    <CalculatorForm onchange={() => (userHasInteracted = true)} />
 
-		{#if hasResults && showResults}
-			<div class="mt-6 space-y-6">
-				<ResultsSummary />
-				<ComparisonChart onlongpress={openExtraPayment} />
-				<AmortizationTable onrowclick={openExtraPayment} />
-				<ExportButtons />
-			</div>
-		{/if}
-	</div>
+    {#if hasResults && showResults}
+      <div class="mt-6 space-y-6">
+        <ResultsSummary />
+        <ComparisonChart onlongpress={openExtraPayment} />
+        <AmortizationTable onrowclick={openExtraPayment} />
+        <ExportButtons />
+      </div>
+    {/if}
+  </div>
 {/if}
 
 {#if showScrollTop}
-	<button
-		onclick={scrollToTop}
-		class="fixed bottom-6 right-6 z-40 h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-opacity"
-		aria-label="Voltar ao topo"
-	>
-		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
-	</button>
+  <button
+    onclick={scrollToTop}
+    class="fixed bottom-6 right-6 z-40 h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-opacity"
+    aria-label="Voltar ao topo"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"><path d="M18 15l-6-6-6 6" /></svg
+    >
+  </button>
 {/if}
 
 <AdInterstitial open={showInterstitial} onclose={handleInterstitialClose} />
 
-<ExtraPaymentModal bind:open={extraPaymentModalOpen} month={extraPaymentMonth} editPayment={extraPaymentEdit} onclose={() => { extraPaymentModalOpen = false; extraPaymentEdit = undefined; }} />
+<ExtraPaymentModal
+  bind:open={extraPaymentModalOpen}
+  month={extraPaymentMonth}
+  editPayment={extraPaymentEdit}
+  onclose={() => {
+    extraPaymentModalOpen = false;
+    extraPaymentEdit = undefined;
+  }}
+/>
