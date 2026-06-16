@@ -94,6 +94,7 @@
 						onchange={updateMonth}
 						min="1"
 						showLock={false}
+						showRevert={false}
 						class="mt-1.5"
 					/>
 				</div>
