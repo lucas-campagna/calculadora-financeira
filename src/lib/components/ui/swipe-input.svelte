@@ -140,7 +140,6 @@
 			lastEmittedValue = emitted;
 			handleChange(emitted);
 		}
-		isTyping = false;
 	}
 
 	function handleBlur() {
