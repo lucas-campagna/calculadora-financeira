@@ -75,6 +75,7 @@
 						display: false
 					},
 					tooltip: {
+						bodyFont: { size: 11 },
 						callbacks: {
 							label: (ctx: import('chart.js').TooltipItem<'line'>) => {
 								return `${ctx.dataset.label}: R$ ${(ctx.parsed.y ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
@@ -84,14 +85,14 @@
 				},
 				scales: {
 					x: {
-						title: { display: true, text: 'Mês', font: { size: 14 } },
-						ticks: { font: { size: 12 } }
+						title: { display: true, text: 'Mês', font: { size: 11 } },
+						ticks: { font: { size: 10 } }
 					},
 					y: {
-						title: { display: true, text: 'Saldo (R$)', font: { size: 14 } },
+						title: { display: true, text: 'Saldo (R$)', font: { size: 11 } },
 						ticks: {
 							callback: (value: string | number) => `R$ ${(Number(value) / 1000).toFixed(0)}k`,
-							font: { size: 12 }
+							font: { size: 10 }
 						}
 					}
 				}
@@ -168,7 +169,7 @@
 
 {#if Object.keys($allResultsStore).length > 0}
 	<div class="border rounded-lg p-2 sm:p-4 {fullHeight ? 'flex flex-col' : ''}" style={fullHeight ? 'height: 100%' : ''}>
-		<h2 class="text-sm font-semibold mb-1">Evolucao do Saldo Devedor</h2>
+		<h2 class="text-xs font-semibold mb-1">Evolucao do Saldo Devedor</h2>
 		<div class={fullHeight ? 'flex-1 min-h-0' : 'h-56 sm:h-80'} role="img" aria-label="Gráfico de evolucao do saldo devedor"
 			ontouchstart={handleCanvasTouchStart}
 			ontouchmove={handleCanvasTouchMove}
