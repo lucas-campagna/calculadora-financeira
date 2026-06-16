@@ -27,10 +27,12 @@
 				extraMonth = String(editPayment.month);
 				extraAmount = String(editPayment.amount);
 				extraType = editPayment.type;
+				originalMonth = editPayment.month;
 			} else {
 				extraMonth = String(month);
 				extraAmount = '';
 				extraType = 'reduce_term';
+				originalMonth = null;
 			}
 			setTimeout(() => {
 				const el = document.getElementById('extra-modal-amount');
@@ -38,6 +40,8 @@
 			}, 100);
 		}
 	});
+
+	let originalMonth = $state<number | null>(null);
 
 	function updateMonth(raw: string) {
 		extraMonth = raw;
@@ -53,8 +57,13 @@
 		if (m <= 0 || a <= 0) return;
 
 		const payment: ExtraPayment = { month: m, amount: a, type: extraType };
-		if (isEdit) {
-			studiesStore.updateExtraPayment($studiesStore.activeStudyId, payment);
+		if (isEdit && originalMonth !== null) {
+			if (m !== originalMonth) {
+				studiesStore.removeExtraPayment($studiesStore.activeStudyId, originalMonth);
+				studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
+			} else {
+				studiesStore.updateExtraPayment($studiesStore.activeStudyId, payment);
+			}
 		} else {
 			studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
 		}
@@ -84,7 +93,6 @@
 						value={extraMonth}
 						onchange={updateMonth}
 						min="1"
-						locked={isEdit}
 						showLock={false}
 						class="mt-1.5"
 					/>
