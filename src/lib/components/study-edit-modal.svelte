@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { studiesStore, calculateAll } from '$lib/stores/calculator-store';
 	import type { AmortizationSystem, Study } from '$lib/calculator/types';
+	import SwipeInput from '$lib/components/ui/swipe-input.svelte';
 
 	let {
 		open = $bindable(false),
@@ -52,7 +53,7 @@
 	function handleConfirm() {
 		if (mode === 'add') {
 			const newStudy: Study = {
-				id: Date.now().toString(),
+				id: crypto.randomUUID(),
 				name: name || SYSTEMS.find((s) => s.key === system)?.label || 'Novo',
 				system,
 				principal,
@@ -129,42 +130,55 @@
 				<div class="grid grid-cols-2 gap-3">
 					<div>
 						<label for="study-principal" class="text-sm font-medium">Valor (R$)</label>
-						<input
+						<SwipeInput
 							id="study-principal"
-							type="text"
 							inputmode="numeric"
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
-							bind:value={principal}
+							placeholder="500.000"
+							value={principal}
+							onchange={(v) => (principal = v)}
+							min="1"
+							showLock={false}
+							class="mt-1"
 						/>
 					</div>
 					<div>
 						<label for="study-down" class="text-sm font-medium">Entrada (R$)</label>
-						<input
+						<SwipeInput
 							id="study-down"
-							type="text"
 							inputmode="numeric"
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
-							bind:value={downPayment}
+							placeholder="0"
+							value={downPayment}
+							onchange={(v) => (downPayment = v)}
+							min="0"
+							showLock={false}
+							class="mt-1"
 						/>
 					</div>
 					<div>
 						<label for="study-rate" class="text-sm font-medium">Taxa (% a.a.)</label>
-						<input
+						<SwipeInput
 							id="study-rate"
-							type="text"
 							inputmode="decimal"
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
-							bind:value={annualRate}
+							placeholder="10"
+							value={annualRate}
+							onchange={(v) => (annualRate = v)}
+							min="0.01"
+							decimal={true}
+							showLock={false}
+							class="mt-1"
 						/>
 					</div>
 					<div>
 						<label for="study-term" class="text-sm font-medium">Prazo (meses)</label>
-						<input
+						<SwipeInput
 							id="study-term"
-							type="text"
 							inputmode="numeric"
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
-							bind:value={termMonths}
+							placeholder="360"
+							value={termMonths}
+							onchange={(v) => (termMonths = v)}
+							min="1"
+							showLock={false}
+							class="mt-1"
 						/>
 					</div>
 				</div>
