@@ -2,6 +2,8 @@
 	import { studiesStore } from '$lib/stores/calculator-store';
 	import type { Study } from '$lib/calculator/types';
 
+	const COLORS = ['#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899', '#f97316', '#06b6d4', '#ef4444'];
+
 	let {
 		onadd = () => {},
 		onedit = (_study: Study) => {}
@@ -82,14 +84,15 @@
 	{/if}
 
 	<div class="flex-1 min-w-0 overflow-x-auto scrollbar-hide flex flex-nowrap items-center gap-2">
-		{#each $studiesStore.studies as study (study.id)}
+		{#each $studiesStore.studies as study, i (study.id)}
 		{@const studyOverrides = $studiesStore.overrides[study.id]}
 		{@const hasOverrides = studyOverrides && Object.keys(studyOverrides).length > 0}
 		{@const isActive = $studiesStore.activeStudyId === study.id}
 		<button
-			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none {isActive ? 'bg-primary text-primary-foreground border-primary' : hasOverrides ? 'bg-background text-foreground border-input hover:bg-accent' : 'bg-muted text-muted-foreground border-muted'}"
+			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none flex items-center gap-1.5 {isActive ? 'bg-primary text-primary-foreground border-primary' : hasOverrides ? 'bg-background text-foreground border-input hover:bg-accent' : 'bg-muted text-muted-foreground border-muted'}"
 			onclick={() => handlePillClick(study.id)}
 		>
+			<span class="w-2 h-2 rounded-full shrink-0" style="background-color: {COLORS[i % COLORS.length]};"></span>
 			{study.name}
 		</button>
 	{/each}
