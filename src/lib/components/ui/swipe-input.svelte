@@ -203,7 +203,7 @@
 		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-bold text-sm pointer-events-none">
 			{swipeIndicator}
 		</div>
-	{:else if rawInput !== value && !isSwiping}
+	{:else if rawInput !== (decimal ? value : formatInputValue(value))}
 		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs pointer-events-none">
 			{decimal ? value : formatInputValue(value)}
 		</div>
