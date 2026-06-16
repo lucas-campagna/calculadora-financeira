@@ -54,13 +54,9 @@
 	}
 
 	$effect(() => {
-		if (!isTyping && value !== lastEmittedValue) {
+		if (!isTyping) {
 			displayValue = getDisplayValue();
 		}
-	});
-
-	$effect(() => {
-		displayValue = getDisplayValue();
 	});
 
 	function getNumericValue(): number {
