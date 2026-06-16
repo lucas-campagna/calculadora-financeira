@@ -192,10 +192,11 @@
 				{#if mode === 'edit'}
 					{#if showRemoveConfirm}
 						<button
-							class="flex-1 h-10 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 cursor-pointer"
+							class="h-10 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 cursor-pointer px-4 transition-all duration-200 ease-out"
+							style="min-width: 120px;"
 							onclick={handleRemove}
 						>
-							Confirmar remocao?
+							Remover?
 						</button>
 					{:else}
 						<button
