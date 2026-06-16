@@ -114,20 +114,21 @@ function createStudiesStore() {
 		set,
 		update,
 		addStudy(study: Study) {
-			update((s) => ({
-				...s,
-				studies: [...s.studies, study],
-				activeStudyId: study.id,
-				overrides: {
-					...s.overrides,
-					[study.id]: {
-						principal: study.principal,
-						annualRate: study.annualRate,
-						termMonths: study.termMonths,
-						downPayment: study.downPayment
-					}
-				}
-			}));
+			update((s) => {
+				const newOverrides: Partial<Record<FieldKey, string>> = {};
+				if (study.principal !== s.commonValues.principal) newOverrides.principal = study.principal;
+				if (study.annualRate !== s.commonValues.annualRate) newOverrides.annualRate = study.annualRate;
+				if (study.termMonths !== s.commonValues.termMonths) newOverrides.termMonths = study.termMonths;
+				if (study.downPayment !== s.commonValues.downPayment) newOverrides.downPayment = study.downPayment;
+				return {
+					...s,
+					studies: [...s.studies, study],
+					activeStudyId: study.id,
+					overrides: Object.keys(newOverrides).length > 0
+						? { ...s.overrides, [study.id]: newOverrides as Record<FieldKey, string> }
+						: s.overrides
+				};
+			});
 			calculateAll();
 		},
 		updateStudy(id: string, patch: Partial<Omit<Study, 'id'>>) {
