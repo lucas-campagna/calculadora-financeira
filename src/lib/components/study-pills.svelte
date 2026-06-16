@@ -4,6 +4,12 @@
 
 	const COLORS = ['#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899', '#f97316', '#06b6d4', '#ef4444'];
 
+	function getPillClasses(isActive: boolean, hasOverrides: boolean): string {
+		if (isActive) return 'bg-primary text-primary-foreground border-primary';
+		if (hasOverrides) return 'bg-background text-foreground border-input hover:bg-accent';
+		return 'bg-muted text-muted-foreground border-muted';
+	}
+
 	let {
 		onadd = () => {},
 		onedit = (_study: Study) => {}
@@ -89,10 +95,10 @@
 		{@const hasOverrides = studyOverrides && Object.keys(studyOverrides).length > 0}
 		{@const isActive = $studiesStore.activeStudyId === study.id}
 		<button
-			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none flex items-center gap-1.5 {isActive ? 'bg-primary text-primary-foreground border-primary' : hasOverrides ? 'bg-background text-foreground border-input hover:bg-accent' : 'bg-muted text-muted-foreground border-muted'}"
+			class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none {getPillClasses(isActive, hasOverrides)}"
+			style={isActive ? `background-color: ${COLORS[i % COLORS.length]}; border-color: ${COLORS[i % COLORS.length]};` : ''}
 			onclick={() => handlePillClick(study.id)}
 		>
-			<span class="w-2 h-2 rounded-full shrink-0" style="background-color: {COLORS[i % COLORS.length]};"></span>
 			{study.name}
 		</button>
 	{/each}
