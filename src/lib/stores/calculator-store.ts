@@ -117,7 +117,16 @@ function createStudiesStore() {
 			update((s) => ({
 				...s,
 				studies: [...s.studies, study],
-				activeStudyId: study.id
+				activeStudyId: study.id,
+				overrides: {
+					...s.overrides,
+					[study.id]: {
+						principal: study.principal,
+						annualRate: study.annualRate,
+						termMonths: study.termMonths,
+						downPayment: study.downPayment
+					}
+				}
 			}));
 			calculateAll();
 		},
