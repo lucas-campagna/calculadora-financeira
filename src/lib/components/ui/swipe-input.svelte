@@ -216,6 +216,7 @@
     return parts.join(" e ");
   });
 
+
   onMount(() => {
     if (inputEl) {
       inputEl.addEventListener("touchstart", handleTouchStart, {
@@ -258,7 +259,14 @@
   />
   {#if monthBreakdown}
     <div
-      class="absolute left-13 top-[24%] pt-1 text-xs text-muted-foreground/60 text-center pointer-events-none"
+      class="absolute inset-y-0 flex items-center text-xs text-muted-foreground/60 text-left pointer-events-none overflow-hidden text-nowrap right-7 text-ellipsis"
+      class:opacity-30={!displayValue || displayValue === "0"}
+      class:opacity-100={displayValue && displayValue !== "0"}
+      class:left-6={displayValue.length == 1}
+      class:left-8={displayValue.length == 2}
+      class:left-10={displayValue.length == 3}
+      class:left-13={displayValue.length >= 4}
+      class:right-13={!swipeIndicator && showRevert}
     >
       {monthBreakdown}
     </div>
