@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { cn } from "$lib/utils";
   import { formatInputValue } from "$lib/calculator";
-  import { SWIPE_TICK_PERCENT } from "$lib/constants";
+  import { SWIPE_TICK_PERCENT, MAX_MONTHS } from "$lib/constants";
 
   const TICK_PX = 30;
 
@@ -19,8 +19,10 @@
       | "search"
       | "email"
       | "url"
-      | "none",
+      | "none"
+      | "month",
     min = "0",
+    max = inputmode === "month" ? String(MAX_MONTHS) : "",
     locked = false,
     showRevert = undefined as boolean | undefined,
     showLock = true,
@@ -41,8 +43,10 @@
       | "search"
       | "email"
       | "url"
-      | "none";
+      | "none"
+      | "month";
     min?: string;
+    max?: string;
     locked?: boolean;
     showRevert?: boolean;
     showLock?: boolean;
@@ -86,7 +90,8 @@
 
   function applyMin(v: number): number {
     const minVal = parseFloat(min) || 0;
-    return Math.max(minVal, v);
+    const maxVal = parseFloat(max) || Infinity;
+    return Math.min(Math.max(minVal, v), maxVal);
   }
 
   function applyTick(direction: "up" | "down") {
@@ -195,6 +200,22 @@
         : "",
   );
 
+  let monthBreakdown = $derived.by(() => {
+    if (inputmode !== "month") return null;
+    const num = getNumericValue();
+    if (num === 0) return null;
+    const years = Math.floor(num / 12);
+    const months = num % 12;
+    const parts: string[] = [];
+    if (years > 0) {
+      parts.push(years === 1 ? "1 ano" : `${years} anos`);
+    }
+    if (months > 0) {
+      parts.push(months === 1 ? "1 mês" : `${months} meses`);
+    }
+    return parts.join(" e ");
+  });
+
   onMount(() => {
     if (inputEl) {
       inputEl.addEventListener("touchstart", handleTouchStart, {
@@ -225,7 +246,7 @@
     {id}
     type="text"
     {placeholder}
-    {inputmode}
+    inputmode={inputmode === "month" ? "numeric" : inputmode}
     bind:value={displayValue}
     onblur={handleBlur}
     oninput={handleInput}
@@ -235,6 +256,13 @@
       className,
     )}
   />
+  {#if monthBreakdown}
+    <div
+      class="absolute left-13 top-[24%] pt-1 text-xs text-muted-foreground/60 text-center pointer-events-none"
+    >
+      {monthBreakdown}
+    </div>
+  {/if}
   {#if swipeIndicator}
     <div
       class="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-bold text-sm pointer-events-none"

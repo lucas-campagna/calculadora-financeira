@@ -239,7 +239,7 @@
             >
             <SwipeInput
               id="study-term"
-              inputmode="numeric"
+              inputmode="month"
               placeholder="360"
               value={termMonths}
               onchange={(v) => (termMonths = v)}

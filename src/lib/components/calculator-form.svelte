@@ -121,7 +121,7 @@
         <Label for="m-term" class="text-xs">Prazo (meses)</Label>
         <SwipeInput
           id="m-term"
-          inputmode="numeric"
+          inputmode="month"
           placeholder="360"
           value={effectiveValue("termMonths")}
           onchange={(v) => updateField("termMonths", v)}
@@ -206,7 +206,7 @@
         <Label for="termMonths" class="text-sm">Prazo (meses)</Label>
         <SwipeInput
           id="termMonths"
-          inputmode="numeric"
+          inputmode="month"
           placeholder="Ex: 360"
           value={effectiveValue("termMonths")}
           onchange={(v) => updateField("termMonths", v)}

@@ -116,7 +116,7 @@
           <label for="extra-modal-month" class="text-sm font-medium">Mês</label>
           <SwipeInput
             id="extra-modal-month"
-            inputmode="numeric"
+            inputmode="month"
             placeholder="Mes"
             value={extraMonth}
             onchange={updateMonth}

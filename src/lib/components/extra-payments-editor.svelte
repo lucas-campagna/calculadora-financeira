@@ -66,7 +66,7 @@
         >
         <SwipeInput
           id="extra-month-{i}"
-          inputmode="numeric"
+          inputmode="month"
           value={String(ep.month)}
           onchange={(v) => updateMonth(i, v)}
           min="1"
