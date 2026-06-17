@@ -1,11 +1,12 @@
-import adapter from '@sveltejs/adapter-static';
-import { sveltekit } from '@sveltejs/kit/vite';
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
-
-const dev = process.argv.includes('dev');
+import { sveltekit } from "@sveltejs/kit/vite";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
-	ssr: { noExternal: ['chart.js'] }
+  plugins: [tailwindcss(), sveltekit()],
+  ssr: { noExternal: ["chart.js"] },
+  test: {
+    globals: true,
+    environment: "node",
+  },
 });
