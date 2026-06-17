@@ -221,12 +221,11 @@
             >
             <SwipeInput
               id="study-rate"
-              inputmode="decimal"
+              inputmode="numeric"
               placeholder="10"
               value={annualRate}
               onchange={(v) => (annualRate = v)}
               min="0.01"
-              decimal={true}
               showLock={false}
               showRevert={annualRate !== initialValues.annualRate}
               onrevert={() => handleRevert("annualRate")}

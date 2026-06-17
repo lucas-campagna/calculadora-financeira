@@ -13,7 +13,6 @@
     value = "",
     inputmode = "numeric" as
       | "numeric"
-      | "decimal"
       | "text"
       | "tel"
       | "search"
@@ -37,7 +36,6 @@
     value?: string;
     inputmode?:
       | "numeric"
-      | "decimal"
       | "text"
       | "tel"
       | "search"
@@ -56,7 +54,6 @@
     this?: HTMLInputElement | undefined;
   } = $props();
 
-  const decimal = inputmode === "decimal";
   let touchStartY = 0;
   let lastTickY = 0;
   let isSwiping = $state(false);
@@ -70,7 +67,17 @@
   });
 
   function getDisplayValue(): string {
-    return decimal ? value : formatInputValue(value);
+    const digits = value.replace(/[^\d]/g, "");
+    if (!digits) return "";
+    const num = parseInt(digits, 10);
+    if (isNaN(num)) return "";
+    if (inputmode === "numeric") {
+      return (num / 100).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+    return formatInputValue(value);
   }
 
   $effect(() => {
@@ -80,10 +87,6 @@
   });
 
   function getNumericValue(): number {
-    if (decimal) {
-      const cleaned = value.replace(/\./g, "").replace(",", ".");
-      return parseFloat(cleaned) || 0;
-    }
     const digits = value.replace(/[^\d]/g, "");
     return parseInt(digits, 10) || 0;
   }
@@ -104,18 +107,11 @@
     } else {
       next = applyMin(current - tick);
     }
-    if (decimal) {
-      const v = next.toFixed(2).replace(".", ",");
-      displayValue = v;
-      lastEmittedValue = v;
-      handleChange(v);
-    } else {
-      const finalVal = applyMin(next);
-      const numStr = String(finalVal);
-      displayValue = finalVal.toLocaleString("pt-BR");
-      lastEmittedValue = numStr;
-      handleChange(numStr);
-    }
+    const finalVal = applyMin(next);
+    const numStr = String(finalVal);
+    displayValue = finalVal.toLocaleString("pt-BR");
+    lastEmittedValue = numStr;
+    handleChange(numStr);
   }
 
   function handleTouchStart(e: TouchEvent) {
@@ -155,39 +151,28 @@
   function handleInput(e: Event) {
     isTyping = true;
     const target = e.target as HTMLInputElement;
-    if (decimal) {
-      let v = target.value;
-      const num = parseFloat(v.replace(/\./g, "").replace(",", ".")) || 0;
-      v = applyMin(num).toFixed(2).replace(".", ",");
-      displayValue = v;
-      lastEmittedValue = v;
-      handleChange(v);
+    let raw = target.value.replace(/[^\d]/g, "");
+    if (raw === "") raw = min;
+    const num = parseInt(raw, 10) || 0;
+    if (inputmode === "numeric") {
+      displayValue = (num / 100).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
     } else {
-      let raw = target.value.replace(/[^\d]/g, "");
-      if (raw === "") raw = min;
-      const num = parseInt(raw, 10) || 0;
-      const formatted = num.toLocaleString("pt-BR");
-      displayValue = formatted;
-      const emitted = String(applyMin(num));
-      lastEmittedValue = emitted;
-      handleChange(emitted);
+      displayValue = num.toLocaleString("pt-BR");
     }
+    const emitted = String(applyMin(num));
+    lastEmittedValue = emitted;
+    handleChange(emitted);
   }
 
   function handleBlur() {
     isTyping = false;
-    if (decimal) {
-      if (!value || value === "" || value === ",") {
-        const v = applyMin(0).toFixed(2).replace(".", ",");
-        lastEmittedValue = v;
-        handleChange(v);
-      }
-    } else {
-      const num = parseInt(value.replace(/[^\d]/g, ""), 10) || 0;
-      const emitted = String(applyMin(num));
-      lastEmittedValue = emitted;
-      handleChange(emitted);
-    }
+    const num = parseInt(value.replace(/[^\d]/g, ""), 10) || 0;
+    const emitted = String(applyMin(num));
+    lastEmittedValue = emitted;
+    handleChange(emitted);
   }
 
   let displayValue = $state("");
@@ -215,7 +200,6 @@
     }
     return parts.join(" e ");
   });
-
 
   onMount(() => {
     if (inputEl) {
