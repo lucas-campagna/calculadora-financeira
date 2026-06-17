@@ -100,7 +100,12 @@
   function applyTick(direction: "up" | "down") {
     const current = getNumericValue();
     if (current === 0 && direction === "down") return;
-    const tick = Math.max(1, Math.round(current * (SWIPE_TICK_PERCENT / 100)));
+    const isNumeric = inputmode === "numeric";
+    const divisor = isNumeric ? 100 : 1;
+    const tick = Math.max(
+      divisor,
+      Math.round(current * (SWIPE_TICK_PERCENT / 100)),
+    );
     let next: number;
     if (direction === "up") {
       next = current + tick;
@@ -108,8 +113,18 @@
       next = applyMin(current - tick);
     }
     const finalVal = applyMin(next);
-    const numStr = String(finalVal);
-    displayValue = finalVal.toLocaleString("pt-BR");
+    const actualValue = finalVal / divisor;
+    const numStr = isNumeric
+      ? actualValue.toFixed(2).replace(".", ",")
+      : String(finalVal);
+    if (isNumeric) {
+      displayValue = (finalVal / 100).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    } else {
+      displayValue = finalVal.toLocaleString("pt-BR");
+    }
     lastEmittedValue = numStr;
     handleChange(numStr);
   }
@@ -154,7 +169,9 @@
     let raw = target.value.replace(/[^\d]/g, "");
     if (raw === "") raw = min;
     const num = parseInt(raw, 10) || 0;
-    if (inputmode === "numeric") {
+    const isNumeric = inputmode === "numeric";
+    const divisor = isNumeric ? 100 : 1;
+    if (isNumeric) {
       displayValue = (num / 100).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -162,7 +179,10 @@
     } else {
       displayValue = num.toLocaleString("pt-BR");
     }
-    const emitted = String(applyMin(num));
+    const finalVal = applyMin(num) / divisor;
+    const emitted = isNumeric
+      ? finalVal.toFixed(2).replace(".", ",")
+      : String(applyMin(num));
     lastEmittedValue = emitted;
     handleChange(emitted);
   }
@@ -170,7 +190,12 @@
   function handleBlur() {
     isTyping = false;
     const num = parseInt(value.replace(/[^\d]/g, ""), 10) || 0;
-    const emitted = String(applyMin(num));
+    const isNumeric = inputmode === "numeric";
+    const divisor = isNumeric ? 100 : 1;
+    const finalVal = applyMin(num) / divisor;
+    const emitted = isNumeric
+      ? finalVal.toFixed(2).replace(".", ",")
+      : String(applyMin(num));
     lastEmittedValue = emitted;
     handleChange(emitted);
   }
