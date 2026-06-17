@@ -106,7 +106,7 @@
         <Label for="m-rate" class="text-xs">Taxa (% a.a.)</Label>
         <SwipeInput
           id="m-rate"
-          inputmode="numeric"
+          inputmode="tax"
           placeholder="10"
           value={effectiveValue("annualRate")}
           onchange={(v) => updateField("annualRate", v)}
@@ -189,7 +189,7 @@
         <Label for="annualRate" class="text-sm">Taxa de Juros (% ao ano)</Label>
         <SwipeInput
           id="annualRate"
-          inputmode="numeric"
+          inputmode="tax"
           placeholder="Ex: 10,5"
           value={effectiveValue("annualRate")}
           onchange={(v) => updateField("annualRate", v)}

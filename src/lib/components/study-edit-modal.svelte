@@ -221,7 +221,7 @@
             >
             <SwipeInput
               id="study-rate"
-              inputmode="numeric"
+              inputmode="tax"
               placeholder="10"
               value={annualRate}
               onchange={(v) => (annualRate = v)}
