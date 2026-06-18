@@ -14,7 +14,10 @@ export function calculatePrice(
     extraPayments.find((ep) => ep.month === month);
 
   const pmt =
-    principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -termMonths)));
+    monthlyRate === 0
+      ? principal / termMonths
+      : principal *
+        (monthlyRate / (1 - Math.pow(1 + monthlyRate, -termMonths)));
 
   for (let i = 1; i <= termMonths && balance > 0.01; i++) {
     const extra = getExtraPayment(i);

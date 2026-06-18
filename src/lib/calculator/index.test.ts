@@ -107,10 +107,70 @@ describe("calculate", () => {
     expect(result.totalInterest).toBeCloseTo(6_167.72, 2);
   });
 
-  it("applies down payment correctly", () => {
-    const result = calculate({ ...baseInput, downPayment: 10000 });
+  it("PRICE has constant payments (first equals last)", () => {
+    const result = calculate(baseInput);
+    expect(result.firstInstallment).toBeCloseTo(result.lastInstallment, 2);
+  });
 
-    expect(result.totalPrincipal).toBeLessThan(100000);
+  it("SAC has decreasing payments (first > last)", () => {
+    const result = calculate({ ...baseInput, system: "sac" });
+    expect(result.firstInstallment).toBeGreaterThan(result.lastInstallment);
+  });
+
+  it("PRICE with zero interest equals principal", () => {
+    const result = calculate({ ...baseInput, annualRate: 0 });
+    expect(result.totalPaid).toBeCloseTo(100_000, 2);
+    expect(result.totalInterest).toBe(0);
+  });
+
+  it("PRICE with short term (6 months)", () => {
+    const result = calculate({ ...baseInput, termMonths: 6});
+    expect(result.installments.length).toBe(6);
+    expect(result.firstInstallment).toBeCloseTo(result.lastInstallment, 2);
+    expect(result.totalPaid).toBeCloseTo(103_347.21, 2);
+    expect(result.totalInterest).toBeCloseTo(3_347.21, 2);
+  });
+
+  it("PRICE with short term (6 months) and down payment", () => {
+    const result = calculate({ ...baseInput, termMonths: 6, downPayment: 1_000 });
+    expect(result.installments.length).toBe(6);
+    expect(result.firstInstallment).toBeCloseTo(result.lastInstallment, 2);
+    expect(result.totalPaid).toBeCloseTo(102_313.74, 2);
+    expect(result.totalInterest).toBeCloseTo(3_313.74, 2);
+  });
+
+  it("PRICE with long term (360 months) calculates correctly", () => {
+    const result = calculate({ ...baseInput, termMonths: 360 });
+    expect(result.installments.length).toBe(360);
+    expect(result.totalInterest).toBeGreaterThan(result.totalPrincipal);
+  });
+
+  it("SAC with 6 months calculates correctly", () => {
+    const result = calculate({ ...baseInput, system: "sac", termMonths: 6 });
+    expect(result.installments.length).toBe(6);
+    expect(result.firstInstallment).toBeGreaterThan(result.lastInstallment);
+    expect(result.totalPaid).toBeCloseTo(103_321.08, 2);
+    expect(result.totalInterest).toBeCloseTo(3_321.08, 2);
+  });
+
+  it("SAC with 6 months calculates correctly and down payment", () => {
+    const result = calculate({ ...baseInput, system: "sac", termMonths: 6, downPayment: 1_000  });
+    expect(result.installments.length).toBe(6);
+    expect(result.firstInstallment).toBeGreaterThan(result.lastInstallment);
+    expect(result.totalPaid).toBeCloseTo(102_287.87, 2);
+    expect(result.totalInterest).toBeCloseTo(3_287.87, 2);
+  });
+
+  it("PRICE and SAC have different total paid", () => {
+    const priceResult = calculate(baseInput);
+    const sacResult = calculate({ ...baseInput, system: "sac" });
+    expect(priceResult.totalPaid).not.toBeCloseTo(sacResult.totalPaid, 1);
+  });
+
+  it("applies down payment correctly", () => {
+    const result = calculate({ ...baseInput, downPayment: 10_000 });
+
+    expect(result.totalPrincipal).toBeLessThan(100_000);
   });
 
   it("calculates first and last installment correctly", () => {
