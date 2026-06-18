@@ -33,7 +33,7 @@ export function calculate(input: FinancingInput): FinancingResult {
   const principal = downPayment
     ? input.principal - downPayment
     : input.principal;
-  const monthlyRate = annualRate / 100 / 12;
+  const monthlyRate = Math.pow(1 + annualRate / 100, 1 / 12) - 1;
   const systemLabel =
     system === "price"
       ? "PRICE"

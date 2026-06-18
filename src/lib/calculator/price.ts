@@ -13,14 +13,15 @@ export function calculatePrice(
   const getExtraPayment = (month: number): ExtraPayment | undefined =>
     extraPayments.find((ep) => ep.month === month);
 
+  const pmt =
+    principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -termMonths)));
+
   for (let i = 1; i <= termMonths && balance > 0.01; i++) {
     const extra = getExtraPayment(i);
     const interest = balance * monthlyRate;
-    const pmt =
-      balance * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -remainingTerm)));
-    const payment = Math.min(pmt, balance + interest);
+    let payment = Math.min(pmt, balance + interest);
     const principal_portion = payment - interest;
-    const extraAmount = extra
+    let extraAmount = extra
       ? Math.min(extra.amount, balance - principal_portion)
       : 0;
 
@@ -28,7 +29,7 @@ export function calculatePrice(
     const totalPrincipal = principal_portion + extraAmount;
     balance -= totalPrincipal;
 
-    if (extra && extra.type === "reduce_term") {
+    if (extra && extra.type === "reduce_term" && balance > 0.01) {
       remainingTerm = Math.ceil(
         -Math.log(1 - (balance * monthlyRate) / pmt) /
           Math.log(1 + monthlyRate),
@@ -44,13 +45,15 @@ export function calculatePrice(
       extraPayment: extraAmount > 0 ? extraAmount : undefined,
     });
 
-    if (extra && extra.type === "reduce_installment") {
+    if (extra && extra.type === "reduce_installment" && balance > 0.01) {
       remainingTerm = Math.ceil(
         -Math.log(1 - (balance * monthlyRate) / pmt) /
           Math.log(1 + monthlyRate),
       );
     }
-    remainingTerm--;
+    if (balance > 0.01) {
+      remainingTerm--;
+    }
   }
 
   return installments;
