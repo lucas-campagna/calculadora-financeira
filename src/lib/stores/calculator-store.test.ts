@@ -11,29 +11,29 @@ describe("calculator-store", () => {
           id: "1",
           name: "SAC",
           system: "sac",
-          principal: "500000",
-          annualRate: "10",
-          termMonths: "360",
-          downPayment: "0",
+          principal: 500000,
+          annualRate: 10,
+          termMonths: 360,
+          downPayment: 0,
           extraPayments: [],
         },
         {
           id: "2",
           name: "PRICE",
           system: "price",
-          principal: "500000",
-          annualRate: "10",
-          termMonths: "360",
-          downPayment: "0",
+          principal: 500000,
+          annualRate: 10,
+          termMonths: 360,
+          downPayment: 0,
           extraPayments: [],
         },
       ],
       activeStudyId: "1",
       commonValues: {
-        principal: "500000",
-        annualRate: "10",
-        termMonths: "360",
-        downPayment: "0",
+        principal: 500000,
+        annualRate: 10,
+        termMonths: 360,
+        downPayment: 0,
       },
       overrides: {},
       snapshot: {
@@ -42,28 +42,28 @@ describe("calculator-store", () => {
             id: "1",
             name: "SAC",
             system: "sac",
-            principal: "500000",
-            annualRate: "10",
-            termMonths: "360",
-            downPayment: "0",
+            principal: 500000,
+            annualRate: 10,
+            termMonths: 360,
+            downPayment: 0,
             extraPayments: [],
           },
           {
             id: "2",
             name: "PRICE",
             system: "price",
-            principal: "500000",
-            annualRate: "10",
-            termMonths: "360",
-            downPayment: "0",
+            principal: 500000,
+            annualRate: 10,
+            termMonths: 360,
+            downPayment: 0,
             extraPayments: [],
           },
         ],
         commonValues: {
-          principal: "500000",
-          annualRate: "10",
-          termMonths: "360",
-          downPayment: "0",
+          principal: 500000,
+          annualRate: 10,
+          termMonths: 360,
+          downPayment: 0,
         },
       },
     });
@@ -72,10 +72,10 @@ describe("calculator-store", () => {
   describe("studiesStore basic operations", () => {
     it("has default values", () => {
       const state = get(studiesStore);
-      expect(state.commonValues.principal).toBe("500000");
-      expect(state.commonValues.annualRate).toBe("10");
-      expect(state.commonValues.termMonths).toBe("360");
-      expect(state.commonValues.downPayment).toBe("0");
+      expect(state.commonValues.principal).toBe(500000);
+      expect(state.commonValues.annualRate).toBe(10);
+      expect(state.commonValues.termMonths).toBe(360);
+      expect(state.commonValues.downPayment).toBe(0);
     });
 
     it("has two default studies", () => {
@@ -105,10 +105,10 @@ describe("calculator-store", () => {
         id: "3",
         name: "Novo",
         system: "sam",
-        principal: "300000",
-        annualRate: "12",
-        termMonths: "240",
-        downPayment: "50000",
+        principal: 300000,
+        annualRate: 12,
+        termMonths: 240,
+        downPayment: 50000,
         extraPayments: [],
       };
       studiesStore.addStudy(newStudy);
@@ -122,10 +122,10 @@ describe("calculator-store", () => {
         id: "3",
         name: "Novo",
         system: "sam",
-        principal: "300000",
-        annualRate: "12",
-        termMonths: "240",
-        downPayment: "50000",
+        principal: 300000,
+        annualRate: 12,
+        termMonths: 240,
+        downPayment: 50000,
         extraPayments: [],
       };
       studiesStore.addStudy(newStudy);
@@ -146,7 +146,7 @@ describe("calculator-store", () => {
     it("creates override when field is locked", () => {
       studiesStore.toggleFieldLock("principal");
       const state = get(studiesStore);
-      expect(state.overrides["1"]?.principal).toBe("500000");
+      expect(state.overrides["1"]?.principal).toBe(500000);
     });
 
     it("removes override and updates common when field is unlocked", () => {
@@ -154,13 +154,13 @@ describe("calculator-store", () => {
       studiesStore.toggleFieldLock("principal");
       const state = get(studiesStore);
       expect(state.overrides["1"]).toBeUndefined();
-      expect(state.commonValues.principal).toBe("500000");
+      expect(state.commonValues.principal).toBe(500000);
     });
   });
 
   describe("revertField", () => {
     it("removes override for field", () => {
-      studiesStore.updateField("principal", "600000");
+      studiesStore.updateField("principal", 600000);
       studiesStore.revertField("principal");
       const state = get(studiesStore);
       expect(state.overrides["1"]?.principal).toBeUndefined();
@@ -169,23 +169,23 @@ describe("calculator-store", () => {
 
   describe("revertFieldToCommon", () => {
     it("sets override to common value", () => {
-      studiesStore.updateField("principal", "600000");
+      studiesStore.updateField("principal", 600000);
       studiesStore.revertFieldToCommon("principal");
       const state = get(studiesStore);
-      expect(state.overrides["1"]?.principal).toBe("600000");
+      expect(state.overrides["1"]?.principal).toBe(600000);
     });
   });
 
   describe("commitFieldToCommon", () => {
     it("updates common values with current effective value", () => {
-      studiesStore.updateField("principal", "600000");
+      studiesStore.updateField("principal", 600000);
       studiesStore.commitFieldToCommon("principal");
       const state = get(studiesStore);
-      expect(state.commonValues.principal).toBe("600000");
+      expect(state.commonValues.principal).toBe(600000);
     });
 
     it("removes override after commit", () => {
-      studiesStore.updateField("principal", "600000");
+      studiesStore.updateField("principal", 600000);
       studiesStore.commitFieldToCommon("principal");
       const state = get(studiesStore);
       expect(state.overrides["1"]?.principal).toBeUndefined();
@@ -194,24 +194,24 @@ describe("calculator-store", () => {
 
   describe("updateField", () => {
     it("updates common value when field is locked", () => {
-      studiesStore.updateField("principal", "700000");
+      studiesStore.updateField("principal", 700000);
       const state = get(studiesStore);
-      expect(state.commonValues.principal).toBe("700000");
+      expect(state.commonValues.principal).toBe(700000);
     });
 
     it("updates override when field is unlocked", () => {
       studiesStore.toggleFieldLock("principal");
-      studiesStore.updateField("principal", "700000");
+      studiesStore.updateField("principal", 700000);
       const state = get(studiesStore);
-      expect(state.overrides["1"]?.principal).toBe("700000");
+      expect(state.overrides["1"]?.principal).toBe(700000);
     });
 
     it("overwrites previous override value", () => {
       studiesStore.toggleFieldLock("principal");
-      studiesStore.updateField("principal", "600000");
-      studiesStore.updateField("principal", "700000");
+      studiesStore.updateField("principal", 600000);
+      studiesStore.updateField("principal", 700000);
       const state = get(studiesStore);
-      expect(state.overrides["1"]?.principal).toBe("700000");
+      expect(state.overrides["1"]?.principal).toBe(700000);
     });
   });
 });

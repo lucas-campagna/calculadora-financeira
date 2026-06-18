@@ -12,20 +12,20 @@ type FieldKey = "principal" | "annualRate" | "termMonths" | "downPayment";
 interface StudiesState {
   studies: Study[];
   activeStudyId: string;
-  commonValues: Record<FieldKey, string>;
-  overrides: Record<string, Record<FieldKey, string>>;
-  snapshot: { studies: Study[]; commonValues: Record<FieldKey, string> };
+  commonValues: Record<FieldKey, number>;
+  overrides: Record<string, Record<FieldKey, number>>;
+  snapshot: { studies: Study[]; commonValues: Record<FieldKey, number> };
 }
 
 interface AllResults {
   [studyId: string]: FinancingResult | null;
 }
 
-const DEFAULT_VALUES: Record<FieldKey, string> = {
-  principal: "500000",
-  annualRate: "10",
-  termMonths: "360",
-  downPayment: "0",
+const DEFAULT_VALUES: Record<FieldKey, number> = {
+  principal: 500000,
+  annualRate: 10,
+  termMonths: 360,
+  downPayment: 0,
 };
 
 function createDefaultStudies(): Study[] {
@@ -69,20 +69,37 @@ function loadState(): StudiesState {
       const parsed = JSON.parse(saved);
       if (parsed.studies && parsed.studies.length > 0 && parsed.activeStudyId) {
         const loadedStudies: Study[] = parsed.studies;
-        const commonValues: Record<FieldKey, string> = {
-          principal: parsed.commonValues?.principal ?? DEFAULT_VALUES.principal,
+        const commonValues: Record<FieldKey, number> = {
+          principal:
+            Number(parsed.commonValues?.principal) || DEFAULT_VALUES.principal,
           annualRate:
-            parsed.commonValues?.annualRate ?? DEFAULT_VALUES.annualRate,
+            Number(parsed.commonValues?.annualRate) ||
+            DEFAULT_VALUES.annualRate,
           termMonths:
-            parsed.commonValues?.termMonths ?? DEFAULT_VALUES.termMonths,
+            Number(parsed.commonValues?.termMonths) ||
+            DEFAULT_VALUES.termMonths,
           downPayment:
-            parsed.commonValues?.downPayment ?? DEFAULT_VALUES.downPayment,
+            Number(parsed.commonValues?.downPayment) ||
+            DEFAULT_VALUES.downPayment,
         };
+        const overrides: Record<string, Record<FieldKey, number>> = {};
+        if (parsed.overrides) {
+          for (const [studyId, fields] of Object.entries(
+            parsed.overrides as Record<string, Record<FieldKey, string>>,
+          )) {
+            overrides[studyId] = {
+              principal: Number(fields.principal) || 0,
+              annualRate: Number(fields.annualRate) || 0,
+              termMonths: Number(fields.termMonths) || 0,
+              downPayment: Number(fields.downPayment) || 0,
+            };
+          }
+        }
         return {
           studies: loadedStudies,
           activeStudyId: parsed.activeStudyId,
           commonValues,
-          overrides: parsed.overrides ?? {},
+          overrides,
           snapshot: {
             studies: JSON.parse(JSON.stringify(loadedStudies)),
             commonValues: { ...commonValues },
@@ -141,7 +158,7 @@ function createStudiesStore() {
     state: StudiesState,
     studyId: string,
     field: FieldKey,
-  ): string {
+  ): number {
     const override = state.overrides[studyId]?.[field];
     return override ?? state.commonValues[field];
   }
@@ -152,7 +169,7 @@ function createStudiesStore() {
     update,
     addStudy(study: Study) {
       update((s) => {
-        const newOverrides: Partial<Record<FieldKey, string>> = {};
+        const newOverrides: Partial<Record<FieldKey, number>> = {};
         if (study.principal !== s.commonValues.principal)
           newOverrides.principal = study.principal;
         if (study.annualRate !== s.commonValues.annualRate)
@@ -169,7 +186,7 @@ function createStudiesStore() {
             Object.keys(newOverrides).length > 0
               ? {
                   ...s.overrides,
-                  [study.id]: newOverrides as Record<FieldKey, string>,
+                  [study.id]: newOverrides as Record<FieldKey, number>,
                 }
               : s.overrides,
         };
@@ -188,7 +205,7 @@ function createStudiesStore() {
     setActive(id: string) {
       update((s) => ({ ...s, activeStudyId: id }));
     },
-    getEffectiveValue(studyId: string, field: FieldKey): string {
+    getEffectiveValue(studyId: string, field: FieldKey): number {
       let result = DEFAULT_VALUES[field];
       const unsubscribe = subscribe((s) => {
         result = getEffectiveValue(s, studyId, field);
@@ -279,7 +296,8 @@ function createStudiesStore() {
       });
       calculateAll();
     },
-    updateField(field: FieldKey, value: string) {
+    updateField(field: FieldKey, value: string | number) {
+      const numValue = typeof value === "number" ? value : Number(value) || 0;
       update((s) => {
         const studyId = s.activeStudyId;
         const hasOverride = s.overrides[studyId]?.[field] !== undefined;
@@ -289,13 +307,13 @@ function createStudiesStore() {
             ...s,
             overrides: {
               ...s.overrides,
-              [studyId]: { ...s.overrides[studyId], [field]: value },
+              [studyId]: { ...s.overrides[studyId], [field]: numValue },
             },
           };
         } else {
           return {
             ...s,
-            commonValues: { ...s.commonValues, [field]: value },
+            commonValues: { ...s.commonValues, [field]: numValue },
           };
         }
       });
@@ -424,21 +442,17 @@ export function calculateAll() {
     throttleTimer = null;
     if (version !== calculateVersion) return;
 
-    function getEffectiveValue(studyId: string, field: FieldKey): string {
+    function getEffectiveValue(studyId: string, field: FieldKey): number {
       const override = currentState.overrides[studyId]?.[field];
       return override ?? currentState.commonValues[field];
     }
 
     const results: AllResults = {};
     for (const study of currentState.studies) {
-      const principal =
-        parseFloat(getEffectiveValue(study.id, "principal")) || 0;
-      const annualRate =
-        parseFloat(getEffectiveValue(study.id, "annualRate")) || 0;
-      const termMonths =
-        parseInt(getEffectiveValue(study.id, "termMonths")) || 0;
-      const downPayment =
-        parseFloat(getEffectiveValue(study.id, "downPayment")) || 0;
+      const principal = getEffectiveValue(study.id, "principal");
+      const annualRate = getEffectiveValue(study.id, "annualRate");
+      const termMonths = getEffectiveValue(study.id, "termMonths");
+      const downPayment = getEffectiveValue(study.id, "downPayment");
 
       if (principal <= 0 || annualRate <= 0 || termMonths <= 0) {
         results[study.id] = null;
