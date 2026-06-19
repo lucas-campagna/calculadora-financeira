@@ -21,9 +21,33 @@
   let editMode = $state<"add" | "edit">("add");
   let editStudy: Study | undefined = $state(undefined);
 
+  const numberFormatter = new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  });
+
   function effectiveValue(field: FieldKey): string {
     const overrides = $studiesStore.overrides[$studiesStore.activeStudyId];
-    return overrides?.[field] ?? $studiesStore.commonValues[field];
+    const value = overrides?.[field] ?? $studiesStore.commonValues[field];
+
+    const effective = new Proxy(
+      { value },
+      {
+        get(target, prop) {
+          if (prop === "toString") {
+            return () => {
+              const v = target.value;
+              if (v === undefined || v === null) return "";
+              if (typeof v === "number") return numberFormatter.format(v);
+              return String(v);
+            };
+          }
+          return target[prop as keyof typeof target];
+        },
+      },
+    );
+
+    return effective.toString();
   }
 
   function isLocked(field: FieldKey): boolean {
