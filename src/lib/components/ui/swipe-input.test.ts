@@ -13,6 +13,16 @@ describe("SwipeInput Component", () => {
       render(SwipeInput, { props: { id: "test-input" } });
       expect(document.getElementById("test-input")).toBeTruthy();
     });
+
+    it("selects all text on focus", () => {
+      render(SwipeInput, {
+        props: { inputmode: "numeric", value: "1234" },
+      });
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      fireEvent.focus(input);
+      expect(input.selectionStart).toBe(0);
+      expect(input.selectionEnd).toBe(input.value.length);
+    });
   });
 
   describe("Numeric Input Mode", () => {

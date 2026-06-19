@@ -68,6 +68,8 @@
   let inputEl: HTMLInputElement | undefined = $state(undefined);
   let isTyping = $state(false);
   let lastEmittedValue = "";
+  let lastTapTime = 0;
+  let holdTimer: ReturnType<typeof setTimeout> | null = null;
 
   $effect(() => {
     inputRef = inputEl;
@@ -164,6 +166,9 @@
     isSwiping = true;
     isTyping = true;
     swipeDirection = null;
+    holdTimer = setTimeout(() => {
+      inputEl?.select();
+    }, 500);
   }
 
   function handleTouchMove(e: TouchEvent) {
@@ -187,6 +192,15 @@
   }
 
   function handleTouchEnd() {
+    if (holdTimer) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    }
+    const now = Date.now();
+    if (now - lastTapTime < 300) {
+      inputEl?.select();
+    }
+    lastTapTime = now;
     isSwiping = false;
     isTyping = false;
     swipeDirection = null;
@@ -318,6 +332,7 @@
     bind:value={displayValue}
     onblur={handleBlur}
     oninput={handleInput}
+    onfocus={() => inputEl?.select()}
     class={cn(
       "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none transition-colors",
       isSwiping ? "border-primary bg-primary/5" : "",
