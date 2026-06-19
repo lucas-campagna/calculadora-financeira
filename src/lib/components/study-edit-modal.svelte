@@ -5,12 +5,12 @@
 
   let {
     open = $bindable(false),
-    mode = "add" as "add" | "edit",
-    editStudy = undefined as Study | undefined,
+    mode = "add",
+    editStudy = undefined,
   }: {
     open?: boolean;
     mode?: "add" | "edit";
-    editStudy?: Study;
+    editStudy?: Partial<Study>;
   } = $props();
 
   const SYSTEMS: { key: AmortizationSystem; label: string }[] = [
@@ -22,34 +22,34 @@
 
   let name = $state("");
   let system = $state<AmortizationSystem>("price");
-  let principal = $state("500000");
-  let annualRate = $state("10");
-  let termMonths = $state("360");
-  let downPayment = $state("0");
+  let principal = $state(500000);
+  let annualRate = $state(10);
+  let termMonths = $state(360);
+  let downPayment = $state(0);
   let showRemoveConfirm = $state(false);
 
   let initialValues = $state({
-    principal: "",
-    annualRate: "",
-    termMonths: "",
-    downPayment: "",
+    principal: 0,
+    annualRate: 0,
+    termMonths: 0,
+    downPayment: 0,
   });
 
   $effect(() => {
     if (open) {
       showRemoveConfirm = false;
       if (mode === "edit" && editStudy) {
-        name = editStudy.name;
-        system = editStudy.system;
-        principal = editStudy.principal;
-        annualRate = editStudy.annualRate;
-        termMonths = editStudy.termMonths;
-        downPayment = editStudy.downPayment;
+        name = editStudy.name ?? "";
+        system = editStudy.system ?? "price";
+        principal = editStudy.principal ?? 0;
+        annualRate = editStudy.annualRate ?? 0;
+        termMonths = editStudy.termMonths ?? 0;
+        downPayment = editStudy.downPayment ?? 0;
         initialValues = {
-          principal: editStudy.principal,
-          annualRate: editStudy.annualRate,
-          termMonths: editStudy.termMonths,
-          downPayment: editStudy.downPayment,
+          principal: editStudy.principal ?? 0,
+          annualRate: editStudy.annualRate ?? 0,
+          termMonths: editStudy.termMonths ?? 0,
+          downPayment: editStudy.downPayment ?? 0,
         };
       } else {
         const active = $studiesStore.studies.find(
@@ -60,10 +60,10 @@
           SYSTEMS.find((s) => s.key === active?.system)?.label ??
           "Novo";
         system = active?.system ?? "price";
-        principal = active?.principal ?? "500000";
-        annualRate = active?.annualRate ?? "10";
-        termMonths = active?.termMonths ?? "360";
-        downPayment = active?.downPayment ?? "0";
+        principal = active?.principal ?? 500000;
+        annualRate = active?.annualRate ?? 10;
+        termMonths = active?.termMonths ?? 360;
+        downPayment = active?.downPayment ?? 0;
         initialValues = { principal, annualRate, termMonths, downPayment };
       }
     }
@@ -91,7 +91,7 @@
         extraPayments: [],
       };
       studiesStore.addStudy(newStudy);
-    } else if (mode === "edit" && editStudy) {
+    } else if (mode === "edit" && editStudy && editStudy.id) {
       studiesStore.updateStudy(editStudy.id, {
         name:
           name ||
@@ -189,7 +189,7 @@
               id="study-principal"
               inputmode="numeric"
               placeholder="500.000"
-              value={principal}
+              value={principal.toString()}
               onchange={(v) => (principal = v)}
               min="1"
               showLock={false}
@@ -206,7 +206,7 @@
               id="study-down"
               inputmode="numeric"
               placeholder="0"
-              value={downPayment}
+              value={downPayment.toString()}
               onchange={(v) => (downPayment = v)}
               min="0"
               showLock={false}
@@ -223,7 +223,7 @@
               id="study-rate"
               inputmode="tax"
               placeholder="10"
-              value={annualRate}
+              value={annualRate.toString()}
               onchange={(v) => (annualRate = v)}
               min="0.01"
               showLock={false}
@@ -240,7 +240,7 @@
               id="study-term"
               inputmode="month"
               placeholder="360"
-              value={termMonths}
+              value={termMonths.toString()}
               onchange={(v) => (termMonths = v)}
               min="1"
               showLock={false}
