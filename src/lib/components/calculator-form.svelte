@@ -19,36 +19,15 @@
   let exportModalOpen = $state(false);
   let editModalOpen = $state(false);
   let editMode = $state<"add" | "edit">("add");
-  let editStudy: Study | undefined = $state(undefined);
+  let editStudy: Partial<Study> | undefined = $state(undefined);
 
-  const numberFormatter = new Intl.NumberFormat("pt-BR", {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
+  const effectiveValue = new Proxy({} as Record<FieldKey, string>, {
+    get(_, prop: FieldKey) {
+      const overrides = $studiesStore.overrides[$studiesStore.activeStudyId];
+      const value = overrides?.[prop] ?? $studiesStore.commonValues[prop];
+      return String(value);
+    },
   });
-
-  function effectiveValue(field: FieldKey): string {
-    const overrides = $studiesStore.overrides[$studiesStore.activeStudyId];
-    const value = overrides?.[field] ?? $studiesStore.commonValues[field];
-
-    const effective = new Proxy(
-      { value },
-      {
-        get(target, prop) {
-          if (prop === "toString") {
-            return () => {
-              const v = target.value;
-              if (v === undefined || v === null) return "";
-              if (typeof v === "number") return numberFormatter.format(v);
-              return String(v);
-            };
-          }
-          return target[prop as keyof typeof target];
-        },
-      },
-    );
-
-    return effective.toString();
-  }
 
   function isLocked(field: FieldKey): boolean {
     return (
@@ -72,7 +51,7 @@
     studiesStore.revertFieldToCommon(field);
   }
 
-  function updateField(field: FieldKey, raw: string) {
+  function updateField(field: FieldKey, raw: string | number) {
     studiesStore.updateField(field, raw);
     handleFormChange();
   }
@@ -102,7 +81,7 @@
           id="m-principal"
           inputmode="numeric"
           placeholder="500.000"
-          value={effectiveValue("principal")}
+          value={effectiveValue["principal"]}
           onchange={(v) => updateField("principal", v)}
           locked={isLocked("principal")}
           showRevert={isOverridden("principal")}
@@ -117,7 +96,7 @@
           id="m-downPayment"
           inputmode="numeric"
           placeholder="0"
-          value={effectiveValue("downPayment")}
+          value={effectiveValue["downPayment"]}
           onchange={(v) => updateField("downPayment", v)}
           locked={isLocked("downPayment")}
           showRevert={isOverridden("downPayment")}
@@ -132,7 +111,7 @@
           id="m-rate"
           inputmode="tax"
           placeholder="10"
-          value={effectiveValue("annualRate")}
+          value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}
           locked={isLocked("annualRate")}
           showRevert={isOverridden("annualRate")}
@@ -147,7 +126,7 @@
           id="m-term"
           inputmode="month"
           placeholder="360"
-          value={effectiveValue("termMonths")}
+          value={effectiveValue["termMonths"]}
           onchange={(v) => updateField("termMonths", v)}
           locked={isLocked("termMonths")}
           showRevert={isOverridden("termMonths")}
@@ -179,7 +158,7 @@
           id="principal"
           inputmode="numeric"
           placeholder="Ex: 500.000"
-          value={effectiveValue("principal")}
+          value={effectiveValue["principal"]}
           onchange={(v) => updateField("principal", v)}
           locked={isLocked("principal")}
           showRevert={isOverridden("principal")}
@@ -196,7 +175,7 @@
           id="downPayment"
           inputmode="numeric"
           placeholder="Ex: 100.000"
-          value={effectiveValue("downPayment")}
+          value={effectiveValue["downPayment"]}
           onchange={(v) => updateField("downPayment", v)}
           locked={isLocked("downPayment")}
           showRevert={isOverridden("downPayment")}
@@ -215,7 +194,7 @@
           id="annualRate"
           inputmode="tax"
           placeholder="Ex: 10,5"
-          value={effectiveValue("annualRate")}
+          value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}
           locked={isLocked("annualRate")}
           showRevert={isOverridden("annualRate")}
@@ -232,7 +211,7 @@
           id="termMonths"
           inputmode="month"
           placeholder="Ex: 360"
-          value={effectiveValue("termMonths")}
+          value={effectiveValue["termMonths"]}
           onchange={(v) => updateField("termMonths", v)}
           locked={isLocked("termMonths")}
           showRevert={isOverridden("termMonths")}
