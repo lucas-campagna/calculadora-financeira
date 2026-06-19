@@ -28,7 +28,7 @@
     showLock = true,
     onlocktoggle = () => {},
     onrevert = () => {},
-    onchange: handleChange = (_v: string) => {},
+    onchange: handleChange = (_v: number) => {},
     this: inputRef = undefined as HTMLInputElement | undefined,
   }: {
     class?: string;
@@ -52,7 +52,7 @@
     showLock?: boolean;
     onlocktoggle?: () => void;
     onrevert?: () => void;
-    onchange?: (v: string) => void;
+    onchange?: (v: number) => void;
     this?: HTMLInputElement | undefined;
   } = $props();
 
@@ -145,7 +145,7 @@
       displayValue = finalVal.toLocaleString("pt-BR");
     }
     lastEmittedValue = numStr;
-    handleChange(numStr);
+    handleChange(actualValue);
   }
 
   function handleTouchStart(e: TouchEvent) {
@@ -189,7 +189,7 @@
     let num: number;
     if (inputmode === "tax") {
       const digits = target.value.replace(/[^\d]/g, "");
-      num = digits === "" ? 0 : parseInt(digits, 10) / 100;
+      num = digits === "" ? 0 : parseInt(digits, 10);
     } else {
       let raw = target.value.replace(/[^\d]/g, "");
       if (raw === "") raw = min;
@@ -209,10 +209,8 @@
       displayValue = num.toLocaleString("pt-BR");
     }
     const finalVal = applyMin(num);
-    const emitted = isNumeric
-      ? (finalVal / 100).toFixed(2).replace(".", ",")
-      : String(finalVal);
-    lastEmittedValue = emitted;
+    const emitted = finalVal;
+    lastEmittedValue = String(emitted);
     handleChange(emitted);
   }
 
@@ -222,15 +220,13 @@
     let num: number;
     if (inputmode === "tax") {
       const digits = value.replace(/[^\d]/g, "");
-      num = digits === "" ? 0 : parseInt(digits, 10) / 100;
+      num = digits === "" ? 0 : parseInt(digits, 10);
     } else {
       num = parseInt(value.replace(/[^\d]/g, ""), 10) || 0;
     }
     const finalVal = applyMin(num);
-    const emitted = isNumeric
-      ? (finalVal / 100).toFixed(2).replace(".", ",")
-      : String(finalVal);
-    lastEmittedValue = emitted;
+    const emitted = finalVal;
+    lastEmittedValue = String(emitted);
     handleChange(emitted);
   }
 

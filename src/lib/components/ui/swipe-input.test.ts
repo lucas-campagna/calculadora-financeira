@@ -75,7 +75,7 @@ describe("SwipeInput Component", () => {
       });
       const input = screen.getByRole("textbox");
       await fireEvent.input(input, { target: { value: "123" } });
-      expect(onchange).toHaveBeenCalled();
+      expect(onchange).toHaveBeenCalledWith(123);
     });
   });
 
@@ -129,7 +129,7 @@ describe("SwipeInput Component", () => {
       const input = screen.getByRole("textbox") as HTMLInputElement;
       await fireEvent.input(input, { target: { value: "5" } });
       await fireEvent.blur(input);
-      expect(onchange).toHaveBeenCalledWith("0,10");
+      expect(onchange).toHaveBeenCalledWith(10);
     });
   });
 
