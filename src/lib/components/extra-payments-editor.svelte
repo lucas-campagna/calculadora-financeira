@@ -24,8 +24,8 @@
     calculateAll();
   }
 
-  function updateMonth(index: number, raw: string) {
-    const month = parseInt(raw) || 1;
+  function updateMonth(index: number, v: number) {
+    const month = v;
     const updated = [...activePayments];
     updated[index] = { ...updated[index], month };
     studiesStore.updateStudy($studiesStore.activeStudyId, {
@@ -34,8 +34,8 @@
     calculateAll();
   }
 
-  function updateAmount(index: number, raw: string) {
-    const amount = parseInt(raw.replace(/[^\d]/g, "")) || 0;
+  function updateAmount(index: number, v: number) {
+    const amount = v;
     const updated = [...activePayments];
     updated[index] = { ...updated[index], amount };
     studiesStore.updateStudy($studiesStore.activeStudyId, {

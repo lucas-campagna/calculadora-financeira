@@ -45,12 +45,12 @@
 
   let originalMonth = $state<number | null>(null);
 
-  function updateMonth(raw: string) {
-    extraMonth = raw;
+  function updateMonth(v: number) {
+    extraMonth = String(v);
   }
 
-  function updateAmount(raw: string) {
-    extraAmount = raw;
+  function updateAmount(v: number) {
+    extraAmount = String(v);
   }
 
   function handleSave() {
