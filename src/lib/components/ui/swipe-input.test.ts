@@ -131,17 +131,44 @@ describe("SwipeInput Component", () => {
       await fireEvent.blur(input);
       expect(onchange).toHaveBeenCalledWith(10);
     });
+
+    it("applies max value on blur", async () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { max: "100", value: "", onchange },
+      });
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      await fireEvent.input(input, { target: { value: "50000" } });
+      await fireEvent.blur(input);
+      expect(onchange).toHaveBeenCalledWith(100);
+    });
+
+    it("do not apply max value on blur", async () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { max: "100", value: "", onchange },
+      });
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      await fireEvent.input(input, { target: { value: "500" } });
+      await fireEvent.blur(input);
+      expect(onchange).toHaveBeenCalledWith(5);
+    });
   });
 
   describe("Value formatting", () => {
-    it("formats integer values with thousand separators", async () => {
-      const onchange = vi.fn();
+    it("formats integer values with thousand separators", () => {
+      let capturedValue: number | null = null;
+      const onchange = (v: number) => {
+        capturedValue = v;
+      };
       render(SwipeInput, {
-        props: { inputmode: "numeric", value: "" },
+        props: { inputmode: "numeric", value: "", onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
-      await fireEvent.input(input, { target: { value: "1000" } });
+      input.value = "1000";
+      fireEvent.input(input);
       expect(input.value).toBe("10,00");
+      expect(capturedValue).toBe(10);
     });
   });
 });

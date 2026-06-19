@@ -105,8 +105,12 @@
 
   function applyMin(v: number): number {
     const minVal = parseFloat(min) || 0;
+    return Math.max(minVal, v);
+  }
+
+  function applyMax(v: number): number {
     const maxVal = parseFloat(max) || Infinity;
-    return Math.min(Math.max(minVal, v), maxVal);
+    return Math.min(maxVal, v);
   }
 
   function applyTick(direction: "up" | "down") {
@@ -122,9 +126,10 @@
     if (direction === "up") {
       next = current + tick;
     } else {
-      next = applyMin(current - tick);
+      next = applyMax(applyMin(current - tick));
     }
-    const finalVal = applyMin(next);
+
+    const finalVal = applyMax(applyMin(next));
     const actualValue = finalVal / divisor;
     const numStr = isNumeric
       ? actualValue.toFixed(2).replace(".", ",")
@@ -208,7 +213,8 @@
     } else {
       displayValue = num.toLocaleString("pt-BR");
     }
-    const finalVal = applyMin(num);
+    const actualNum = isNumeric ? num / 100 : num;
+    const finalVal = applyMax(applyMin(actualNum));
     const emitted = finalVal;
     lastEmittedValue = String(emitted);
     handleChange(emitted);
@@ -219,12 +225,13 @@
     const isNumeric = inputmode === "numeric";
     let num: number;
     if (inputmode === "tax") {
-      const digits = value.replace(/[^\d]/g, "");
+      const digits = displayValue.replace(/[^\d]/g, "");
       num = digits === "" ? 0 : parseInt(digits, 10);
     } else {
-      num = parseInt(value.replace(/[^\d]/g, ""), 10) || 0;
+      num = parseInt(displayValue.replace(/[^\d]/g, ""), 10) || 0;
     }
-    const finalVal = applyMin(num);
+    const actualNum = isNumeric ? num / 100 : num;
+    const finalVal = applyMax(applyMin(actualNum));
     const emitted = finalVal;
     lastEmittedValue = String(emitted);
     handleChange(emitted);
