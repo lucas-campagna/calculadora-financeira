@@ -23,6 +23,52 @@ describe("SwipeInput Component", () => {
       expect(input.selectionStart).toBe(0);
       expect(input.selectionEnd).toBe(input.value.length);
     });
+
+    it("selects all text on double tap", () => {
+      vi.useFakeTimers();
+      render(SwipeInput, {
+        props: { inputmode: "numeric", value: "1234" },
+      });
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      fireEvent.touchEnd(input, {
+        touches: [],
+        targetTouches: [],
+        changedTouches: [
+          { identifier: 0, clientX: 0, clientY: 0, pageX: 0, pageY: 0 },
+        ],
+      });
+      vi.advanceTimersByTime(100);
+      fireEvent.touchEnd(input, {
+        touches: [],
+        targetTouches: [],
+        changedTouches: [
+          { identifier: 0, clientX: 0, clientY: 0, pageX: 0, pageY: 0 },
+        ],
+      });
+      expect(input.selectionStart).toBe(0);
+      expect(input.selectionEnd).toBe(input.value.length);
+      vi.useRealTimers();
+    });
+
+    it("selects all text on hold", () => {
+      vi.useFakeTimers();
+      render(SwipeInput, {
+        props: { inputmode: "numeric", value: "1234" },
+      });
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      fireEvent.touchStart(input, {
+        touches: [
+          { identifier: 0, clientX: 0, clientY: 0, pageX: 0, pageY: 0 },
+        ],
+        targetTouches: [],
+        changedTouches: [],
+      });
+      vi.advanceTimersByTime(500);
+      expect(input.selectionStart).toBe(0);
+      expect(input.selectionEnd).toBe(input.value.length);
+      fireEvent.touchEnd(input);
+      vi.useRealTimers();
+    });
   });
 
   describe("Numeric Input Mode", () => {
