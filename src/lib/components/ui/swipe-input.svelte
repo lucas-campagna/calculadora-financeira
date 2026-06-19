@@ -4,6 +4,11 @@
   import { formatInputValue } from "$lib/calculator";
   import { SWIPE_TICK_PERCENT, MAX_MONTHS } from "$lib/constants";
 
+  const numberFormatter = new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  });
+
   const TICK_PX = 30;
 
   let {
@@ -191,8 +196,9 @@
     isTyping = true;
     const target = e.target as HTMLInputElement;
     const isNumeric = inputmode === "numeric";
+    const isTax = inputmode === "tax";
     let num: number;
-    if (inputmode === "tax") {
+    if (isTax) {
       const digits = target.value.replace(/[^\d]/g, "");
       num = digits === "" ? 0 : parseInt(digits, 10);
     } else {
@@ -200,20 +206,20 @@
       if (raw === "") raw = min;
       num = parseInt(raw, 10) || 0;
     }
-    if (inputmode === "numeric") {
+    if (isNumeric) {
       displayValue = (num / 100).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
-    } else if (inputmode === "tax") {
-      displayValue = num.toLocaleString("pt-BR", {
+    } else if (isTax) {
+      displayValue = (num / 100).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
     } else {
       displayValue = num.toLocaleString("pt-BR");
     }
-    const actualNum = isNumeric ? num / 100 : num;
+    const actualNum = isNumeric || isTax ? num / 100 : num;
     const finalVal = applyMax(applyMin(actualNum));
     const emitted = finalVal;
     lastEmittedValue = String(emitted);
@@ -223,14 +229,15 @@
   function handleBlur() {
     isTyping = false;
     const isNumeric = inputmode === "numeric";
+    const isTax = inputmode === "tax";
     let num: number;
-    if (inputmode === "tax") {
+    if (isTax) {
       const digits = displayValue.replace(/[^\d]/g, "");
       num = digits === "" ? 0 : parseInt(digits, 10);
     } else {
       num = parseInt(displayValue.replace(/[^\d]/g, ""), 10) || 0;
     }
-    const actualNum = isNumeric ? num / 100 : num;
+    const actualNum = isNumeric || isTax ? num / 100 : num;
     const finalVal = applyMax(applyMin(actualNum));
     const emitted = finalVal;
     lastEmittedValue = String(emitted);
