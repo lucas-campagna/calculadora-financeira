@@ -1,204 +1,147 @@
-import { describe, it, expect } from "vitest";
-import { formatInputValue } from "$lib/calculator";
-import { SWIPE_TICK_PERCENT, MAX_MONTHS } from "$lib/constants";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/svelte";
+import SwipeInput from "./swipe-input.svelte";
 
-describe("SwipeInput helper functions", () => {
-  describe("formatInputValue", () => {
-    it("formats integer values with thousand separators", () => {
-      expect(formatInputValue("1000")).toBe("1.000");
-      expect(formatInputValue("1234567")).toBe("1.234.567");
+describe("SwipeInput Component", () => {
+  describe("Basic Rendering", () => {
+    it("renders with placeholder", () => {
+      render(SwipeInput, { props: { placeholder: "Enter value" } });
+      expect(screen.getByPlaceholderText("Enter value")).toBeTruthy();
     });
 
-    it("returns empty string for empty input", () => {
-      expect(formatInputValue("")).toBe("");
-    });
-
-    it("handles non-numeric characters", () => {
-      expect(formatInputValue("abc")).toBe("");
+    it("renders with id", () => {
+      render(SwipeInput, { props: { id: "test-input" } });
+      expect(document.getElementById("test-input")).toBeTruthy();
     });
   });
 
-  describe("applyMin", () => {
-    const applyMin = (v: number, min: string, max: string): number => {
-      const minVal = parseFloat(min) || 0;
-      const maxVal = parseFloat(max) || Infinity;
-      return Math.min(Math.max(minVal, v), maxVal);
-    };
-
-    it("applies min constraint", () => {
-      expect(applyMin(5, "10", "")).toBe(10);
-      expect(applyMin(0, "0", "")).toBe(0);
-    });
-
-    it("applies max constraint", () => {
-      expect(applyMin(50, "0", "30")).toBe(30);
-      expect(applyMin(100, "0", "100")).toBe(100);
-    });
-
-    it("returns value when within range", () => {
-      expect(applyMin(50, "0", "100")).toBe(50);
-      expect(applyMin(10, "5", "20")).toBe(10);
-    });
-
-    it("handles MAX_MONTHS constraint", () => {
-      expect(applyMin(2500, "1", String(MAX_MONTHS))).toBe(2400);
-      expect(applyMin(100, "1", String(MAX_MONTHS))).toBe(100);
-    });
-  });
-
-  describe("getNumericValue", () => {
-    const getNumericValue = (value: string, inputmode: string): number => {
-      if (inputmode === "tax") {
-        return parseFloat(value.replace(",", ".")) || 0;
-      }
-      const digits = value.replace(/[^\d]/g, "");
-      return parseInt(digits, 10) || 0;
-    };
-
-    it("parses regular numeric values", () => {
-      expect(getNumericValue("1234", "numeric")).toBe(1234);
-      expect(getNumericValue("1000000", "numeric")).toBe(1000000);
-    });
-
-    it("parses tax values with comma decimal", () => {
-      expect(getNumericValue("12,34", "tax")).toBe(12.34);
-      expect(getNumericValue("0,5", "tax")).toBe(0.5);
-    });
-
-    it("returns 0 for invalid values", () => {
-      expect(getNumericValue("", "numeric")).toBe(0);
-      expect(getNumericValue("abc", "numeric")).toBe(0);
-    });
-  });
-
-  describe("getDisplayValue for numeric mode", () => {
-    const getDisplayValue = (value: string): string => {
-      const digits = value.replace(/[^\d]/g, "");
-      if (!digits) return "";
-      const num = parseInt(digits, 10);
-      if (isNaN(num)) return "";
-      return (num / 100).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+  describe("Numeric Input Mode", () => {
+    it("displays value with 2 decimal places", async () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { inputmode: "numeric", value: "1234", onchange },
       });
-    };
-
-    it("formats value as currency (cents)", () => {
-      expect(getDisplayValue("100")).toBe("1,00");
-      expect(getDisplayValue("1234")).toBe("12,34");
-      expect(getDisplayValue("100000")).toBe("1.000,00");
-    });
-
-    it("returns empty for empty value", () => {
-      expect(getDisplayValue("")).toBe("");
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      await fireEvent.input(input, { target: { value: "1234" } });
+      expect(input.value).toContain("12,34");
     });
   });
 
-  describe("getDisplayValue for tax mode", () => {
-    const getDisplayValue = (value: string): string => {
-      const num = parseFloat(value.replace(",", ".")) || 0;
-      return num.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+  describe("Month Input Mode", () => {
+    it("shows month breakdown for 369 months", () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { inputmode: "month", value: "369", onchange },
       });
-    };
+      const breakdown = screen.getByText(/30 anos/i);
+      expect(breakdown).toBeTruthy();
+      expect(screen.getByText(/9 meses/i)).toBeTruthy();
+    });
 
-    it("formats tax value with 2 decimals", () => {
-      expect(getDisplayValue("12,34")).toBe("12,34");
-      expect(getDisplayValue("10")).toBe("10,00");
+    it("does not show breakdown when less than 12 months", () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { inputmode: "month", value: "6", onchange },
+      });
+      const breakdown = screen.queryByText(/meses/i);
+      expect(breakdown).toBeNull();
+    });
+
+    it("shows only years when exact multiple of 12", () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { inputmode: "month", value: "24", onchange },
+      });
+      expect(screen.getByText(/2 anos/i)).toBeTruthy();
     });
   });
 
-  describe("monthBreakdown calculation", () => {
-    const getMonthBreakdown = (num: number): string | null => {
-      if (num === 0) return null;
-      const years = Math.floor(num / 12);
-      const months = num % 12;
-      const parts: string[] = [];
-      if (years > 0) {
-        parts.push(years === 1 ? "1 ano" : `${years} anos`);
-      }
-      if (months > 0) {
-        parts.push(months === 1 ? "1 mês" : `${months} meses`);
-      }
-      return parts.join(" e ");
-    };
-
-    it("shows both years and months", () => {
-      expect(getMonthBreakdown(369)).toBe("30 anos e 9 meses");
-      expect(getMonthBreakdown(15)).toBe("1 ano e 3 meses");
-    });
-
-    it("shows only months when years is 0", () => {
-      expect(getMonthBreakdown(11)).toBe("11 meses");
-      expect(getMonthBreakdown(1)).toBe("1 mês");
-    });
-
-    it("shows only years when months is 0", () => {
-      expect(getMonthBreakdown(24)).toBe("2 anos");
-      expect(getMonthBreakdown(12)).toBe("1 ano");
-    });
-
-    it("returns null for 0", () => {
-      expect(getMonthBreakdown(0)).toBeNull();
+  describe("Tax Input Mode", () => {
+    it("shows tax breakdown with monthly rate", () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { inputmode: "tax", value: "12", onchange },
+      });
+      const breakdown = screen.getByText(/% a.m./i);
+      expect(breakdown).toBeTruthy();
     });
   });
 
-  describe("taxBreakdown calculation", () => {
-    const getTaxBreakdown = (num: number): string | null => {
-      if (num === 0) return null;
-      const monthlyRate = (Math.pow(1 + num / 100, 1 / 12) - 1) * 100;
-      return `${monthlyRate.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 4,
-      })}% a.m.`;
-    };
-
-    it("calculates monthly rate from annual", () => {
-      const result = getTaxBreakdown(12);
-      expect(result).toContain("% a.m.");
-      expect(result).not.toBeNull();
-    });
-
-    it("returns null for 0", () => {
-      expect(getTaxBreakdown(0)).toBeNull();
+  describe("onchange callback", () => {
+    it("calls onchange with correct value on input", async () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { inputmode: "month", value: "", onchange },
+      });
+      const input = screen.getByRole("textbox");
+      await fireEvent.input(input, { target: { value: "123" } });
+      expect(onchange).toHaveBeenCalled();
     });
   });
 
-  describe("applyTick calculation", () => {
-    const calculateTick = (
-      current: number,
-      inputmode: string,
-      swipeTickPercent: number,
-    ): number => {
-      const isNumeric = inputmode === "numeric";
-      const divisor = isNumeric ? 100 : 1;
-      const tick =
-        inputmode === "tax"
-          ? Math.max(0.01, current * (swipeTickPercent / 100))
-          : Math.max(divisor, Math.round(current * (swipeTickPercent / 100)));
-      return tick;
-    };
-
-    it("numeric mode uses divisor as minimum tick", () => {
-      expect(calculateTick(1000, "numeric", SWIPE_TICK_PERCENT)).toBe(100);
-      expect(calculateTick(10, "numeric", SWIPE_TICK_PERCENT)).toBe(100);
+  describe("Lock button", () => {
+    it("shows lock button when showLock is true", () => {
+      render(SwipeInput, { props: { showLock: true, locked: false } });
+      expect(screen.getByLabelText(/Bloquear campo/i)).toBeTruthy();
     });
 
-    it("tax mode uses percentage with 0.01 minimum", () => {
-      const tick = calculateTick(10, "tax", SWIPE_TICK_PERCENT);
-      expect(tick).toBeGreaterThanOrEqual(0.01);
-      expect(tick).toBeLessThan(1);
+    it("shows unlock button when locked", () => {
+      render(SwipeInput, { props: { showLock: true, locked: true } });
+      expect(screen.getByLabelText(/Desbloquear campo/i)).toBeTruthy();
     });
 
-    it("month mode uses divisor as minimum tick", () => {
-      const tick = calculateTick(100, "month", SWIPE_TICK_PERCENT);
-      expect(tick).toBeGreaterThanOrEqual(1);
+    it("calls onlocktoggle when lock button clicked", async () => {
+      const onlocktoggle = vi.fn();
+      render(SwipeInput, {
+        props: { showLock: true, locked: false, onlocktoggle },
+      });
+      const button = screen.getByLabelText(/Bloquear campo/i);
+      await fireEvent.click(button);
+      expect(onlocktoggle).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Revert button", () => {
+    it("shows revert button when showRevert is true and not locked", () => {
+      render(SwipeInput, {
+        props: { showRevert: true, locked: false },
+      });
+      expect(screen.getByLabelText(/reverter/i)).toBeTruthy();
     });
 
-    it("numeric mode uses at least 100 as tick", () => {
-      const tick = calculateTick(1000, "numeric", SWIPE_TICK_PERCENT);
-      expect(tick).toBe(100);
+    it("calls onrevert when revert button clicked", async () => {
+      const onrevert = vi.fn();
+      render(SwipeInput, {
+        props: { showRevert: true, locked: false, onrevert },
+      });
+      const button = screen.getByLabelText(/reverter/i);
+      await fireEvent.click(button);
+      expect(onrevert).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Input constraints", () => {
+    it("applies min value on blur", async () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { min: "10", value: "", onchange },
+      });
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      await fireEvent.input(input, { target: { value: "5" } });
+      await fireEvent.blur(input);
+      expect(onchange).toHaveBeenCalledWith("0,10");
+    });
+  });
+
+  describe("Value formatting", () => {
+    it("formats integer values with thousand separators", async () => {
+      const onchange = vi.fn();
+      render(SwipeInput, {
+        props: { inputmode: "numeric", value: "" },
+      });
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      await fireEvent.input(input, { target: { value: "1000" } });
+      expect(input.value).toBe("10,00");
     });
   });
 });

@@ -248,6 +248,7 @@
     if (inputmode !== "month") return null;
     const num = getNumericValue();
     if (num === 0) return null;
+    if (num < 12) return null;
     const years = Math.floor(num / 12);
     const months = num % 12;
     const parts: string[] = [];
