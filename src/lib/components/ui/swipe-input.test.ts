@@ -170,5 +170,20 @@ describe("SwipeInput Component", () => {
       expect(input.value).toBe("10,00");
       expect(capturedValue).toBe(10);
     });
+
+    it("formats tax values with 2 decimal places", () => {
+      let capturedValue: number | null = null;
+      const onchange = (v: number) => {
+        capturedValue = v;
+      };
+      render(SwipeInput, {
+        props: { inputmode: "tax", value: "", onchange },
+      });
+      const input = screen.getByRole("textbox") as HTMLInputElement;
+      input.value = "1250";
+      fireEvent.input(input);
+      expect(input.value).toBe("12,50");
+      expect(capturedValue).toBe(12.5);
+    });
   });
 });
