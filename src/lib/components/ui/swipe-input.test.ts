@@ -16,7 +16,7 @@ describe("SwipeInput Component", () => {
 
     it("selects all text on focus", () => {
       render(SwipeInput, {
-        props: { inputmode: "numeric", value: "1234" },
+        props: { decimals: 2, value: "1234" },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       fireEvent.focus(input);
@@ -27,7 +27,7 @@ describe("SwipeInput Component", () => {
     it("selects all text on double tap", () => {
       vi.useFakeTimers();
       render(SwipeInput, {
-        props: { inputmode: "numeric", value: "1234" },
+        props: { decimals: 2, value: "1234" },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       fireEvent.touchEnd(input, {
@@ -53,7 +53,7 @@ describe("SwipeInput Component", () => {
     it("selects all text on hold", () => {
       vi.useFakeTimers();
       render(SwipeInput, {
-        props: { inputmode: "numeric", value: "1234" },
+        props: { decimals: 2, value: "1234" },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       fireEvent.touchStart(input, {
@@ -71,11 +71,11 @@ describe("SwipeInput Component", () => {
     });
   });
 
-  describe("Numeric Input Mode", () => {
+  describe("Numeric Input Mode (decimals=2)", () => {
     it("displays value with 2 decimal places", async () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { inputmode: "numeric", value: "1234", onchange },
+        props: { decimals: 2, value: "1234", onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       await fireEvent.input(input, { target: { value: "1234" } });
@@ -83,11 +83,11 @@ describe("SwipeInput Component", () => {
     });
   });
 
-  describe("Month Input Mode", () => {
+  describe("Month Input Mode (decimals=0)", () => {
     it("shows month breakdown for 369 months", () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { inputmode: "month", value: "369", onchange },
+        props: { decimals: 0, value: "369", onchange },
       });
       const breakdown = screen.getByText(/30 anos/i);
       expect(breakdown).toBeTruthy();
@@ -97,7 +97,7 @@ describe("SwipeInput Component", () => {
     it("does not show breakdown when less than 12 months", () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { inputmode: "month", value: "6", onchange },
+        props: { decimals: 0, value: "6", onchange },
       });
       const breakdown = screen.queryByText(/meses/i);
       expect(breakdown).toBeNull();
@@ -106,20 +106,9 @@ describe("SwipeInput Component", () => {
     it("shows only years when exact multiple of 12", () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { inputmode: "month", value: "24", onchange },
+        props: { decimals: 0, value: "24", onchange },
       });
       expect(screen.getByText(/2 anos/i)).toBeTruthy();
-    });
-  });
-
-  describe("Tax Input Mode", () => {
-    it("shows tax breakdown with monthly rate", () => {
-      const onchange = vi.fn();
-      render(SwipeInput, {
-        props: { inputmode: "tax", value: "12", onchange },
-      });
-      const breakdown = screen.getByText(/% a.m./i);
-      expect(breakdown).toBeTruthy();
     });
   });
 
@@ -127,7 +116,7 @@ describe("SwipeInput Component", () => {
     it("calls onchange with correct value on input", async () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { inputmode: "month", value: "", onchange },
+        props: { decimals: 0, value: "", onchange },
       });
       const input = screen.getByRole("textbox");
       await fireEvent.input(input, { target: { value: "123" } });
@@ -218,7 +207,7 @@ describe("SwipeInput Component", () => {
         capturedValue = v;
       };
       render(SwipeInput, {
-        props: { inputmode: "numeric", value: "", onchange },
+        props: { decimals: 2, value: "", onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       input.value = "1000";
@@ -227,13 +216,13 @@ describe("SwipeInput Component", () => {
       expect(capturedValue).toBe(10);
     });
 
-    it("formats tax values with 2 decimal places", () => {
+    it("formats values with 2 decimal places", () => {
       let capturedValue: number | null = null;
       const onchange = (v: number) => {
         capturedValue = v;
       };
       render(SwipeInput, {
-        props: { inputmode: "tax", value: "", onchange },
+        props: { decimals: 2, value: "", onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       input.value = "1250";

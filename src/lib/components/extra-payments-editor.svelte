@@ -66,7 +66,7 @@
         >
         <SwipeInput
           id="extra-month-{i}"
-          inputmode="month"
+          decimals={0}
           value={String(ep.month)}
           onchange={(v) => updateMonth(i, v)}
           min="1"
@@ -79,7 +79,7 @@
         >
         <SwipeInput
           id="extra-amount-{i}"
-          inputmode="numeric"
+          decimals={2}
           value={String(ep.amount)}
           onchange={(v) => updateAmount(i, v)}
           min="0"

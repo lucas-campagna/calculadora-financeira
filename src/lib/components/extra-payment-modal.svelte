@@ -116,7 +116,7 @@
           <label for="extra-modal-month" class="text-sm font-medium">Mês</label>
           <SwipeInput
             id="extra-modal-month"
-            inputmode="month"
+            decimals={0}
             placeholder="Mes"
             value={extraMonth}
             onchange={updateMonth}
@@ -133,7 +133,7 @@
           >
           <SwipeInput
             id="extra-modal-amount"
-            inputmode="numeric"
+            decimals={2}
             placeholder="Ex: 5.000"
             value={extraAmount}
             onchange={updateAmount}

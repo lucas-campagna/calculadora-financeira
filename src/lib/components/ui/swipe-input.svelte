@@ -4,10 +4,10 @@
   import { formatInputValue } from "$lib/calculator";
   import { SWIPE_TICK_PERCENT, MAX_MONTHS } from "$lib/constants";
 
-  const numberFormatter = new Intl.NumberFormat("pt-BR", {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-  });
+  // const numberFormatter = new Intl.NumberFormat("pt-BR", {
+  //   maximumFractionDigits: 2,
+  //   minimumFractionDigits: 0,
+  // });
 
   const TICK_PX = 30;
 
@@ -16,18 +16,9 @@
     id = "",
     placeholder = "",
     value = "",
-    inputmode = "numeric" as
-      | "numeric"
-      | "text"
-      | "tel"
-      | "search"
-      | "email"
-      | "url"
-      | "none"
-      | "month"
-      | "tax",
+    decimals = 2,
     min = "0",
-    max = inputmode === "month" ? String(MAX_MONTHS) : "",
+    max = decimals === 0 ? String(MAX_MONTHS) : "",
     locked = false,
     showRevert = undefined as boolean | undefined,
     showLock = true,
@@ -40,16 +31,7 @@
     id?: string;
     placeholder?: string;
     value?: string;
-    inputmode?:
-      | "numeric"
-      | "text"
-      | "tel"
-      | "search"
-      | "email"
-      | "url"
-      | "none"
-      | "month"
-      | "tax";
+    decimals?: number;
     min?: string;
     max?: string;
     locked?: boolean;
@@ -60,6 +42,8 @@
     onchange?: (v: number) => void;
     this?: HTMLInputElement | undefined;
   } = $props();
+
+  let mode = $derived(decimals === 0 ? "month" : "numeric");
 
   let touchStartY = 0;
   let lastTickY = 0;
@@ -76,18 +60,11 @@
   });
 
   function getDisplayValue(): string {
-    if (inputmode === "tax") {
-      const num = parseFloat(value.replace(",", ".")) || 0;
-      return num.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    }
     const digits = value.replace(/[^\d]/g, "");
     if (!digits) return "";
     const num = parseInt(digits, 10);
     if (isNaN(num)) return "";
-    if (inputmode === "numeric") {
+    if (decimals === 2) {
       return (num / 100).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -103,9 +80,6 @@
   });
 
   function getNumericValue(): number {
-    if (inputmode === "tax") {
-      return parseFloat(value.replace(",", ".")) || 0;
-    }
     const digits = value.replace(/[^\d]/g, "");
     return parseInt(digits, 10) || 0;
   }
@@ -123,12 +97,11 @@
   function applyTick(direction: "up" | "down") {
     const current = getNumericValue();
     if (current === 0 && direction === "down") return;
-    const isNumeric = inputmode === "numeric";
-    const divisor = isNumeric ? 100 : 1;
-    const tick =
-      inputmode === "tax"
-        ? Math.max(0.01, current * (SWIPE_TICK_PERCENT / 100))
-        : Math.max(divisor, Math.round(current * (SWIPE_TICK_PERCENT / 100)));
+    const divisor = decimals === 2 ? 100 : 1;
+    const tick = Math.max(
+      divisor,
+      Math.round(current * (SWIPE_TICK_PERCENT / 100)),
+    );
     let next: number;
     if (direction === "up") {
       next = current + tick;
@@ -138,18 +111,12 @@
 
     const finalVal = applyMax(applyMin(next));
     const actualValue = finalVal / divisor;
-    const numStr = isNumeric
-      ? actualValue.toFixed(2).replace(".", ",")
-      : inputmode === "tax"
-        ? actualValue.toFixed(2)
+    const numStr =
+      decimals === 2
+        ? actualValue.toFixed(2).replace(".", ",")
         : String(finalVal);
-    if (isNumeric) {
+    if (decimals === 2) {
       displayValue = (finalVal / 100).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    } else if (inputmode === "tax") {
-      displayValue = finalVal.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
@@ -209,23 +176,10 @@
   function handleInput(e: Event) {
     isTyping = true;
     const target = e.target as HTMLInputElement;
-    const isNumeric = inputmode === "numeric";
-    const isTax = inputmode === "tax";
-    let num: number;
-    if (isTax) {
-      const digits = target.value.replace(/[^\d]/g, "");
-      num = digits === "" ? 0 : parseInt(digits, 10);
-    } else {
-      let raw = target.value.replace(/[^\d]/g, "");
-      if (raw === "") raw = min;
-      num = parseInt(raw, 10) || 0;
-    }
-    if (isNumeric) {
-      displayValue = (num / 100).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    } else if (isTax) {
+    let raw = target.value.replace(/[^\d]/g, "");
+    if (raw === "") raw = min;
+    const num = parseInt(raw, 10) || 0;
+    if (decimals === 2) {
       displayValue = (num / 100).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -233,7 +187,7 @@
     } else {
       displayValue = num.toLocaleString("pt-BR");
     }
-    const actualNum = isNumeric || isTax ? num / 100 : num;
+    const actualNum = decimals === 2 ? num / 100 : num;
     const finalVal = applyMax(applyMin(actualNum));
     const emitted = finalVal;
     lastEmittedValue = String(emitted);
@@ -242,16 +196,8 @@
 
   function handleBlur() {
     isTyping = false;
-    const isNumeric = inputmode === "numeric";
-    const isTax = inputmode === "tax";
-    let num: number;
-    if (isTax) {
-      const digits = displayValue.replace(/[^\d]/g, "");
-      num = digits === "" ? 0 : parseInt(digits, 10);
-    } else {
-      num = parseInt(displayValue.replace(/[^\d]/g, ""), 10) || 0;
-    }
-    const actualNum = isNumeric || isTax ? num / 100 : num;
+    const num = parseInt(displayValue.replace(/[^\d]/g, ""), 10) || 0;
+    const actualNum = decimals === 2 ? num / 100 : num;
     const finalVal = applyMax(applyMin(actualNum));
     const emitted = finalVal;
     lastEmittedValue = String(emitted);
@@ -269,7 +215,7 @@
   );
 
   let monthBreakdown = $derived.by(() => {
-    if (inputmode !== "month") return null;
+    if (decimals !== 0) return null;
     const num = getNumericValue();
     if (num === 0) return null;
     if (num < 12) return null;
@@ -283,17 +229,6 @@
       parts.push(months === 1 ? "1 mês" : `${months} meses`);
     }
     return parts.join(" e ");
-  });
-
-  let taxBreakdown = $derived.by(() => {
-    if (inputmode !== "tax") return null;
-    const num = getNumericValue();
-    if (num === 0) return null;
-    const monthlyRate = (Math.pow(1 + num / 100, 1 / 12) - 1) * 100;
-    return `${monthlyRate.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}% a.m.`;
   });
 
   onMount(() => {
@@ -326,9 +261,7 @@
     {id}
     type="text"
     {placeholder}
-    inputmode={inputmode === "month" || inputmode === "tax"
-      ? "numeric"
-      : inputmode}
+    inputmode="numeric"
     bind:value={displayValue}
     onblur={handleBlur}
     oninput={handleInput}
@@ -351,20 +284,6 @@
       class:right-13={!swipeIndicator && showRevert}
     >
       {monthBreakdown}
-    </div>
-  {/if}
-  {#if taxBreakdown}
-    <div
-      class="absolute inset-y-0 flex items-center text-xs text-muted-foreground/60 text-left pointer-events-none overflow-hidden text-nowrap right-7 text-ellipsis"
-      class:opacity-30={!displayValue || displayValue === "0"}
-      class:opacity-100={displayValue && displayValue !== "0"}
-      class:left-6={displayValue.length == 1}
-      class:left-8={displayValue.length == 2}
-      class:left-10={displayValue.length == 3}
-      class:left-13={displayValue.length >= 4}
-      class:right-13={!swipeIndicator && showRevert}
-    >
-      {taxBreakdown}
     </div>
   {/if}
   {#if swipeIndicator}

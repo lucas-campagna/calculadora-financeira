@@ -79,7 +79,7 @@
         <Label for="m-principal" class="text-xs">Valor (R$)</Label>
         <SwipeInput
           id="m-principal"
-          inputmode="numeric"
+          decimals={2}
           placeholder="500.000"
           value={effectiveValue["principal"]}
           onchange={(v) => updateField("principal", v)}
@@ -94,7 +94,7 @@
         <Label for="m-downPayment" class="text-xs">Entrada (R$)</Label>
         <SwipeInput
           id="m-downPayment"
-          inputmode="numeric"
+          decimals={2}
           placeholder="0"
           value={effectiveValue["downPayment"]}
           onchange={(v) => updateField("downPayment", v)}
@@ -109,7 +109,7 @@
         <Label for="m-rate" class="text-xs">Taxa (% a.a.)</Label>
         <SwipeInput
           id="m-rate"
-          inputmode="tax"
+          decimals={2}
           placeholder="10"
           value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}
@@ -124,7 +124,7 @@
         <Label for="m-term" class="text-xs">Prazo (meses)</Label>
         <SwipeInput
           id="m-term"
-          inputmode="month"
+          decimals={0}
           placeholder="360"
           value={effectiveValue["termMonths"]}
           onchange={(v) => updateField("termMonths", v)}
@@ -156,7 +156,7 @@
         >
         <SwipeInput
           id="principal"
-          inputmode="numeric"
+          decimals={2}
           placeholder="Ex: 500.000"
           value={effectiveValue["principal"]}
           onchange={(v) => updateField("principal", v)}
@@ -173,7 +173,7 @@
         <Label for="downPayment" class="text-sm">Entrada (R$)</Label>
         <SwipeInput
           id="downPayment"
-          inputmode="numeric"
+          decimals={2}
           placeholder="Ex: 100.000"
           value={effectiveValue["downPayment"]}
           onchange={(v) => updateField("downPayment", v)}
@@ -192,7 +192,7 @@
         <Label for="annualRate" class="text-sm">Taxa de Juros (% ao ano)</Label>
         <SwipeInput
           id="annualRate"
-          inputmode="tax"
+          decimals={2}
           placeholder="Ex: 10,5"
           value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}
@@ -209,7 +209,7 @@
         <Label for="termMonths" class="text-sm">Prazo (meses)</Label>
         <SwipeInput
           id="termMonths"
-          inputmode="month"
+          decimals={0}
           placeholder="Ex: 360"
           value={effectiveValue["termMonths"]}
           onchange={(v) => updateField("termMonths", v)}

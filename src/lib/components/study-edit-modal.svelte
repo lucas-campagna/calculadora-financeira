@@ -187,7 +187,7 @@
             >
             <SwipeInput
               id="study-principal"
-              inputmode="numeric"
+              decimals={2}
               placeholder="500.000"
               value={principal.toString()}
               onchange={(v) => (principal = v)}
@@ -204,7 +204,7 @@
             >
             <SwipeInput
               id="study-down"
-              inputmode="numeric"
+              decimals={2}
               placeholder="0"
               value={downPayment.toString()}
               onchange={(v) => (downPayment = v)}
@@ -221,7 +221,7 @@
             >
             <SwipeInput
               id="study-rate"
-              inputmode="tax"
+              decimals={2}
               placeholder="10"
               value={annualRate.toString()}
               onchange={(v) => (annualRate = v)}
@@ -238,7 +238,7 @@
             >
             <SwipeInput
               id="study-term"
-              inputmode="month"
+              decimals={0}
               placeholder="360"
               value={termMonths.toString()}
               onchange={(v) => (termMonths = v)}
