@@ -133,7 +133,7 @@
           >
           <SwipeInput
             id="extra-modal-amount"
-            decimals={2}
+            
             placeholder="Ex: 5.000"
             value={extraAmount}
             onchange={updateAmount}

@@ -79,7 +79,7 @@
         <Label for="m-principal" class="text-xs">Valor (R$)</Label>
         <SwipeInput
           id="m-principal"
-          decimals={2}
+          
           placeholder="500.000"
           value={effectiveValue["principal"]}
           onchange={(v) => updateField("principal", v)}
@@ -94,7 +94,7 @@
         <Label for="m-downPayment" class="text-xs">Entrada (R$)</Label>
         <SwipeInput
           id="m-downPayment"
-          decimals={2}
+          
           placeholder="0"
           value={effectiveValue["downPayment"]}
           onchange={(v) => updateField("downPayment", v)}
@@ -109,7 +109,7 @@
         <Label for="m-rate" class="text-xs">Taxa (% a.a.)</Label>
         <SwipeInput
           id="m-rate"
-          decimals={2}
+          
           placeholder="10"
           value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}
@@ -156,7 +156,7 @@
         >
         <SwipeInput
           id="principal"
-          decimals={2}
+          
           placeholder="Ex: 500.000"
           value={effectiveValue["principal"]}
           onchange={(v) => updateField("principal", v)}
@@ -173,7 +173,7 @@
         <Label for="downPayment" class="text-sm">Entrada (R$)</Label>
         <SwipeInput
           id="downPayment"
-          decimals={2}
+          
           placeholder="Ex: 100.000"
           value={effectiveValue["downPayment"]}
           onchange={(v) => updateField("downPayment", v)}
@@ -192,7 +192,7 @@
         <Label for="annualRate" class="text-sm">Taxa de Juros (% ao ano)</Label>
         <SwipeInput
           id="annualRate"
-          decimals={2}
+          
           placeholder="Ex: 10,5"
           value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}

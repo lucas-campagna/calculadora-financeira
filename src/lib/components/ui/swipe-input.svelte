@@ -43,8 +43,6 @@
     this?: HTMLInputElement | undefined;
   } = $props();
 
-  let mode = $derived(decimals === 0 ? "month" : "numeric");
-
   let touchStartY = 0;
   let lastTickY = 0;
   let isSwiping = $state(false);

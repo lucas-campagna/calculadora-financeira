@@ -79,7 +79,7 @@
         >
         <SwipeInput
           id="extra-amount-{i}"
-          decimals={2}
+          
           value={String(ep.amount)}
           onchange={(v) => updateAmount(i, v)}
           min="0"

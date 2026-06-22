@@ -187,7 +187,7 @@
             >
             <SwipeInput
               id="study-principal"
-              decimals={2}
+              
               placeholder="500.000"
               value={principal.toString()}
               onchange={(v) => (principal = v)}
@@ -204,7 +204,7 @@
             >
             <SwipeInput
               id="study-down"
-              decimals={2}
+              
               placeholder="0"
               value={downPayment.toString()}
               onchange={(v) => (downPayment = v)}
@@ -221,7 +221,7 @@
             >
             <SwipeInput
               id="study-rate"
-              decimals={2}
+              
               placeholder="10"
               value={annualRate.toString()}
               onchange={(v) => (annualRate = v)}
