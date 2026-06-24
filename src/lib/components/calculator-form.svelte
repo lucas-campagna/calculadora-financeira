@@ -1,6 +1,7 @@
 <script lang="ts">
   import { studiesStore } from "$lib/stores/calculator-store";
   import type { FieldKey } from "$lib/stores/calculator-store";
+  import { splitMonths } from "$lib/utils";
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
   import Label from "$lib/components/ui/label.svelte";
   import ExportModal from "$lib/components/export-modal.svelte";
@@ -66,6 +67,16 @@
     editStudy = { ...$studiesStore.commonValues, ...$studiesStore.overrides };
     editModalOpen = true;
   }
+
+  let termMonthsLabel = $derived.by(() => {
+    if (effectiveValue["termMonths"] === 0) return "";
+    const { years, months } = splitMonths(effectiveValue["termMonths"]);
+    if (years === 0) return "";
+    const yearLabel = years === 1 ? "1 ano" : `${years} anos`;
+    if (months === 0) return yearLabel;
+    const monthLabel = months === 1 ? "1 mês" : `${months} meses`;
+    return `${yearLabel} e ${monthLabel}`;
+  });
 </script>
 
 {#if compact}
@@ -114,9 +125,8 @@
           placeholder="360"
           value={effectiveValue["termMonths"]}
           onchange={(v) => updateField("termMonths", v)}
-          step={1}
           min={1}
-          label="abc"
+          label={termMonthsLabel}
         />
       </div>
     </div>
@@ -185,7 +195,6 @@
           value={effectiveValue["termMonths"]}
           onchange={(v) => updateField("termMonths", v)}
           min={1}
-          step={1}
           class="mt-1"
         />
       </div>
