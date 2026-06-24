@@ -2,6 +2,9 @@
   import { studiesStore } from "$lib/stores/calculator-store";
   import type { FieldKey } from "$lib/stores/calculator-store";
   import { splitMonths } from "$lib/utils";
+  import lockClosedIcon from "$lib/assets/icons/lock-closed.svg?raw";
+  import lockOpenIcon from "$lib/assets/icons/lock-open.svg?raw";
+  import revertIcon from "$lib/assets/icons/revert.svg?raw";
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
   import Label from "$lib/components/ui/label.svelte";
   import ExportModal from "$lib/components/export-modal.svelte";
@@ -77,6 +80,25 @@
     const monthLabel = months === 1 ? "1 mês" : `${months} meses`;
     return `${yearLabel} e ${monthLabel}`;
   });
+
+  function makeActionButtons(
+    field: FieldKey,
+  ): { icon: () => string; onclick: () => void }[] {
+    const icons = [
+      {
+        icon: () => (isLocked(field) ? lockClosedIcon : lockOpenIcon),
+        onclick: () => handleFieldLockToggle(field),
+      },
+    ];
+    if (isOverridden(field) && !isLocked(field)) {
+      icons.push({
+        icon: () => revertIcon,
+        onclick: () => handleFieldRevert(field),
+      });
+    }
+
+    return icons;
+  }
 </script>
 
 {#if compact}
@@ -94,6 +116,7 @@
           value={effectiveValue["principal"]}
           onchange={(v) => updateField("principal", v)}
           min={1}
+          actionButtons={makeActionButtons("principal")}
         />
       </div>
       <div>
@@ -104,6 +127,7 @@
           placeholder="0"
           value={effectiveValue["downPayment"]}
           onchange={(v) => updateField("downPayment", v)}
+          actionButtons={makeActionButtons("downPayment")}
         />
       </div>
       <div>
@@ -115,6 +139,7 @@
           value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}
           min={0.01}
+          actionButtons={makeActionButtons("annualRate")}
         />
       </div>
       <div>
@@ -127,6 +152,7 @@
           onchange={(v) => updateField("termMonths", v)}
           min={1}
           label={termMonthsLabel}
+          actionButtons={makeActionButtons("termMonths")}
         />
       </div>
     </div>
@@ -156,6 +182,7 @@
           onchange={(v) => updateField("principal", v)}
           min={1}
           class="mt-1"
+          actionButtons={makeActionButtons("principal")}
         />
       </div>
 
@@ -168,6 +195,7 @@
           value={effectiveValue["downPayment"]}
           onchange={(v) => updateField("downPayment", v)}
           class="mt-1"
+          actionButtons={makeActionButtons("downPayment")}
         />
       </div>
     </div>
@@ -183,6 +211,7 @@
           onchange={(v) => updateField("annualRate", v)}
           min={0.01}
           class="mt-1"
+          actionButtons={makeActionButtons("annualRate")}
         />
       </div>
 
@@ -196,6 +225,8 @@
           onchange={(v) => updateField("termMonths", v)}
           min={1}
           class="mt-1"
+          label={termMonthsLabel}
+          actionButtons={makeActionButtons("termMonths")}
         />
       </div>
     </div>

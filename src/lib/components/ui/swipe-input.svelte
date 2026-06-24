@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, type Snippet } from "svelte";
+  import { onMount } from "svelte";
   import { cn } from "$lib/utils";
 
   const TICK_PX = 10;
@@ -14,7 +14,7 @@
     min?: number;
     max?: number;
     label?: string;
-    actionButtons?: { icon: Snippet; onclick: () => void }[];
+    actionButtons?: { icon: () => string; onclick: () => void }[];
     onchange?: (v: number) => void;
     this?: HTMLInputElement | undefined;
   };
@@ -221,7 +221,7 @@
           }}
           type="button"
         >
-          {@render button.icon()}
+          {@html button.icon()}
         </button>
       {/each}
     </div>
