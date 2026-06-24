@@ -5,18 +5,18 @@ import SwipeInput from "./swipe-input.svelte";
 describe("SwipeInput Component", () => {
   describe("Basic Rendering", () => {
     it("renders with placeholder", () => {
-      render(SwipeInput, { props: { placeholder: "Enter value" } });
+      render(SwipeInput, { props: { placeholder: "Enter value", value: 0 } });
       expect(screen.getByPlaceholderText("Enter value")).toBeTruthy();
     });
 
     it("renders with id", () => {
-      render(SwipeInput, { props: { id: "test-input" } });
+      render(SwipeInput, { props: { id: "test-input", value: 0 } });
       expect(document.getElementById("test-input")).toBeTruthy();
     });
 
     it("selects all text on focus", () => {
       render(SwipeInput, {
-        props: { decimals: 2, value: "1234" },
+        props: { decimals: 2, value: 12.34 },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       fireEvent.focus(input);
@@ -27,7 +27,7 @@ describe("SwipeInput Component", () => {
     it("selects all text on double tap", () => {
       vi.useFakeTimers();
       render(SwipeInput, {
-        props: { decimals: 2, value: "1234" },
+        props: { decimals: 2, value: 12.34 },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       fireEvent.touchEnd(input, {
@@ -53,7 +53,7 @@ describe("SwipeInput Component", () => {
     it("selects all text on hold", () => {
       vi.useFakeTimers();
       render(SwipeInput, {
-        props: { decimals: 2, value: "1234" },
+        props: { decimals: 2, value: 12.34 },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       fireEvent.touchStart(input, {
@@ -75,40 +75,22 @@ describe("SwipeInput Component", () => {
     it("displays value with 2 decimal places", async () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { decimals: 2, value: "1234", onchange },
+        props: { decimals: 2, value: 12.34, onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
-      await fireEvent.input(input, { target: { value: "1234" } });
+      await fireEvent.input(input, { target: { value: "12,34" } });
       expect(input.value).toContain("12,34");
     });
   });
 
-  describe("Month Input Mode (decimals=0)", () => {
-    it("shows month breakdown for 369 months", () => {
+  describe("Label prop", () => {
+    it("shows label when provided", () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { decimals: 0, value: "369", onchange },
+        props: { decimals: 0, value: 369, label: "meses", onchange },
       });
-      const breakdown = screen.getByText(/30 anos/i);
-      expect(breakdown).toBeTruthy();
-      expect(screen.getByText(/9 meses/i)).toBeTruthy();
-    });
-
-    it("does not show breakdown when less than 12 months", () => {
-      const onchange = vi.fn();
-      render(SwipeInput, {
-        props: { decimals: 0, value: "6", onchange },
-      });
-      const breakdown = screen.queryByText(/meses/i);
-      expect(breakdown).toBeNull();
-    });
-
-    it("shows only years when exact multiple of 12", () => {
-      const onchange = vi.fn();
-      render(SwipeInput, {
-        props: { decimals: 0, value: "24", onchange },
-      });
-      expect(screen.getByText(/2 anos/i)).toBeTruthy();
+      const label = screen.getByText("meses");
+      expect(label).toBeTruthy();
     });
   });
 
@@ -116,7 +98,7 @@ describe("SwipeInput Component", () => {
     it("calls onchange with correct value on input", async () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { decimals: 0, value: "", onchange },
+        props: { decimals: 0, value: 0, onchange },
       });
       const input = screen.getByRole("textbox");
       await fireEvent.input(input, { target: { value: "123" } });
@@ -124,52 +106,11 @@ describe("SwipeInput Component", () => {
     });
   });
 
-  describe("Lock button", () => {
-    it("shows lock button when showLock is true", () => {
-      render(SwipeInput, { props: { showLock: true, locked: false } });
-      expect(screen.getByLabelText(/Bloquear campo/i)).toBeTruthy();
-    });
-
-    it("shows unlock button when locked", () => {
-      render(SwipeInput, { props: { showLock: true, locked: true } });
-      expect(screen.getByLabelText(/Desbloquear campo/i)).toBeTruthy();
-    });
-
-    it("calls onlocktoggle when lock button clicked", async () => {
-      const onlocktoggle = vi.fn();
-      render(SwipeInput, {
-        props: { showLock: true, locked: false, onlocktoggle },
-      });
-      const button = screen.getByLabelText(/Bloquear campo/i);
-      await fireEvent.click(button);
-      expect(onlocktoggle).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("Revert button", () => {
-    it("shows revert button when showRevert is true and not locked", () => {
-      render(SwipeInput, {
-        props: { showRevert: true, locked: false },
-      });
-      expect(screen.getByLabelText(/reverter/i)).toBeTruthy();
-    });
-
-    it("calls onrevert when revert button clicked", async () => {
-      const onrevert = vi.fn();
-      render(SwipeInput, {
-        props: { showRevert: true, locked: false, onrevert },
-      });
-      const button = screen.getByLabelText(/reverter/i);
-      await fireEvent.click(button);
-      expect(onrevert).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe("Input constraints", () => {
     it("applies min value on blur", async () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { min: "10", value: "", onchange },
+        props: { min: 10, value: 0, onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       await fireEvent.input(input, { target: { value: "5" } });
@@ -180,7 +121,7 @@ describe("SwipeInput Component", () => {
     it("applies max value on blur", async () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { max: "100", value: "", onchange },
+        props: { max: 100, value: 0, onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       await fireEvent.input(input, { target: { value: "50000" } });
@@ -188,10 +129,10 @@ describe("SwipeInput Component", () => {
       expect(onchange).toHaveBeenCalledWith(100);
     });
 
-    it("do not apply max value on blur", async () => {
+    it("does not apply max value when under limit", async () => {
       const onchange = vi.fn();
       render(SwipeInput, {
-        props: { max: "100", value: "", onchange },
+        props: { decimals: 2, max: 100, value: 0, onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       await fireEvent.input(input, { target: { value: "500" } });
@@ -207,7 +148,7 @@ describe("SwipeInput Component", () => {
         capturedValue = v;
       };
       render(SwipeInput, {
-        props: { decimals: 2, value: "", onchange },
+        props: { decimals: 2, value: 0, onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       input.value = "1000";
@@ -222,7 +163,7 @@ describe("SwipeInput Component", () => {
         capturedValue = v;
       };
       render(SwipeInput, {
-        props: { decimals: 2, value: "", onchange },
+        props: { decimals: 2, value: 0, onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
       input.value = "1250";

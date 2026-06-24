@@ -1,135 +1,95 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, type Snippet } from "svelte";
   import { cn } from "$lib/utils";
-  import { formatInputValue } from "$lib/calculator";
-  import { SWIPE_TICK_PERCENT, MAX_MONTHS } from "$lib/constants";
 
-  // const numberFormatter = new Intl.NumberFormat("pt-BR", {
-  //   maximumFractionDigits: 2,
-  //   minimumFractionDigits: 0,
-  // });
+  const TICK_PX = 10;
 
-  const TICK_PX = 30;
+  type SwipeInputProps = {
+    class?: string;
+    id?: string;
+    placeholder?: string;
+    value: number;
+    step?: number;
+    decimals?: number;
+    min?: number;
+    max?: number;
+    label?: string;
+    actionButtons?: { icon: Snippet; onclick: () => void }[];
+    onchange?: (v: number) => void;
+    this?: HTMLInputElement | undefined;
+  };
 
   let {
     class: className = "",
     id = "",
     placeholder = "",
-    value = "",
-    decimals = 2,
-    min = "0",
-    max = decimals === 0 ? String(MAX_MONTHS) : "",
-    locked = false,
-    showRevert = undefined as boolean | undefined,
-    showLock = true,
-    onlocktoggle = () => {},
-    onrevert = () => {},
+    value,
+    decimals = 0,
+    step,
+    min = 0,
+    max,
+    label,
+    actionButtons = [],
     onchange: handleChange = (_v: number) => {},
     this: inputRef = undefined as HTMLInputElement | undefined,
-  }: {
-    class?: string;
-    id?: string;
-    placeholder?: string;
-    value?: string;
-    decimals?: number;
-    min?: string;
-    max?: string;
-    locked?: boolean;
-    showRevert?: boolean;
-    showLock?: boolean;
-    onlocktoggle?: () => void;
-    onrevert?: () => void;
-    onchange?: (v: number) => void;
-    this?: HTMLInputElement | undefined;
-  } = $props();
+  }: SwipeInputProps = $props();
 
   let touchStartY = 0;
   let lastTickY = 0;
   let isSwiping = $state(false);
   let swipeDirection = $state<"up" | "down" | null>(null);
   let inputEl: HTMLInputElement | undefined = $state(undefined);
-  let isTyping = $state(false);
-  let lastEmittedValue = "";
   let lastTapTime = 0;
   let holdTimer: ReturnType<typeof setTimeout> | null = null;
+  const formatter = $derived(
+    new Intl.NumberFormat("pt-BR", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }),
+  );
 
   $effect(() => {
     inputRef = inputEl;
   });
 
-  function getDisplayValue(): string {
-    const digits = value.replace(/[^\d]/g, "");
-    if (!digits) return "";
-    const num = parseInt(digits, 10);
-    if (isNaN(num)) return "";
-    if (decimals === 2) {
-      return (num / 100).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    }
-    return formatInputValue(value);
-  }
-
-  $effect(() => {
-    if (!isTyping) {
-      displayValue = getDisplayValue();
-    }
-  });
-
-  function getNumericValue(): number {
-    const digits = value.replace(/[^\d]/g, "");
-    return parseInt(digits, 10) || 0;
-  }
-
   function applyMin(v: number): number {
-    const minVal = parseFloat(min) || 0;
-    return Math.max(minVal, v);
+    return Math.max(min, v);
   }
 
   function applyMax(v: number): number {
-    const maxVal = parseFloat(max) || Infinity;
-    return Math.min(maxVal, v);
+    return Math.min(max ?? v, v);
+  }
+
+  function applyLimits(v: number): number {
+    return applyMin(applyMax(v));
+  }
+
+  function parseNumber(s: string | number): number {
+    const v =
+      typeof s === "string"
+        ? parseInt(s.replace(/\D/g, "")) / 10 ** decimals || 0
+        : s;
+    return v;
   }
 
   function applyTick(direction: "up" | "down") {
-    const current = getNumericValue();
-    if (current === 0 && direction === "down") return;
-    const divisor = decimals === 2 ? 100 : 1;
-    const tick = Math.max(
-      divisor,
-      Math.round(current * (SWIPE_TICK_PERCENT / 100)),
-    );
-    let next: number;
-    if (direction === "up") {
-      next = current + tick;
-    } else {
-      next = applyMax(applyMin(current - tick));
-    }
-
-    const finalVal = applyMax(applyMin(next));
-    const actualValue = finalVal / divisor;
-    const numStr =
-      decimals === 2
-        ? actualValue.toFixed(2).replace(".", ",")
-        : String(finalVal);
-    if (decimals === 2) {
-      displayValue = (finalVal / 100).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    } else {
-      displayValue = finalVal.toLocaleString("pt-BR");
-    }
-    lastEmittedValue = numStr;
-    handleChange(actualValue);
+    if (
+      (direction === "down" && value === min) ||
+      (direction === "up" && value === max && Number.isFinite(max))
+    )
+      return;
+    const tick =
+      step ??
+      0.5 * 10 ** (Math.floor(Math.log(value) / Math.log(10) + 1e-6) - 1);
+    const next =
+      direction === "up" ? applyMax(value + tick) : applyMin(value - tick);
+    value = tick * Math.round(next / tick);
   }
 
   function handleTouchStart(e: TouchEvent) {
     touchStartY = e.touches[0].clientY;
     lastTickY = touchStartY;
     isSwiping = true;
-    isTyping = true;
     swipeDirection = null;
     holdTimer = setTimeout(() => {
       inputEl?.select();
@@ -167,42 +127,18 @@
     }
     lastTapTime = now;
     isSwiping = false;
-    isTyping = false;
     swipeDirection = null;
   }
 
-  function handleInput(e: Event) {
-    isTyping = true;
-    const target = e.target as HTMLInputElement;
-    let raw = target.value.replace(/[^\d]/g, "");
-    if (raw === "") raw = min;
-    const num = parseInt(raw, 10) || 0;
-    if (decimals === 2) {
-      displayValue = (num / 100).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    } else {
-      displayValue = num.toLocaleString("pt-BR");
-    }
-    const actualNum = decimals === 2 ? num / 100 : num;
-    const finalVal = applyMax(applyMin(actualNum));
-    const emitted = finalVal;
-    lastEmittedValue = String(emitted);
-    handleChange(emitted);
+  function handleInput() {
+    value = parseNumber(displayValue);
   }
 
   function handleBlur() {
-    isTyping = false;
-    const num = parseInt(displayValue.replace(/[^\d]/g, ""), 10) || 0;
-    const actualNum = decimals === 2 ? num / 100 : num;
-    const finalVal = applyMax(applyMin(actualNum));
-    const emitted = finalVal;
-    lastEmittedValue = String(emitted);
-    handleChange(emitted);
+    value = applyLimits(parseNumber(displayValue));
   }
 
-  let displayValue = $state("");
+  let displayValue = $derived(formatter.format(value));
 
   let swipeIndicator = $derived(
     isSwiping && swipeDirection === "up"
@@ -212,21 +148,10 @@
         : "",
   );
 
-  let monthBreakdown = $derived.by(() => {
-    if (decimals !== 0) return null;
-    const num = getNumericValue();
-    if (num === 0) return null;
-    if (num < 12) return null;
-    const years = Math.floor(num / 12);
-    const months = num % 12;
-    const parts: string[] = [];
-    if (years > 0) {
-      parts.push(years === 1 ? "1 ano" : `${years} anos`);
+  $effect(() => {
+    if (min <= value && value <= (max || value)) {
+      handleChange(value);
     }
-    if (months > 0) {
-      parts.push(months === 1 ? "1 mês" : `${months} meses`);
-    }
-    return parts.join(" e ");
   });
 
   onMount(() => {
@@ -270,18 +195,11 @@
       className,
     )}
   />
-  {#if monthBreakdown}
+  {#if label}
     <div
       class="absolute inset-y-0 flex items-center text-xs text-muted-foreground/60 text-left pointer-events-none overflow-hidden text-nowrap right-7 text-ellipsis"
-      class:opacity-30={!displayValue || displayValue === "0"}
-      class:opacity-100={displayValue && displayValue !== "0"}
-      class:left-6={displayValue.length == 1}
-      class:left-8={displayValue.length == 2}
-      class:left-10={displayValue.length == 3}
-      class:left-13={displayValue.length >= 4}
-      class:right-13={!swipeIndicator && showRevert}
     >
-      {monthBreakdown}
+      {label}
     </div>
   {/if}
   {#if swipeIndicator}
@@ -294,75 +212,18 @@
     <div
       class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5"
     >
-      {#if showRevert ?? !locked}
+      {#each actionButtons.toReversed() as button}
         <button
           class="text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
           onclick={(e) => {
             e.stopPropagation();
-            onrevert();
+            button.onclick();
           }}
-          aria-label="Reverter para valor comum"
           type="button"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path
-              d="M3 3v5h5"
-            /></svg
-          >
+          {@render button.icon()}
         </button>
-      {/if}
-      {#if showLock}
-        <button
-          class="text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
-          onclick={(e) => {
-            e.stopPropagation();
-            onlocktoggle();
-          }}
-          aria-label={locked ? "Desbloquear campo" : "Bloquear campo"}
-          type="button"
-        >
-          {#if locked}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              ><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path
-                d="M7 11V7a5 5 0 0 1 10 0v4"
-              /></svg
-            >
-          {:else}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              ><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path
-                d="M7 11V7a5 5 0 0 1 5-5 1.6 1.6 0 0 1 1 .4"
-              /></svg
-            >
-          {/if}
-        </button>
-      {/if}
+      {/each}
     </div>
   {/if}
 </div>
