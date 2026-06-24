@@ -139,6 +139,7 @@
           value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}
           min={0.01}
+          step={0.1}
           actionButtons={makeActionButtons("annualRate")}
         />
       </div>
@@ -210,6 +211,7 @@
           value={effectiveValue["annualRate"]}
           onchange={(v) => updateField("annualRate", v)}
           min={0.01}
+          step={0.1}
           class="mt-1"
           actionButtons={makeActionButtons("annualRate")}
         />
