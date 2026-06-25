@@ -11,6 +11,6 @@ export function splitMonths(totalMonths: number): {
 } {
   return {
     years: Math.floor(totalMonths / 12),
-    months: totalMonths % 12,
+    months: Math.ceil(totalMonths % 12),
   };
 }
