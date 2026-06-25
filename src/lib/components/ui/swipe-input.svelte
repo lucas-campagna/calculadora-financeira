@@ -82,7 +82,9 @@
       return;
     const tick =
       step ??
-      0.5 * 10 ** (Math.floor(Math.log(value) / Math.log(10) + 1e-6) - 1);
+      (value === 0
+        ? 1
+        : 1.0 * 10 ** (Math.floor(Math.log(value) / Math.log(10) + 1e-6) - 1));
     const next =
       direction === "up" ? applyMax(value + tick) : applyMin(value - tick);
     value = tick * Math.round(next / tick);
