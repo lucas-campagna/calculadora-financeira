@@ -39,6 +39,8 @@
   let isSwiping = $state(false);
   let swipeDirection = $state<"up" | "down" | null>(null);
   let inputEl: HTMLInputElement | undefined = $state(undefined);
+  let swipeIndicatorEl: HTMLDivElement | undefined = $state(undefined);
+  let actionButtonsEl: HTMLDivElement | undefined = $state(undefined);
   let lastTapTime = 0;
   let holdTimer: ReturnType<typeof setTimeout> | null = null;
   const formatter = $derived(
@@ -198,18 +200,26 @@
   {#if label}
     <div
       class="absolute inset-y-0 flex items-center text-xs text-muted-foreground/60 text-left pointer-events-none overflow-hidden text-nowrap right-7 text-ellipsis"
+      style:left={Math.max(0, 17 + displayValue.length * 7) + "px"}
+      style:right={(swipeIndicator
+        ? swipeIndicatorEl?.getBoundingClientRect().width || 0
+        : actionButtonsEl?.getBoundingClientRect().width || 0) +
+        17 +
+        "px"}
     >
       {label}
     </div>
   {/if}
   {#if swipeIndicator}
     <div
+      bind:this={swipeIndicatorEl}
       class="absolute right-3 top-1/2 -translate-y-1/2 text-primary font-bold text-sm pointer-events-none"
     >
       {swipeIndicator}
     </div>
   {:else}
     <div
+      bind:this={actionButtonsEl}
       class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5"
     >
       {#each actionButtons.toReversed() as button}
