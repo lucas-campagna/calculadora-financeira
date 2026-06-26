@@ -14,3 +14,17 @@ export function splitMonths(totalMonths: number): {
     months: Math.ceil(totalMonths % 12),
   };
 }
+
+export function throttle<T extends (...args: any[]) => void>(
+  callback: T,
+  throttleMs: number = 500,
+): T {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  return ((...args: Parameters<T>) => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      callback(...args);
+    }, throttleMs);
+  }) as T;
+}

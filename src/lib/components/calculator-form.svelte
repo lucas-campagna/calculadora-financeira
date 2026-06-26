@@ -1,7 +1,7 @@
 <script lang="ts">
   import { studiesStore } from "$lib/stores/calculator-store";
   import type { FieldKey } from "$lib/stores/calculator-store";
-  import { splitMonths } from "$lib/utils";
+  import { splitMonths, throttle } from "$lib/utils";
   import lockClosedIcon from "$lib/assets/icons/lock-closed.svg?raw";
   import lockOpenIcon from "$lib/assets/icons/lock-open.svg?raw";
   import revertIcon from "$lib/assets/icons/revert.svg?raw";
@@ -32,6 +32,21 @@
     },
   });
 
+  const FORM_CHANGE_THROTTLE_MS = 1_000;
+
+  const throttledUpdateDownPayment = throttle(
+    (raw: string | number) =>
+      effectiveValue["principal"] < effectiveValue["downPayment"] &&
+      studiesStore.updateField("downPayment", raw),
+    FORM_CHANGE_THROTTLE_MS,
+  );
+  const throttledUpdatePrincipal = throttle(
+    (raw: string | number) =>
+      effectiveValue["principal"] < effectiveValue["downPayment"] &&
+      studiesStore.updateField("principal", raw),
+    FORM_CHANGE_THROTTLE_MS,
+  );
+
   function isLocked(field: FieldKey): boolean {
     return (
       $studiesStore.overrides[$studiesStore.activeStudyId]?.[field] ===
@@ -54,18 +69,20 @@
     studiesStore.revertFieldToCommon(field);
   }
 
-  function updateField(field: FieldKey, raw: string | number) {
-    if (field === "principal") {
-      if (effectiveValue["principal"] < effectiveValue["downPayment"]) {
-        studiesStore.updateField("downPayment", raw);
-      }
-    } else if (field === "downPayment") {
-      if (effectiveValue["principal"] < effectiveValue["downPayment"]) {
-        studiesStore.updateField("principal", raw);
-      }
+  function handleBindValues(field: FieldKey, raw: string | number) {
+    switch (field) {
+      case "principal":
+        throttledUpdateDownPayment(raw);
+        break;
+      case "downPayment":
+        throttledUpdatePrincipal(raw);
+        break;
     }
+  }
+
+  function updateField(field: FieldKey, raw: string | number) {
+    handleBindValues(field, raw);
     studiesStore.updateField(field, raw);
-    handleFormChange();
   }
 
   function handleAddStudy() {
