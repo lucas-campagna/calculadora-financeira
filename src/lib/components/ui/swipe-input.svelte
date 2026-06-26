@@ -87,7 +87,7 @@
         : 1.0 * 10 ** (Math.floor(Math.log(value) / Math.log(10) + 1e-6) - 1));
     const next =
       direction === "up" ? applyMax(value + tick) : applyMin(value - tick);
-    value = tick * Math.round(next / tick);
+    handleChange(tick * Math.round(next / tick));
   }
 
   function handleTouchStart(e: TouchEvent) {
@@ -106,7 +106,7 @@
     const totalDiff = touchStartY - currentY;
     if (Math.abs(totalDiff) > 10) {
       swipeDirection = totalDiff > 0 ? "up" : "down";
-      e.preventDefault();
+      // e.preventDefault();
     }
     const ticksY = lastTickY - currentY;
     const ticksCount = Math.trunc(ticksY / TICK_PX);
@@ -135,11 +135,11 @@
   }
 
   function handleInput() {
-    value = parseNumber(displayValue);
+    handleChange(parseNumber(displayValue));
   }
 
   function handleBlur() {
-    value = applyLimits(parseNumber(displayValue));
+    handleChange(applyLimits(parseNumber(displayValue)));
   }
 
   let displayValue = $derived(formatter.format(value));
@@ -151,12 +151,6 @@
         ? "▼"
         : "",
   );
-
-  $effect(() => {
-    if (min <= value && value <= (max || value)) {
-      handleChange(value);
-    }
-  });
 
   onMount(() => {
     if (inputEl) {
