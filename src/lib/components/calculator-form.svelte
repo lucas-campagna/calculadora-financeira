@@ -55,6 +55,15 @@
   }
 
   function updateField(field: FieldKey, raw: string | number) {
+    if (field === "principal") {
+      if (effectiveValue["principal"] < effectiveValue["downPayment"]) {
+        studiesStore.updateField("downPayment", raw);
+      }
+    } else if (field === "downPayment") {
+      if (effectiveValue["principal"] < effectiveValue["downPayment"]) {
+        studiesStore.updateField("principal", raw);
+      }
+    }
     studiesStore.updateField(field, raw);
     handleFormChange();
   }
