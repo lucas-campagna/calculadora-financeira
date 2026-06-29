@@ -189,12 +189,9 @@
               id="study-principal"
               decimals={2}
               placeholder="500.000"
-              value={principal.toString()}
+              value={principal}
               onchange={(v) => (principal = v)}
-              min="1"
-              showLock={false}
-              showRevert={principal !== initialValues.principal}
-              onrevert={() => handleRevert("principal")}
+              min={1}
               class="mt-1"
             />
           </div>
@@ -206,12 +203,9 @@
               id="study-down"
               decimals={2}
               placeholder="0"
-              value={downPayment.toString()}
+              value={downPayment}
               onchange={(v) => (downPayment = v)}
-              min="0"
-              showLock={false}
-              showRevert={downPayment !== initialValues.downPayment}
-              onrevert={() => handleRevert("downPayment")}
+              min={0}
               class="mt-1"
             />
           </div>
@@ -223,12 +217,9 @@
               id="study-rate"
               decimals={2}
               placeholder="10"
-              value={annualRate.toString()}
+              value={annualRate}
               onchange={(v) => (annualRate = v)}
-              min="0.01"
-              showLock={false}
-              showRevert={annualRate !== initialValues.annualRate}
-              onrevert={() => handleRevert("annualRate")}
+              min={0.01}
               class="mt-1"
             />
           </div>
@@ -240,12 +231,9 @@
               id="study-term"
               decimals={0}
               placeholder="360"
-              value={termMonths.toString()}
+              value={termMonths}
               onchange={(v) => (termMonths = v)}
-              min="1"
-              showLock={false}
-              showRevert={termMonths !== initialValues.termMonths}
-              onrevert={() => handleRevert("termMonths")}
+              min={1}
               class="mt-1"
             />
           </div>
