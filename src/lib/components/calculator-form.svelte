@@ -25,24 +25,34 @@
   let editMode = $state<"add" | "edit">("add");
   let editStudy: Partial<Study> | undefined = $state(undefined);
 
-  const effectiveValue = new Proxy({} as Record<FieldKey, number>, {
-    get(_, prop: FieldKey) {
-      const overrides = $studiesStore.overrides[$studiesStore.activeStudyId];
-      return overrides?.[prop] ?? $studiesStore.commonValues[prop];
-    },
-  });
+  const effectivePrincipal = $derived(
+    $studiesStore.overrides[$studiesStore.activeStudyId]?.principal ??
+      $studiesStore.commonValues.principal,
+  );
+  const effectiveDownPayment = $derived(
+    $studiesStore.overrides[$studiesStore.activeStudyId]?.downPayment ??
+      $studiesStore.commonValues.downPayment,
+  );
+  const effectiveAnnualRate = $derived(
+    $studiesStore.overrides[$studiesStore.activeStudyId]?.annualRate ??
+      $studiesStore.commonValues.annualRate,
+  );
+  const effectiveTermMonths = $derived(
+    $studiesStore.overrides[$studiesStore.activeStudyId]?.termMonths ??
+      $studiesStore.commonValues.termMonths,
+  );
 
   const FORM_CHANGE_THROTTLE_MS = 1_000;
 
   const throttledUpdateDownPayment = throttle(
     (raw: string | number) =>
-      effectiveValue["principal"] < effectiveValue["downPayment"] &&
+      effectivePrincipal < effectiveDownPayment &&
       studiesStore.updateField("downPayment", raw),
     FORM_CHANGE_THROTTLE_MS,
   );
   const throttledUpdatePrincipal = throttle(
     (raw: string | number) =>
-      effectiveValue["principal"] < effectiveValue["downPayment"] &&
+      effectivePrincipal < effectiveDownPayment &&
       studiesStore.updateField("principal", raw),
     FORM_CHANGE_THROTTLE_MS,
   );
@@ -98,8 +108,8 @@
   }
 
   let termMonthsLabel = $derived.by(() => {
-    if (effectiveValue["termMonths"] === 0) return "";
-    const { years, months } = splitMonths(effectiveValue["termMonths"]);
+    if (effectiveTermMonths === 0) return "";
+    const { years, months } = splitMonths(effectiveTermMonths);
     if (years === 0) return "";
     const yearLabel = years === 1 ? "1 ano" : `${years} anos`;
     if (months === 0) return yearLabel;
@@ -139,7 +149,7 @@
           id="m-principal"
           decimals={2}
           placeholder="500.000"
-          value={effectiveValue["principal"]}
+          value={effectivePrincipal}
           onchange={(v) => updateField("principal", v)}
           min={1}
           actionButtons={makeActionButtons("principal")}
@@ -151,7 +161,7 @@
           id="m-downPayment"
           decimals={2}
           placeholder="0"
-          value={effectiveValue["downPayment"]}
+          value={effectiveDownPayment}
           onchange={(v) => updateField("downPayment", v)}
           actionButtons={makeActionButtons("downPayment")}
         />
@@ -162,7 +172,7 @@
           id="m-rate"
           decimals={2}
           placeholder="10"
-          value={effectiveValue["annualRate"]}
+          value={effectiveAnnualRate}
           onchange={(v) => updateField("annualRate", v)}
           min={0.01}
           step={0.1}
@@ -175,7 +185,7 @@
           id="m-term"
           decimals={0}
           placeholder="360"
-          value={effectiveValue["termMonths"]}
+          value={effectiveTermMonths}
           onchange={(v) => updateField("termMonths", v)}
           min={1}
           step={1}
@@ -206,7 +216,7 @@
           id="principal"
           decimals={2}
           placeholder="Ex: 500.000"
-          value={effectiveValue["principal"]}
+          value={effectivePrincipal}
           onchange={(v) => updateField("principal", v)}
           min={1}
           class="mt-1"
@@ -220,7 +230,7 @@
           id="downPayment"
           decimals={2}
           placeholder="Ex: 100.000"
-          value={effectiveValue["downPayment"]}
+          value={effectiveDownPayment}
           onchange={(v) => updateField("downPayment", v)}
           class="mt-1"
           actionButtons={makeActionButtons("downPayment")}
@@ -235,7 +245,7 @@
           id="annualRate"
           decimals={2}
           placeholder="Ex: 10,5"
-          value={effectiveValue["annualRate"]}
+          value={effectiveAnnualRate}
           onchange={(v) => updateField("annualRate", v)}
           min={0.01}
           step={0.1}
@@ -250,7 +260,7 @@
           id="termMonths"
           decimals={0}
           placeholder="Ex: 360"
-          value={effectiveValue["termMonths"]}
+          value={effectiveTermMonths}
           onchange={(v) => updateField("termMonths", v)}
           min={1}
           step={1}

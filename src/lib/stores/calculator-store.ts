@@ -381,6 +381,14 @@ function createStudiesStore() {
       });
       calculateAll();
     },
+    value(field: FieldKey): number {
+      let result = DEFAULT_VALUES[field];
+      const unsubscribe = subscribe((s) => {
+        result = s.overrides[s.activeStudyId]?.[field] ?? s.commonValues[field];
+      });
+      unsubscribe();
+      return result;
+    },
     restore() {
       const defaults = createDefaultStudies();
       set({
