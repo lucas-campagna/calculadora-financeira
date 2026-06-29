@@ -178,6 +178,7 @@
           value={effectiveValue["termMonths"]}
           onchange={(v) => updateField("termMonths", v)}
           min={1}
+          step={1}
           label={termMonthsLabel}
           actionButtons={makeActionButtons("termMonths")}
         />
@@ -252,6 +253,7 @@
           value={effectiveValue["termMonths"]}
           onchange={(v) => updateField("termMonths", v)}
           min={1}
+          step={1}
           class="mt-1"
           label={termMonthsLabel}
           actionButtons={makeActionButtons("termMonths")}
