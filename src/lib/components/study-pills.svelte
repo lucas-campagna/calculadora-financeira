@@ -23,7 +23,7 @@
     const color = COLORS[colorIndex % COLORS.length];
     const dimmedBg = color + "b3";
     if (isActive) {
-      return `background-color: ${color}; border-color: ${color}; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);`;
+      return `background-color: ${color}; border-color: color-mix(in srgb, ${color} 60%, black); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);`;
     }
     return `background-color: ${dimmedBg}; border-color: ${color};`;
   }
