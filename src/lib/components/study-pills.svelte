@@ -14,18 +14,18 @@
   ];
 
   function getPillClasses(isActive: boolean, hasOverrides: boolean): string {
-    if (isActive) return "bg-primary text-primary-foreground border-primary";
-    if (hasOverrides)
-      return "bg-background text-foreground border-input hover:bg-accent";
-    return "text-muted-foreground border-muted";
+    if (isActive) return "text-white border-transparent";
+    if (hasOverrides) return "text-white border-transparent";
+    return "text-white border-transparent";
   }
 
   function getPillStyle(isActive: boolean, colorIndex: number): string {
     const color = COLORS[colorIndex % COLORS.length];
+    const dimmedColor = color + "b3";
     if (isActive) {
-      return `background-color: ${color}; border-color: ${color};`;
+      return `background-color: ${color}; border-color: ${color}; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);`;
     }
-    return `background-color: color-mix(in srgb, ${color} 30%, gray); border-color: color-mix(in srgb, ${color} 50%, gray);`;
+    return `background-color: ${dimmedColor}; border-color: ${dimmedColor};`;
   }
 
   let {
