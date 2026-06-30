@@ -10,7 +10,7 @@
 
 <AdsenseScript />
 
-<div class="min-h-screen flex flex-col">
+<div class="min-h-dscreen flex flex-col">
   <header
     class="border-b bg-background sticky top-0 z-40 flex items-center justify-center"
   >
