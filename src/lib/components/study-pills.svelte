@@ -17,7 +17,15 @@
     if (isActive) return "bg-primary text-primary-foreground border-primary";
     if (hasOverrides)
       return "bg-background text-foreground border-input hover:bg-accent";
-    return "bg-muted text-muted-foreground border-muted";
+    return "text-muted-foreground border-muted";
+  }
+
+  function getPillStyle(isActive: boolean, colorIndex: number): string {
+    const color = COLORS[colorIndex % COLORS.length];
+    if (isActive) {
+      return `background-color: ${color}; border-color: ${color};`;
+    }
+    return `background-color: color-mix(in srgb, ${color} 30%, gray); border-color: color-mix(in srgb, ${color} 50%, gray);`;
   }
 
   let {
@@ -159,9 +167,7 @@
           isActive,
           hasOverrides,
         )}"
-        style={isActive
-          ? `background-color: ${COLORS[i % COLORS.length]}; border-color: ${COLORS[i % COLORS.length]};`
-          : ""}
+        style={getPillStyle(isActive, i)}
         onclick={() => handlePillClick(study.id)}
       >
         {study.name}
