@@ -3,6 +3,7 @@
   import type { FieldKey, StudiesState } from "$lib/stores/calculator-store";
   import type { AmortizationSystem, Study } from "$lib/calculator/types";
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
+  import revertIcon from "$lib/assets/icons/revert.svg?raw";
 
   let {
     open = $bindable(false),
@@ -215,8 +216,7 @@
     if (isOverridden) {
       return [
         {
-          icon: () =>
-            `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>`,
+          icon: () => revertIcon,
           onclick: () => handleRevert(field),
         },
       ];
