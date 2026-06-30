@@ -73,6 +73,13 @@
     return v;
   }
 
+  function restartDragTimer() {
+    if (holdTimer) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    }
+  }
+
   function applyTick(direction: "up" | "down") {
     if (
       (direction === "down" && value === min) ||
@@ -90,7 +97,6 @@
   }
 
   function handleTouchStart(e: TouchEvent) {
-    e.preventDefault();
     touchStartY = e.touches[0].clientY;
     lastTickY = touchStartY;
     isSwiping = true;
@@ -111,6 +117,8 @@
     const ticksY = lastTickY - currentY;
     const ticksCount = Math.trunc(ticksY / TICK_PX);
     if (ticksCount !== 0) {
+      restartDragTimer();
+      e.preventDefault();
       lastTickY -= ticksCount * TICK_PX;
       const dir = ticksCount > 0 ? "up" : "down";
       const count = Math.abs(ticksCount);
@@ -121,10 +129,7 @@
   }
 
   function handleTouchEnd() {
-    if (holdTimer) {
-      clearTimeout(holdTimer);
-      holdTimer = null;
-    }
+    restartDragTimer();
     const now = Date.now();
     if (now - lastTapTime < 300) {
       inputEl?.select();
@@ -156,7 +161,7 @@
     if (!inputEl) return;
 
     inputEl.addEventListener("touchstart", handleTouchStart, {
-      passive: false,
+      passive: true,
     });
     inputEl.addEventListener("touchmove", handleTouchMove, { passive: false });
     inputEl.addEventListener("touchend", handleTouchEnd, { passive: true });
