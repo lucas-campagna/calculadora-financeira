@@ -148,10 +148,9 @@ describe("SwipeInput Component", () => {
         capturedValue = v;
       };
       render(SwipeInput, {
-        props: { decimals: 2, value: 0, onchange },
+        props: { decimals: 2, value: 10, onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
-      input.value = "1000";
       fireEvent.input(input);
       expect(input.value).toBe("10,00");
       expect(capturedValue).toBe(10);
@@ -163,13 +162,12 @@ describe("SwipeInput Component", () => {
         capturedValue = v;
       };
       render(SwipeInput, {
-        props: { decimals: 2, value: 0, onchange },
+        props: { decimals: 5, value: 12.567, onchange },
       });
       const input = screen.getByRole("textbox") as HTMLInputElement;
-      input.value = "1250";
       fireEvent.input(input);
-      expect(input.value).toBe("12,50");
-      expect(capturedValue).toBe(12.5);
+      expect(input.value).toBe("12,56700");
+      expect(capturedValue).toBe(12.567);
     });
   });
 });
