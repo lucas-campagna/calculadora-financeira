@@ -48,28 +48,9 @@
 
 {#if activeStudyResult}
   <div class={flexMode ? "flex flex-col flex-1 min-h-0" : ""}>
-    <div class="flex items-center gap-2 mb-2">
-      <div class="flex rounded-md border overflow-hidden">
-        <button
-          class="px-2 py-1 text-xs font-medium transition-colors {viewMode ===
-          'financing'
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-background'}"
-          onclick={() => (viewMode = "financing")}
-        >
-          Financiamento
-        </button>
-        <button
-          class="px-2 py-1 text-xs font-medium transition-colors {viewMode ===
-          'field'
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-background'}"
-          onclick={() => (viewMode = "field")}
-        >
-          Campos
-        </button>
-      </div>
-    </div>
+    <p class="text-xs text-muted-foreground mb-1">
+      Toque em uma parcela para adicionar pagamento extra.
+    </p>
 
     {#if viewMode === "financing"}
       <div
@@ -144,19 +125,6 @@
         </table>
       </div>
     {:else}
-      <div class="flex flex-wrap gap-1 mb-2">
-        {#each FIELDS as f}
-          <button
-            class="px-2 py-1 text-xs font-medium rounded transition-colors {selectedField ===
-            f.key
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'}"
-            onclick={() => (selectedField = f.key)}
-          >
-            {f.label}
-          </button>
-        {/each}
-      </div>
       <div
         class={flexMode
           ? "flex-1 min-h-0 overflow-auto border rounded-lg"
@@ -221,8 +189,38 @@
       </div>
     {/if}
 
-    <p class="text-xs text-muted-foreground mt-1">
-      Toque em uma parcela para adicionar pagamento extra.
-    </p>
+    <div class="flex items-center gap-2 mt-2">
+      <div class="flex rounded-md border overflow-hidden">
+        <button
+          class="px-2 py-1 text-xs font-medium transition-colors {viewMode ===
+          'financing'
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-muted text-muted-foreground hover:bg-muted/80'}"
+          onclick={() => (viewMode = "financing")}
+        >
+          Financiamento
+        </button>
+        {#if viewMode === "financing"}
+          <button
+            class="px-2 py-1 text-xs font-medium transition-colors"
+            onclick={() => (viewMode = "field")}
+          >
+            Comparar
+          </button>
+        {:else}
+          {#each FIELDS as f}
+            <button
+              class="px-2 py-1 text-xs font-medium transition-colors {selectedField ===
+              f.key
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background'}"
+              onclick={() => (selectedField = f.key)}
+            >
+              {f.label}
+            </button>
+          {/each}
+        {/if}
+      </div>
+    </div>
   </div>
 {/if}
