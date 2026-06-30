@@ -15,8 +15,8 @@
     onclose?: () => void;
   } = $props();
 
-  let extraMonth = $state("1");
-  let extraAmount = $state("");
+  let extraMonth = $state(1);
+  let extraAmount = $state(0);
   let extraType = $state<"reduce_term" | "reduce_installment">("reduce_term");
   let showRemoveConfirm = $state(false);
 
@@ -26,13 +26,13 @@
     if (open) {
       showRemoveConfirm = false;
       if (editPayment) {
-        extraMonth = String(editPayment.month);
-        extraAmount = String(editPayment.amount);
+        extraMonth = editPayment.month;
+        extraAmount = editPayment.amount;
         extraType = editPayment.type;
         originalMonth = editPayment.month;
       } else {
-        extraMonth = String(month);
-        extraAmount = "";
+        extraMonth = month;
+        extraAmount = 0;
         extraType = "reduce_term";
         originalMonth = null;
       }
@@ -46,16 +46,16 @@
   let originalMonth = $state<number | null>(null);
 
   function updateMonth(v: number) {
-    extraMonth = String(v);
+    extraMonth = v;
   }
 
   function updateAmount(v: number) {
-    extraAmount = String(v);
+    extraAmount = v;
   }
 
   function handleSave() {
-    const m = parseInt(extraMonth) || 0;
-    const a = parseInt(extraAmount.replace(/[^\d]/g, "")) || 0;
+    const m = extraMonth;
+    const a = extraAmount;
     if (m <= 0 || a <= 0) return;
 
     const payment: ExtraPayment = { month: m, amount: a, type: extraType };
@@ -120,9 +120,8 @@
             placeholder="Mes"
             value={extraMonth}
             onchange={updateMonth}
-            min="1"
-            showLock={false}
-            showRevert={false}
+            min={1}
+            actionButtons={[]}
             class="mt-1.5"
           />
         </div>
@@ -137,9 +136,8 @@
             placeholder="Ex: 5.000"
             value={extraAmount}
             onchange={updateAmount}
-            min="0"
-            showLock={false}
-            showRevert={false}
+            min={0}
+            actionButtons={[]}
             class="mt-1.5"
           />
           <p class="text-xs text-muted-foreground mt-1">
