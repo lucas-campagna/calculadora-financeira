@@ -97,13 +97,16 @@
 
   function handleAddStudy() {
     editMode = "add";
-    editStudy = { ...$studiesStore.commonValues, ...$studiesStore.overrides };
+    editStudy = {};
     editModalOpen = true;
   }
 
   function handleEditStudy() {
     editMode = "edit";
-    editStudy = { ...$studiesStore.commonValues, ...$studiesStore.overrides };
+    const activeStudy = $studiesStore.studies.find(
+      (s: Study) => s.id === $studiesStore.activeStudyId,
+    );
+    editStudy = { ...activeStudy };
     editModalOpen = true;
   }
 

@@ -42,10 +42,6 @@ export interface Study {
   id: string;
   name: string;
   system: AmortizationSystem;
-  principal: number;
-  annualRate: number;
-  termMonths: number;
-  downPayment: number;
   extraPayments: ExtraPayment[];
 }
 

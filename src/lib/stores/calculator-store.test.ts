@@ -11,20 +11,12 @@ describe("calculator-store", () => {
           id: "1",
           name: "SAC",
           system: "sac",
-          principal: 500000,
-          annualRate: 10,
-          termMonths: 360,
-          downPayment: 0,
           extraPayments: [],
         },
         {
           id: "2",
           name: "PRICE",
           system: "price",
-          principal: 500000,
-          annualRate: 10,
-          termMonths: 360,
-          downPayment: 0,
           extraPayments: [],
         },
       ],
@@ -42,20 +34,12 @@ describe("calculator-store", () => {
             id: "1",
             name: "SAC",
             system: "sac",
-            principal: 500000,
-            annualRate: 10,
-            termMonths: 360,
-            downPayment: 0,
             extraPayments: [],
           },
           {
             id: "2",
             name: "PRICE",
             system: "price",
-            principal: 500000,
-            annualRate: 10,
-            termMonths: 360,
-            downPayment: 0,
             extraPayments: [],
           },
         ],
@@ -105,10 +89,6 @@ describe("calculator-store", () => {
         id: "3",
         name: "Novo",
         system: "sam",
-        principal: 300000,
-        annualRate: 12,
-        termMonths: 240,
-        downPayment: 50000,
         extraPayments: [],
       };
       studiesStore.addStudy(newStudy);
@@ -122,10 +102,6 @@ describe("calculator-store", () => {
         id: "3",
         name: "Novo",
         system: "sam",
-        principal: 300000,
-        annualRate: 12,
-        termMonths: 240,
-        downPayment: 50000,
         extraPayments: [],
       };
       studiesStore.addStudy(newStudy);
@@ -193,13 +169,13 @@ describe("calculator-store", () => {
   });
 
   describe("updateField", () => {
-    it("updates common value when field is locked", () => {
+    it("updates common value when field is unlocked", () => {
       studiesStore.updateField("principal", 700000);
       const state = get(studiesStore);
       expect(state.commonValues.principal).toBe(700000);
     });
 
-    it("updates override when field is unlocked", () => {
+    it("updates override when field is locked", () => {
       studiesStore.toggleFieldLock("principal");
       studiesStore.updateField("principal", 700000);
       const state = get(studiesStore);

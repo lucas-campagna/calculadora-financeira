@@ -1,5 +1,6 @@
 <script lang="ts">
   import { studiesStore, calculateAll } from "$lib/stores/calculator-store";
+  import type { FieldKey, StudiesState } from "$lib/stores/calculator-store";
   import type { AmortizationSystem, Study } from "$lib/calculator/types";
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
 
@@ -22,9 +23,9 @@
 
   let name = $state("");
   let system = $state<AmortizationSystem>("price");
-  let principal = $state(500000);
-  let annualRate = $state(10);
-  let termMonths = $state(360);
+  let principal = $state(0);
+  let annualRate = $state(0);
+  let termMonths = $state(0);
   let downPayment = $state(0);
   let showRemoveConfirm = $state(false);
 
@@ -35,43 +36,49 @@
     downPayment: 0,
   });
 
+  let previousOverrides = $state<Partial<Record<FieldKey, number>>>({});
+
   $effect(() => {
-    if (open) {
-      showRemoveConfirm = false;
-      if (mode === "edit" && editStudy) {
-        name = editStudy.name ?? "";
-        system = editStudy.system ?? "price";
-        principal = editStudy.principal ?? 0;
-        annualRate = editStudy.annualRate ?? 0;
-        termMonths = editStudy.termMonths ?? 0;
-        downPayment = editStudy.downPayment ?? 0;
-        initialValues = {
-          principal: editStudy.principal ?? 0,
-          annualRate: editStudy.annualRate ?? 0,
-          termMonths: editStudy.termMonths ?? 0,
-          downPayment: editStudy.downPayment ?? 0,
-        };
-      } else {
-        const active = $studiesStore.studies.find(
-          (s) => s.id === $studiesStore.activeStudyId,
-        );
-        name =
-          active?.name ??
-          SYSTEMS.find((s) => s.key === active?.system)?.label ??
-          "Novo";
-        system = active?.system ?? "price";
-        principal = active?.principal ?? 500000;
-        annualRate = active?.annualRate ?? 10;
-        termMonths = active?.termMonths ?? 360;
-        downPayment = active?.downPayment ?? 0;
-        initialValues = { principal, annualRate, termMonths, downPayment };
-      }
+    if (!open) return;
+
+    showRemoveConfirm = false;
+    const store = $studiesStore;
+    const activeId = store.activeStudyId;
+    const common = store.commonValues;
+    const overrides = store.overrides[activeId] ?? {};
+
+    const newInitialValues = {
+      principal: overrides.principal ?? common.principal,
+      annualRate: overrides.annualRate ?? common.annualRate,
+      termMonths: overrides.termMonths ?? common.termMonths,
+      downPayment: overrides.downPayment ?? common.downPayment,
+    };
+    initialValues = newInitialValues;
+
+    if (mode === "edit" && editStudy) {
+      name = editStudy.name ?? "";
+      system = editStudy.system ?? "price";
+      principal = newInitialValues.principal;
+      annualRate = newInitialValues.annualRate;
+      termMonths = newInitialValues.termMonths;
+      downPayment = newInitialValues.downPayment;
+      previousOverrides = { ...overrides };
+    } else {
+      const active = store.studies.find((s: Study) => s.id === activeId);
+      name =
+        active?.name ??
+        SYSTEMS.find((s) => s.key === active?.system)?.label ??
+        "Novo";
+      system = active?.system ?? "price";
+      principal = newInitialValues.principal;
+      annualRate = newInitialValues.annualRate;
+      termMonths = newInitialValues.termMonths;
+      downPayment = newInitialValues.downPayment;
+      previousOverrides = {};
     }
   });
 
-  function handleRevert(
-    field: "principal" | "annualRate" | "termMonths" | "downPayment",
-  ) {
+  function handleRevert(field: FieldKey) {
     if (field === "principal") principal = initialValues.principal;
     else if (field === "annualRate") annualRate = initialValues.annualRate;
     else if (field === "termMonths") termMonths = initialValues.termMonths;
@@ -79,31 +86,90 @@
   }
 
   function handleConfirm() {
+    const common = $studiesStore.commonValues;
+
     if (mode === "add") {
       const newStudy: Study = {
         id: crypto.randomUUID(),
         name: name || SYSTEMS.find((s) => s.key === system)?.label || "Novo",
         system,
-        principal,
-        annualRate,
-        termMonths,
-        downPayment,
         extraPayments: [],
       };
+
+      const newOverrides: Partial<Record<FieldKey, number>> = {};
+      if (principal !== common.principal) newOverrides.principal = principal;
+      if (annualRate !== common.annualRate)
+        newOverrides.annualRate = annualRate;
+      if (termMonths !== common.termMonths)
+        newOverrides.termMonths = termMonths;
+      if (downPayment !== common.downPayment)
+        newOverrides.downPayment = downPayment;
+
       studiesStore.addStudy(newStudy);
-    } else if (mode === "edit" && editStudy && editStudy.id) {
-      studiesStore.updateStudy(editStudy.id, {
+      studiesStore.setActive(newStudy.id);
+
+      if (Object.keys(newOverrides).length > 0) {
+        studiesStore.update((s: StudiesState) => {
+          const studyId = newStudy.id;
+          return {
+            ...s,
+            overrides: {
+              ...s.overrides,
+              [studyId]: newOverrides as Record<FieldKey, number>,
+            },
+          };
+        });
+      }
+    } else if (mode === "edit" && editStudy?.id) {
+      const studyId = editStudy.id;
+      const currentOverrides = previousOverrides;
+
+      const updatedOverrides: Partial<Record<FieldKey, number>> = {
+        ...currentOverrides,
+      };
+
+      const fields: FieldKey[] = [
+        "principal",
+        "annualRate",
+        "termMonths",
+        "downPayment",
+      ];
+      for (const field of fields) {
+        const value =
+          field === "principal"
+            ? principal
+            : field === "annualRate"
+              ? annualRate
+              : field === "termMonths"
+                ? termMonths
+                : downPayment;
+
+        if (value !== common[field]) {
+          updatedOverrides[field] = value;
+        } else if (currentOverrides[field] !== undefined) {
+          delete updatedOverrides[field];
+        }
+      }
+
+      studiesStore.updateStudy(studyId, {
         name:
           name ||
           SYSTEMS.find((s) => s.key === system)?.label ||
           editStudy.name,
         system,
-        principal,
-        annualRate,
-        termMonths,
-        downPayment,
+      });
+
+      studiesStore.update((s: StudiesState) => {
+        const newOverrides = { ...s.overrides };
+        if (Object.keys(updatedOverrides).length > 0) {
+          newOverrides[studyId] = updatedOverrides as Record<FieldKey, number>;
+        } else {
+          delete newOverrides[studyId];
+        }
+        return { ...s, overrides: newOverrides };
       });
     }
+    calculateAll();
     open = false;
   }
 
@@ -112,17 +178,50 @@
   }
 
   function handleRemove() {
-    if (!editStudy) return;
-    studiesStore.update((s) => {
-      const remaining = s.studies.filter((st) => st.id !== editStudy!.id);
+    if (!editStudy?.id) return;
+    const studyId = editStudy.id;
+    studiesStore.update((s: StudiesState) => {
+      const remaining = s.studies.filter((st: Study) => st.id !== studyId);
       const newActiveId =
-        s.activeStudyId === editStudy!.id
+        s.activeStudyId === studyId
           ? (remaining[0]?.id ?? s.studies[0].id)
           : s.activeStudyId;
-      return { ...s, studies: remaining, activeStudyId: newActiveId };
+      const newOverrides = { ...s.overrides };
+      delete newOverrides[studyId];
+      return {
+        ...s,
+        studies: remaining,
+        activeStudyId: newActiveId,
+        overrides: newOverrides,
+      };
     });
     calculateAll();
     open = false;
+  }
+
+  function makeActionButtons(
+    field: FieldKey,
+  ): { icon: () => string; onclick: () => void }[] {
+    const currentValue =
+      field === "principal"
+        ? principal
+        : field === "annualRate"
+          ? annualRate
+          : field === "termMonths"
+            ? termMonths
+            : downPayment;
+    const isOverridden = currentValue !== initialValues[field];
+
+    if (isOverridden) {
+      return [
+        {
+          icon: () =>
+            `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>`,
+          onclick: () => handleRevert(field),
+        },
+      ];
+    }
+    return [];
   }
 </script>
 
@@ -193,6 +292,7 @@
               onchange={(v) => (principal = v)}
               min={1}
               class="mt-1"
+              actionButtons={makeActionButtons("principal")}
             />
           </div>
           <div>
@@ -207,6 +307,7 @@
               onchange={(v) => (downPayment = v)}
               min={0}
               class="mt-1"
+              actionButtons={makeActionButtons("downPayment")}
             />
           </div>
           <div>
@@ -221,6 +322,7 @@
               onchange={(v) => (annualRate = v)}
               min={0.01}
               class="mt-1"
+              actionButtons={makeActionButtons("annualRate")}
             />
           </div>
           <div>
@@ -235,6 +337,7 @@
               onchange={(v) => (termMonths = v)}
               min={1}
               class="mt-1"
+              actionButtons={makeActionButtons("termMonths")}
             />
           </div>
         </div>

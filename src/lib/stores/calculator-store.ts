@@ -9,7 +9,7 @@ import type {
 
 type FieldKey = "principal" | "annualRate" | "termMonths" | "downPayment";
 
-interface StudiesState {
+export interface StudiesState {
   studies: Study[];
   activeStudyId: string;
   commonValues: Record<FieldKey, number>;
@@ -34,14 +34,12 @@ function createDefaultStudies(): Study[] {
       id: "1",
       name: "SAC",
       system: "sac",
-      ...DEFAULT_VALUES,
       extraPayments: [],
     },
     {
       id: "2",
       name: "PRICE",
       system: "price",
-      ...DEFAULT_VALUES,
       extraPayments: [],
     },
   ];
@@ -68,7 +66,12 @@ function loadState(): StudiesState {
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed.studies && parsed.studies.length > 0 && parsed.activeStudyId) {
-        const loadedStudies: Study[] = parsed.studies;
+        const loadedStudies: Study[] = parsed.studies.map((s: Study) => ({
+          id: s.id,
+          name: s.name,
+          system: s.system,
+          extraPayments: s.extraPayments || [],
+        }));
         const commonValues: Record<FieldKey, number> = {
           principal:
             Number(parsed.commonValues?.principal) || DEFAULT_VALUES.principal,
@@ -168,29 +171,11 @@ function createStudiesStore() {
     set,
     update,
     addStudy(study: Study) {
-      update((s) => {
-        const newOverrides: Partial<Record<FieldKey, number>> = {};
-        if (study.principal !== s.commonValues.principal)
-          newOverrides.principal = study.principal;
-        if (study.annualRate !== s.commonValues.annualRate)
-          newOverrides.annualRate = study.annualRate;
-        if (study.termMonths !== s.commonValues.termMonths)
-          newOverrides.termMonths = study.termMonths;
-        if (study.downPayment !== s.commonValues.downPayment)
-          newOverrides.downPayment = study.downPayment;
-        return {
-          ...s,
-          studies: [...s.studies, study],
-          activeStudyId: study.id,
-          overrides:
-            Object.keys(newOverrides).length > 0
-              ? {
-                  ...s.overrides,
-                  [study.id]: newOverrides as Record<FieldKey, number>,
-                }
-              : s.overrides,
-        };
-      });
+      update((s) => ({
+        ...s,
+        studies: [...s.studies, study],
+        activeStudyId: study.id,
+      }));
       calculateAll();
     },
     updateStudy(id: string, patch: Partial<Omit<Study, "id">>) {

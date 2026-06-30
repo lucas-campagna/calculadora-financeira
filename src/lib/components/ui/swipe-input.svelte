@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { cn } from "$lib/utils";
 
   const TICK_PX = 10;
@@ -152,26 +151,19 @@
         : "",
   );
 
-  onMount(() => {
-    if (inputEl) {
-      inputEl.addEventListener("touchstart", handleTouchStart, {
-        passive: true,
-      });
-      inputEl.addEventListener("touchmove", handleTouchMove, {
-        passive: false,
-      });
-      inputEl.addEventListener("touchend", handleTouchEnd, { passive: true });
-      inputEl.addEventListener("touchcancel", handleTouchEnd, {
-        passive: true,
-      });
-    }
+  $effect(() => {
+    if (!inputEl) return;
+
+    inputEl.addEventListener("touchstart", handleTouchStart, { passive: true });
+    inputEl.addEventListener("touchmove", handleTouchMove, { passive: false });
+    inputEl.addEventListener("touchend", handleTouchEnd, { passive: true });
+    inputEl.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+
     return () => {
-      if (inputEl) {
-        inputEl.removeEventListener("touchstart", handleTouchStart);
-        inputEl.removeEventListener("touchmove", handleTouchMove);
-        inputEl.removeEventListener("touchend", handleTouchEnd);
-        inputEl.removeEventListener("touchcancel", handleTouchEnd);
-      }
+      inputEl?.removeEventListener("touchstart", handleTouchStart);
+      inputEl?.removeEventListener("touchmove", handleTouchMove);
+      inputEl?.removeEventListener("touchend", handleTouchEnd);
+      inputEl?.removeEventListener("touchcancel", handleTouchEnd);
     };
   });
 </script>
