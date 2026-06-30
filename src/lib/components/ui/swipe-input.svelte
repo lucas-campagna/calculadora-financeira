@@ -90,6 +90,7 @@
   }
 
   function handleTouchStart(e: TouchEvent) {
+    e.preventDefault();
     touchStartY = e.touches[0].clientY;
     lastTickY = touchStartY;
     isSwiping = true;
@@ -154,7 +155,9 @@
   $effect(() => {
     if (!inputEl) return;
 
-    inputEl.addEventListener("touchstart", handleTouchStart, { passive: true });
+    inputEl.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
     inputEl.addEventListener("touchmove", handleTouchMove, { passive: false });
     inputEl.addEventListener("touchend", handleTouchEnd, { passive: true });
     inputEl.addEventListener("touchcancel", handleTouchEnd, { passive: true });
