@@ -21,11 +21,11 @@
 
   function getPillStyle(isActive: boolean, colorIndex: number): string {
     const color = COLORS[colorIndex % COLORS.length];
-    const dimmedColor = color + "b3";
+    const dimmedBg = color + "b3";
     if (isActive) {
       return `background-color: ${color}; border-color: ${color}; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);`;
     }
-    return `background-color: ${dimmedColor}; border-color: ${dimmedColor};`;
+    return `background-color: ${dimmedBg}; border-color: ${color};`;
   }
 
   let {
