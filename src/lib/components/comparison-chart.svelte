@@ -336,7 +336,7 @@
               : "dos Juros"} (R$)
       </h2>
       <p class="text-xs text-muted-foreground mt-1">
-        Segure no gráfico para adicionar pagamento extra.
+        Segure e solte no gráfico para adicionar pagamento extra.
       </p>
     </div>
     <div
