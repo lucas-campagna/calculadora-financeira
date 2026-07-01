@@ -1,7 +1,7 @@
 <script lang="ts">
   import { formatNumber } from "$lib/calculator";
   import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
-  import type { AmortizationSystem, Installment } from "$lib/calculator/types";
+  import type { Installment } from "$lib/calculator/types";
   import { SMALL_SCREEN_BREAKPOINT } from "$lib/constants";
 
   let {
@@ -37,6 +37,17 @@
       : false,
   );
 
+  let extraPaymentMonths = $derived(
+    $studiesStore.studies
+      .find((s) => s.id === $studiesStore.activeStudyId)
+      ?.extraPayments.map((ep) => ep.month) ?? [],
+  );
+
+  let focusableRows = $state<Map<number, HTMLElement>>(new Map());
+  let selectedExtraPaymentIndex = $state(0);
+
+  const maxIndex = $derived(extraPaymentMonths.length + 1);
+
   let activeStudyResult = $derived(
     $allResultsStore[$studiesStore.activeStudyId],
   );
@@ -50,6 +61,63 @@
     if (!r) return null;
     const inst = r.installments.find((i: Installment) => i.number === month);
     return inst ? inst[field] : null;
+  }
+
+  function navigateExtraPayment(direction: "up" | "down") {
+    if (!activeStudyResult) return;
+    selectedExtraPaymentIndex =
+      direction === "up"
+        ? Math.max(0, selectedExtraPaymentIndex - 1)
+        : Math.min(focusableRows.size - 1, selectedExtraPaymentIndex + 1);
+    const rows = [...focusableRows.keys()]
+      .sort((a, b) => a - b)
+      .map((k) => focusableRows.get(k))
+      .filter(Boolean);
+    rows[selectedExtraPaymentIndex]?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }
+
+  function handleFocusableRow(
+    node: HTMLTableRowElement,
+    { installment, isLast }: { installment: Installment; isLast: boolean },
+  ) {
+    const month = installment.number;
+    if (month === 1 || isLast || (installment.extraPayment ?? 0) > 0) {
+      focusableRows.set(month, node);
+    }
+    return {
+      update({
+        installment,
+        isLast,
+      }: {
+        installment: Installment;
+        isLast: boolean;
+      }) {
+        if (
+          installment.number === 1 ||
+          isLast ||
+          (installment.extraPayment ?? 0) > 0
+        ) {
+          focusableRows.set(installment.number, node);
+        } else {
+          focusableRows.delete(installment.number);
+        }
+      },
+      destroy() {
+        const wasLast = isLast;
+        focusableRows.delete(month);
+        if (wasLast && month > 1) {
+          const prevRow =
+            node.previousElementSibling as HTMLTableRowElement | null;
+          if (prevRow) {
+            const prevMonth = month - 1;
+            focusableRows.set(prevMonth, prevRow);
+          }
+        }
+      },
+    };
   }
 </script>
 
@@ -105,6 +173,10 @@
                 onkeydown={(e: KeyboardEvent) => {
                   if (e.key === "Enter") onrowclick(installment.number);
                 }}
+                use:handleFocusableRow={{
+                  installment,
+                  isLast: i === activeStudyResult.installments.length - 1,
+                }}
               >
                 <td class="px-1 py-1 truncate">{installment.number}</td>
                 <td class="px-1 py-1 text-right truncate"
@@ -134,8 +206,8 @@
     {:else}
       <div
         class={flexMode
-          ? "flex-1 min-h-0 overflow-auto border rounded-lg"
-          : "overflow-auto border rounded-lg"}
+          ? "flex-1 min-h-0 overflow-auto border rounded-lg extra-payments-table"
+          : "overflow-auto border rounded-lg extra-payments-table"}
         style={flexMode ? "" : "max-height: 45vh"}
       >
         <table class="w-full text-xs border-collapse table-fixed">
@@ -196,7 +268,7 @@
       </div>
     {/if}
 
-    <div class="flex items-center gap-2 mt-2">
+    <div class="flex items-center justify-between mt-2">
       <div class="flex rounded-md border overflow-hidden">
         <button
           class="px-2 py-1 text-xs font-medium transition-colors {viewMode ===
@@ -227,6 +299,24 @@
             </button>
           {/each}
         {/if}
+      </div>
+      <div class="flex rounded-md border overflow-hidden">
+        <button
+          class="px-2 py-1 text-xs font-medium hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed"
+          onclick={() => navigateExtraPayment("up")}
+          disabled={selectedExtraPaymentIndex <= 0}
+          aria-label="Linha anterior"
+        >
+          ▲
+        </button>
+        <button
+          class="px-2 py-1 text-xs font-medium hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed"
+          onclick={() => navigateExtraPayment("down")}
+          disabled={selectedExtraPaymentIndex >= maxIndex}
+          aria-label="Próxima linha"
+        >
+          ▼
+        </button>
       </div>
     </div>
   </div>
