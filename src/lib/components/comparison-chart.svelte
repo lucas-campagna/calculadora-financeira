@@ -12,6 +12,7 @@
   let touchStartX = 0;
   let touchStartY = 0;
   let hasMoved = false;
+  let longPressTriggered = false;
   let selectedMonth = $state<number | null>(null);
 
   let {
@@ -223,12 +224,12 @@
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     hasMoved = false;
+    longPressTriggered = false;
     longPressTimer = setTimeout(() => {
-      if (hasMoved) return;
+      longPressTriggered = true;
       const month = getMonthFromPosition(touchStartX);
       if (month !== null) {
         selectedMonth = month;
-        onlongpress(month);
       }
     }, 600);
   }
@@ -238,18 +239,36 @@
     const dy = Math.abs(e.touches[0].clientY - touchStartY);
     if (dx > 10 || dy > 10) {
       hasMoved = true;
-      if (longPressTimer) {
+      if (longPressTimer && !longPressTriggered) {
         clearTimeout(longPressTimer);
         longPressTimer = null;
       }
     }
+    if (longPressTriggered) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      const month = getMonthFromPosition(e.touches[0].clientX);
+      if (month !== null) {
+        selectedMonth = month;
+      }
+    }
   }
 
-  function handleCanvasTouchEnd() {
+  function handleCanvasTouchEnd(e: TouchEvent) {
+    if (longPressTriggered) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    }
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       longPressTimer = null;
     }
+    if (longPressTriggered && selectedMonth !== null) {
+      onlongpress(selectedMonth);
+    }
+    longPressTriggered = false;
   }
 
   $effect(() => {
@@ -269,10 +288,33 @@
     }
   });
 
+  let chartContainerEl: HTMLDivElement;
+
   onMount(() => {
+    const container = chartContainerEl;
+    if (container) {
+      container.addEventListener("touchstart", handleCanvasTouchStart, {
+        passive: false,
+      });
+      container.addEventListener("touchmove", handleCanvasTouchMove, {
+        passive: false,
+      });
+      container.addEventListener("touchend", handleCanvasTouchEnd, {
+        passive: false,
+      });
+      container.addEventListener("touchcancel", handleCanvasTouchEnd, {
+        passive: false,
+      });
+    }
     return () => {
       if (chartInstance) {
         chartInstance.destroy();
+      }
+      if (container) {
+        container.removeEventListener("touchstart", handleCanvasTouchStart);
+        container.removeEventListener("touchmove", handleCanvasTouchMove);
+        container.removeEventListener("touchend", handleCanvasTouchEnd);
+        container.removeEventListener("touchcancel", handleCanvasTouchEnd);
       }
     };
   });
@@ -298,17 +340,15 @@
       </p>
     </div>
     <div
+      bind:this={chartContainerEl}
       class={fullHeight ? "flex-1 min-h-0" : "h-56 sm:h-80"}
       role="img"
       aria-label="Gráfico de evolucao do saldo devedor"
+      style="touch-action: none;"
       onclick={(e) => {
         const month = getMonthFromPosition(e.clientX);
         if (month !== null) selectedMonth = month;
       }}
-      ontouchstart={handleCanvasTouchStart}
-      ontouchmove={handleCanvasTouchMove}
-      ontouchend={handleCanvasTouchEnd}
-      ontouchcancel={handleCanvasTouchEnd}
     >
       <canvas bind:this={canvasEl}></canvas>
     </div>
