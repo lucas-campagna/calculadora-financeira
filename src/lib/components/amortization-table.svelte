@@ -45,6 +45,9 @@
 
   let focusableRows = $state<Map<number, HTMLElement>>(new Map());
   let selectedExtraPaymentIndex = $state(0);
+  let selectedMonth = $state<number | null>(null);
+  let prevSelectedRow = $state<HTMLElement | null>(null);
+  let flashTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const maxIndex = $derived(extraPaymentMonths.length + 1);
 
@@ -65,18 +68,30 @@
 
   function navigateExtraPayment(direction: "up" | "down") {
     if (!activeStudyResult) return;
+    const sortedKeys = [...focusableRows.keys()].sort((a, b) => a - b);
     selectedExtraPaymentIndex =
       direction === "up"
         ? Math.max(0, selectedExtraPaymentIndex - 1)
-        : Math.min(focusableRows.size - 1, selectedExtraPaymentIndex + 1);
-    const rows = [...focusableRows.keys()]
-      .sort((a, b) => a - b)
-      .map((k) => focusableRows.get(k))
-      .filter(Boolean);
-    rows[selectedExtraPaymentIndex]?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
+        : Math.min(sortedKeys.length - 1, selectedExtraPaymentIndex + 1);
+    const month = sortedKeys[selectedExtraPaymentIndex];
+    const row = focusableRows.get(month);
+    if (row) {
+      if (flashTimeout) {
+        if (prevSelectedRow?.style) prevSelectedRow.style.backgroundColor = "";
+        clearTimeout(flashTimeout);
+      }
+      row.style.backgroundColor = "orange";
+      flashTimeout = setTimeout(() => {
+        row.style.backgroundColor = "";
+        flashTimeout = null;
+      }, 200);
+      prevSelectedRow = row;
+      selectedMonth = month;
+      row.scrollIntoView({
+        behavior: "instant",
+        block: "center",
+      });
+    }
   }
 
   function handleFocusableRow(
@@ -236,6 +251,10 @@
                 tabindex="0"
                 onkeydown={(e: KeyboardEvent) => {
                   if (e.key === "Enter") onrowclick(inst.number);
+                }}
+                use:handleFocusableRow={{
+                  installment: inst,
+                  isLast: i === activeStudyResult.installments.length - 1,
                 }}
               >
                 <td class="px-1 py-1 truncate">{inst.number}</td>
