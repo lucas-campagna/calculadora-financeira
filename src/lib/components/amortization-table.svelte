@@ -2,6 +2,7 @@
   import { formatNumber } from "$lib/calculator";
   import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
   import type { AmortizationSystem, Installment } from "$lib/calculator/types";
+  import { SMALL_SCREEN_BREAKPOINT } from "$lib/constants";
 
   let {
     onrowclick = (_month: number) => {},
@@ -29,6 +30,12 @@
     { key: "interest", label: "Juros" },
     { key: "balance", label: "Saldo" },
   ];
+
+  let isSmallScreen = $derived(
+    typeof window !== "undefined"
+      ? window.innerWidth < SMALL_SCREEN_BREAKPOINT
+      : false,
+  );
 
   let activeStudyResult = $derived(
     $allResultsStore[$studiesStore.activeStudyId],
@@ -198,7 +205,7 @@
             : 'bg-muted text-muted-foreground hover:bg-muted/80'}"
           onclick={() => (viewMode = "financing")}
         >
-          Financiamento
+          {viewMode === "field" && isSmallScreen ? "Financ." : "Financiamento"}
         </button>
         {#if viewMode === "financing"}
           <button
