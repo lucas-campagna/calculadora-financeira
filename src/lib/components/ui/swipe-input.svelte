@@ -49,10 +49,6 @@
     }),
   );
 
-  $effect(() => {
-    inputRef = inputEl;
-  });
-
   function applyMin(v: number): number {
     return Math.max(min, v);
   }
