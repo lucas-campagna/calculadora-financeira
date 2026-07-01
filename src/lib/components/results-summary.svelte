@@ -12,6 +12,12 @@
     "bg-cyan-500",
     "bg-red-500",
   ];
+
+  function getMultiplier(value: number, principal: number): string {
+    if (principal <= 0) return "";
+    const mult = value / principal;
+    return `(x${mult.toFixed(1).replace(".0", "")})`;
+  }
 </script>
 
 {#if Object.keys($allResultsStore).length > 0}
@@ -21,6 +27,15 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {#each $studiesStore.studies as study, i}
         {@const result = $allResultsStore[study.id]}
+        {@const principal = studiesStore.getEffectiveValue(
+          study.id,
+          "principal",
+        )}
+        {@const downPayment = studiesStore.getEffectiveValue(
+          study.id,
+          "downPayment",
+        )}
+        {@const effectivePrincipal = principal - (downPayment || 0)}
         {#if result}
           <div
             class="border rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-colors"
@@ -35,12 +50,24 @@
             <div class="space-y-1 text-sm">
               <div class="flex justify-between">
                 <span class="text-muted-foreground">Total Pago</span>
-                <span class="font-bold">{formatCurrency(result.totalPaid)}</span
+                <span class="font-bold">
+                  <span
+                    class="text-xs text-muted-foreground/50 mr-1 cursor-help"
+                    title="Vezes o valor financiado"
+                    >{getMultiplier(result.totalPaid, effectivePrincipal)}</span
+                  >{formatCurrency(result.totalPaid)}</span
                 >
               </div>
               <div class="flex justify-between">
                 <span class="text-muted-foreground">Juros</span>
                 <span class="font-bold text-destructive"
+                  ><span
+                    class="text-xs text-muted-foreground/50 mr-1 cursor-help"
+                    title="Vezes o valor financiado"
+                    >{getMultiplier(
+                      result.totalInterest,
+                      effectivePrincipal,
+                    )}</span
                   >{formatCurrency(result.totalInterest)}</span
                 >
               </div>
