@@ -91,7 +91,9 @@
 
     if (mode === "add") {
       const newStudy: Study = {
-        id: crypto.randomUUID(),
+        id:
+          crypto.randomUUID?.() ??
+          `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: name || SYSTEMS.find((s) => s.key === system)?.label || "Novo",
         system,
         extraPayments: [],
