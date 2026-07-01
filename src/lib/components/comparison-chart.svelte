@@ -21,6 +21,20 @@
     fullHeight?: boolean;
   } = $props();
 
+  let selectedField = $state<"payment" | "principal" | "interest" | "balance">(
+    "balance",
+  );
+
+  const FIELDS: {
+    key: "payment" | "principal" | "interest" | "balance";
+    label: string;
+  }[] = [
+    { key: "balance", label: "Saldo" },
+    { key: "payment", label: "Parcela" },
+    { key: "principal", label: "Amort." },
+    { key: "interest", label: "Juros" },
+  ];
+
   const COLORS = [
     "#3b82f6",
     "#22c55e",
@@ -68,7 +82,7 @@
       );
       datasets.push({
         label: study.name,
-        data: filtered.map((inst: Installment) => inst.balance),
+        data: filtered.map((inst: Installment) => inst[selectedField]),
         borderColor: COLORS[i % COLORS.length],
         backgroundColor: COLORS[i % COLORS.length] + "20",
         fill: false,
@@ -106,7 +120,18 @@
             ticks: { font: { size: 10 } },
           },
           y: {
-            title: { display: true, text: "Saldo (R$)", font: { size: 11 } },
+            title: {
+              display: true,
+              text:
+                selectedField === "balance"
+                  ? "Saldo (R$)"
+                  : selectedField === "payment"
+                    ? "Parcela (R$)"
+                    : selectedField === "principal"
+                      ? "Amort. (R$)"
+                      : "Juros (R$)",
+              font: { size: 11 },
+            },
             ticks: {
               callback: (value: string | number) =>
                 `R$ ${(Number(value) / 1000).toFixed(0)}k`,
@@ -174,7 +199,8 @@
     if (
       $studiesStore.studies.length > 0 &&
       canvasEl &&
-      Object.keys($allResultsStore).length > 0
+      Object.keys($allResultsStore).length > 0 &&
+      selectedField
     ) {
       renderChart();
     }
@@ -194,7 +220,20 @@
     class="p-2 sm:p-4 {fullHeight ? 'flex flex-col' : ''}"
     style={fullHeight ? "height: 100%" : ""}
   >
-    <h2 class="text-xs font-semibold mb-1">Evolucao do Saldo Devedor</h2>
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-xs font-semibold">
+        Evolução {selectedField === "balance"
+          ? "do Saldo"
+          : selectedField === "payment"
+            ? "da Parcela"
+            : selectedField === "principal"
+              ? "da Amortização"
+              : "dos Juros"}
+      </h2>
+      <p class="text-xs text-muted-foreground mt-1">
+        Segure no gráfico para adicionar pagamento extra.
+      </p>
+    </div>
     <div
       class={fullHeight ? "flex-1 min-h-0" : "h-56 sm:h-80"}
       role="img"
@@ -206,8 +245,18 @@
     >
       <canvas bind:this={canvasEl}></canvas>
     </div>
-    <p class="text-xs text-muted-foreground mt-1">
-      Segure no gráfico para adicionar pagamento extra.
-    </p>
+    <div class="flex gap-1">
+      {#each FIELDS as f}
+        <button
+          class="px-2 py-1 text-xs font-medium transition-colors rounded border {selectedField ===
+          f.key
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-background'}"
+          onclick={() => (selectedField = f.key)}
+        >
+          {f.label}
+        </button>
+      {/each}
+    </div>
   </div>
 {/if}
