@@ -37,6 +37,13 @@
       : false,
   );
 
+  $effect(() => {
+    viewMode;
+    prevSelectedRow = null;
+    selectedMonth = null;
+    selectedExtraPaymentIndex = 0;
+  });
+
   let extraPaymentMonths = $derived(
     $studiesStore.studies
       .find((s) => s.id === $studiesStore.activeStudyId)
@@ -121,16 +128,7 @@
         }
       },
       destroy() {
-        const wasLast = isLast;
         focusableRows.delete(month);
-        if (wasLast && month > 1) {
-          const prevRow =
-            node.previousElementSibling as HTMLTableRowElement | null;
-          if (prevRow) {
-            const prevMonth = month - 1;
-            focusableRows.set(prevMonth, prevRow);
-          }
-        }
       },
     };
   }
