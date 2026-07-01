@@ -39,8 +39,18 @@
 
   let previousOverrides = $state<Partial<Record<FieldKey, number>>>({});
 
+  let initialName = $state("");
+  let initialSystem = $state<AmortizationSystem>("price");
+
+  let isInitialized = false;
+
   $effect(() => {
-    if (!open) return;
+    if (!open) {
+      isInitialized = false;
+      return;
+    }
+    if (isInitialized) return;
+    isInitialized = true;
 
     showRemoveConfirm = false;
     const store = $studiesStore;
@@ -64,6 +74,8 @@
       termMonths = newInitialValues.termMonths;
       downPayment = newInitialValues.downPayment;
       previousOverrides = { ...overrides };
+      initialName = name;
+      initialSystem = system;
     } else {
       const active = store.studies.find((s: Study) => s.id === activeId);
       name =
@@ -78,6 +90,17 @@
       previousOverrides = {};
     }
   });
+
+  const hasChanges = $derived(
+    mode === "edit"
+      ? name !== initialName ||
+          system !== initialSystem ||
+          principal !== initialValues.principal ||
+          annualRate !== initialValues.annualRate ||
+          termMonths !== initialValues.termMonths ||
+          downPayment !== initialValues.downPayment
+      : true,
+  );
 
   function handleRevert(field: FieldKey) {
     if (field === "principal") principal = initialValues.principal;
@@ -381,9 +404,10 @@
           {/if}
         {/if}
         <button
-          class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
+          class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           style="touch-action: manipulation;"
           onclick={handleConfirm}
+          disabled={mode === "edit" && !hasChanges}
         >
           {mode === "add" ? "Adicionar" : "Atualizar"}
         </button>
