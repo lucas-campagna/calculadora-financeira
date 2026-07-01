@@ -352,18 +352,20 @@
     >
       <canvas bind:this={canvasEl}></canvas>
     </div>
-    <div class="flex gap-1">
-      {#each FIELDS as f}
-        <button
-          class="px-2 py-1 text-xs font-medium transition-colors rounded border {selectedField ===
-          f.key
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-background'}"
-          onclick={() => (selectedField = f.key)}
-        >
-          {f.label}
-        </button>
-      {/each}
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex rounded-md border overflow-hidden">
+        {#each FIELDS as f}
+          <button
+            class="px-2 py-1 text-xs font-medium transition-colors {selectedField ===
+            f.key
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-background'}"
+            onclick={() => (selectedField = f.key)}
+          >
+            {f.label}
+          </button>
+        {/each}
+      </div>
     </div>
   </div>
 {/if}
