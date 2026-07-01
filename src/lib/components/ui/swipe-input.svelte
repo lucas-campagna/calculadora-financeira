@@ -108,13 +108,14 @@
     const totalDiff = touchStartY - currentY;
     if (Math.abs(totalDiff) > 10) {
       swipeDirection = totalDiff > 0 ? "up" : "down";
-      // e.preventDefault();
     }
     const ticksY = lastTickY - currentY;
     const ticksCount = Math.trunc(ticksY / TICK_PX);
     if (ticksCount !== 0) {
       restartDragTimer();
-      e.preventDefault();
+      if (e.cancelable) {
+        e.preventDefault();
+      }
       lastTickY -= ticksCount * TICK_PX;
       const dir = ticksCount > 0 ? "up" : "down";
       const count = Math.abs(ticksCount);

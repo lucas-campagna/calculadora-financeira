@@ -52,7 +52,7 @@
                 <span class="text-muted-foreground">Total Pago</span>
                 <span class="font-bold">
                   <span
-                    class="text-xs text-muted-foreground/50 mr-1 cursor-help"
+                    class="text-xs text-muted-foreground/50 mr-1 cursor-help font-normal"
                     title="Vezes o valor financiado"
                     >{getMultiplier(result.totalPaid, effectivePrincipal)}</span
                   >{formatCurrency(result.totalPaid)}</span
@@ -62,7 +62,7 @@
                 <span class="text-muted-foreground">Juros</span>
                 <span class="font-bold text-destructive"
                   ><span
-                    class="text-xs text-muted-foreground/50 mr-1 cursor-help"
+                    class="text-xs text-muted-foreground/50 mr-1 cursor-help font-normal"
                     title="Vezes o valor financiado"
                     >{getMultiplier(
                       result.totalInterest,
