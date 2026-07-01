@@ -22,6 +22,8 @@
 
   const isEdit = $derived(editPayment !== undefined);
 
+  const isValid = $derived(extraMonth > 0 && extraAmount > 0);
+
   $effect(() => {
     if (open) {
       showRemoveConfirm = false;
@@ -194,9 +196,10 @@
           {/if}
         {/if}
         <button
-          class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
+          class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           style="touch-action: manipulation;"
           onclick={handleSave}
+          disabled={!isValid}
         >
           {isEdit ? "Salvar" : "Adicionar"}
         </button>
