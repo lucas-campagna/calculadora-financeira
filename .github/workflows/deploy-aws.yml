@@ -20,7 +20,7 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run build
+      - run: SVELTE_BASE_PATH= npm run build
 
       - name: Deploy to S3
         run: aws s3 sync build/ s3://${{ secrets.AWS_S3_BUCKET }} --delete
