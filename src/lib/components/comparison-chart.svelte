@@ -98,9 +98,17 @@
         const ctx = chart.ctx;
         const xScale = chart.scales.x;
         const yScale = chart.scales.y;
-        const idx = chart.data.labels?.indexOf(String(selectedMonth));
-        if (idx === undefined || idx === -1) return;
-        const pixelX = xScale.getPixelForValue(idx);
+        const labels = chart.data.labels ?? [];
+        let closestIdx = 0;
+        let minDiff = Infinity;
+        labels.forEach((label, i) => {
+          const diff = Math.abs(Number(label) - selectedMonth);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestIdx = i;
+          }
+        });
+        const pixelX = xScale.getPixelForValue(closestIdx);
         ctx.save();
         ctx.strokeStyle = "#94a3b8";
         ctx.lineWidth = 1;
@@ -133,6 +141,15 @@
           tooltip: {
             bodyFont: { size: 11 },
             callbacks: {
+              title: (items: import("chart.js").TooltipItem<"line">[]) => {
+                if (!items.length) return "";
+                const month = Number(items[0].label);
+                if (month <= 12) return `${month}M`;
+                const years = Math.floor(month / 12);
+                const months = month % 12;
+                if (months === 0) return `${years}A`;
+                return `${years}A ${months}M`;
+              },
               label: (ctx: import("chart.js").TooltipItem<"line">) => {
                 const val = ctx.parsed.y ?? 0;
                 return `${ctx.dataset.label}: R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -142,28 +159,37 @@
         },
         scales: {
           x: {
-            title: { display: true, text: "Mês", font: { size: 11 } },
-            ticks: { font: { size: 10 } },
+            ticks: {
+              font: { size: 10 },
+              callback: (value: string | number, index: number) => {
+                const label = chartInstance?.data.labels?.[index];
+                if (!label) return "";
+                const month = Number(label);
+                if (month <= 12) return `${month}M`;
+                const years = Math.floor(month / 12);
+                const months = month % 12;
+                if (months === 0) return `${years}A`;
+                return `${years}A ${months}M`;
+              },
+            },
           },
           y: {
             min: 0,
-            title: {
-              display: true,
-              text:
-                selectedField === "balance"
-                  ? "Saldo (R$)"
-                  : selectedField === "payment"
-                    ? "Parcela (R$)"
-                    : selectedField === "principal"
-                      ? "Amort. (R$)"
-                      : "Juros (R$)",
-              font: { size: 11 },
-            },
             ticks: {
               callback: (value: string | number) => {
                 const n = Number(value);
-                if (n >= 1000) return `R$ ${(n / 1000).toFixed(0)}k`;
-                return `R$ ${n.toFixed(0)}`;
+                const suffixes = ["", "k", "M", "B", "T", "Q"];
+                let suffixIndex = 0;
+                let val = n;
+                while (val >= 1000 && suffixIndex < suffixes.length - 1) {
+                  val /= 1000;
+                  suffixIndex++;
+                }
+                if (val >= 100)
+                  return `${val.toFixed(0)}${suffixes[suffixIndex]}`;
+                if (val >= 10)
+                  return `${val.toFixed(1)}${suffixes[suffixIndex]}`;
+                return `${val.toFixed(2)}${suffixes[suffixIndex]}`;
               },
               font: { size: 10 },
             },
@@ -265,7 +291,7 @@
             ? "da Parcela"
             : selectedField === "principal"
               ? "da Amortização"
-              : "dos Juros"}
+              : "dos Juros"} (R$)
       </h2>
       <p class="text-xs text-muted-foreground mt-1">
         Segure no gráfico para adicionar pagamento extra.
