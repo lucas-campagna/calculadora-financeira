@@ -380,6 +380,7 @@
         {/if}
         <button
           class="flex-1 h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
+          style="touch-action: manipulation;"
           onclick={handleConfirm}
         >
           {mode === "add" ? "Adicionar" : "Atualizar"}
