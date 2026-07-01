@@ -12,6 +12,7 @@
   let touchStartX = 0;
   let touchStartY = 0;
   let hasMoved = false;
+  let selectedMonth = $state<number | null>(null);
 
   let {
     onlongpress = (_month: number) => {},
@@ -90,12 +91,36 @@
       });
     });
 
+    const drawVerticalLinePlugin = {
+      id: "verticalLine",
+      afterDraw: (chart: import("chart.js").Chart) => {
+        if (selectedMonth === null) return;
+        const ctx = chart.ctx;
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        const idx = chart.data.labels?.indexOf(String(selectedMonth));
+        if (idx === undefined || idx === -1) return;
+        const pixelX = xScale.getPixelForValue(idx);
+        ctx.save();
+        ctx.strokeStyle = "#94a3b8";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(pixelX, yScale.top);
+        ctx.lineTo(pixelX, yScale.bottom);
+        ctx.stroke();
+        ctx.restore();
+      },
+    };
+
     chartInstance = new Chart(canvasEl, {
       type: "line",
       data: { labels, datasets },
+      plugins: [drawVerticalLinePlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: false,
         interaction: {
           mode: "nearest",
           axis: "x",
@@ -109,7 +134,8 @@
             bodyFont: { size: 11 },
             callbacks: {
               label: (ctx: import("chart.js").TooltipItem<"line">) => {
-                return `${ctx.dataset.label}: R$ ${(ctx.parsed.y ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+                const val = ctx.parsed.y ?? 0;
+                return `${ctx.dataset.label}: R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
               },
             },
           },
@@ -120,6 +146,7 @@
             ticks: { font: { size: 10 } },
           },
           y: {
+            min: 0,
             title: {
               display: true,
               text:
@@ -133,8 +160,11 @@
               font: { size: 11 },
             },
             ticks: {
-              callback: (value: string | number) =>
-                `R$ ${(Number(value) / 1000).toFixed(0)}k`,
+              callback: (value: string | number) => {
+                const n = Number(value);
+                if (n >= 1000) return `R$ ${(n / 1000).toFixed(0)}k`;
+                return `R$ ${n.toFixed(0)}`;
+              },
               font: { size: 10 },
             },
           },
@@ -171,6 +201,7 @@
       if (hasMoved) return;
       const month = getMonthFromPosition(touchStartX);
       if (month !== null) {
+        selectedMonth = month;
         onlongpress(month);
       }
     }, 600);
@@ -206,6 +237,12 @@
     }
   });
 
+  $effect(() => {
+    if (selectedMonth !== null && chartInstance) {
+      chartInstance.update("none");
+    }
+  });
+
   onMount(() => {
     return () => {
       if (chartInstance) {
@@ -238,6 +275,10 @@
       class={fullHeight ? "flex-1 min-h-0" : "h-56 sm:h-80"}
       role="img"
       aria-label="Gráfico de evolucao do saldo devedor"
+      onclick={(e) => {
+        const month = getMonthFromPosition(e.clientX);
+        if (month !== null) selectedMonth = month;
+      }}
       ontouchstart={handleCanvasTouchStart}
       ontouchmove={handleCanvasTouchMove}
       ontouchend={handleCanvasTouchEnd}
