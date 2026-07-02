@@ -1,0 +1,15 @@
+<script lang="ts">
+  import { cn } from "$lib/utils";
+
+  let {
+    class: className = "",
+    children,
+  }: {
+    class?: string;
+    children: import("svelte").Snippet;
+  } = $props();
+</script>
+
+<div data-embla-container="" class={cn("flex h-full", className)}>
+  {@render children()}
+</div>

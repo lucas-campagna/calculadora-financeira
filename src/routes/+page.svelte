@@ -8,6 +8,12 @@
   import AdInterstitial from "$lib/components/ads/ad-interstitial.svelte";
   import ExtraPaymentModal from "$lib/components/extra-payment-modal.svelte";
   import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+  } from "$lib/components/ui/carousel";
+  import type { CarouselAPI } from "$lib/components/ui/carousel";
+  import {
     allResultsStore,
     isMobile,
     calculateAll,
@@ -31,96 +37,9 @@
 
   const SLIDES = ["chart", "results", "table"] as const;
   type SlideKey = (typeof SLIDES)[number];
-  const N = SLIDES.length;
 
-  let realIndex = $state<number>(0);
-  let carouselIndex = $state<number>(1);
-  let swipeContainerEl: HTMLElement | undefined = $state(undefined);
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let isDragging = false;
-  let directionLocked: "h" | "v" | null = null;
-  let dragDelta = $state(0);
-  let animating = $state(true);
-  const LOCK_DISTANCE = 10;
-
-  function getScrollParent(el: HTMLElement | null): HTMLElement | null {
-    while (el && el !== swipeContainerEl) {
-      const style = window.getComputedStyle(el);
-      const overflowX = style.overflowX;
-      if (
-        (overflowX === "auto" || overflowX === "scroll") &&
-        el.scrollWidth > el.clientWidth
-      ) {
-        return el;
-      }
-      el = el.parentElement;
-    }
-    return null;
-  }
-
-  function handleSwipeStart(e: TouchEvent) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    isDragging = true;
-    directionLocked = null;
-    animating = false;
-  }
-
-  function handleSwipeMove(e: TouchEvent) {
-    if (!isDragging) return;
-    const dx = e.touches[0].clientX - touchStartX;
-    const dy = e.touches[0].clientY - touchStartY;
-
-    if (!directionLocked) {
-      if (Math.sqrt(dx * dx + dy * dy) < LOCK_DISTANCE) return;
-      const angle = Math.atan2(Math.abs(dy), Math.abs(dx)) * (180 / Math.PI);
-      directionLocked = angle < 45 ? "h" : "v";
-    }
-
-    if (directionLocked === "v") {
-      isDragging = false;
-      return;
-    }
-
-    const scrollEl = getScrollParent(e.target as HTMLElement);
-    if (scrollEl) {
-      const atLeft = scrollEl.scrollLeft <= 0 && dx > 0;
-      const atRight =
-        scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth &&
-        dx < 0;
-      if (!atLeft && !atRight) {
-        isDragging = false;
-        return;
-      }
-    }
-    e.preventDefault();
-    dragDelta = dx;
-  }
-
-  function handleSwipeEnd(e: TouchEvent) {
-    if (!isDragging) {
-      isDragging = false;
-      dragDelta = 0;
-      directionLocked = null;
-      animating = true;
-      return;
-    }
-    isDragging = false;
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    animating = true;
-    directionLocked = null;
-
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        carouselIndex++;
-      } else {
-        carouselIndex--;
-      }
-    }
-    dragDelta = 0;
-    syncRealIndex();
-  }
+  let currentSlide = $state(0);
+  let carouselApi = $state<CarouselAPI | undefined>(undefined);
 
   function closeAllPopups() {
     (document.activeElement as HTMLElement)?.blur();
@@ -139,27 +58,9 @@
     extraPaymentModalOpen = true;
   }
 
-  function syncRealIndex() {
-    realIndex = (((carouselIndex - 1) % N) + N) % N;
-  }
-
   function goToSlide(index: number) {
-    animating = true;
-    carouselIndex = index + 1;
-    dragDelta = 0;
-    syncRealIndex();
-  }
-
-  function handleTransitionEnd() {
-    if (carouselIndex === 0) {
-      animating = false;
-      carouselIndex = N;
-      syncRealIndex();
-    } else if (carouselIndex === N + 1) {
-      animating = false;
-      carouselIndex = 1;
-      syncRealIndex();
-    }
+    carouselApi?.scrollTo(index + 1);
+    currentSlide = index;
   }
 
   const slideLabels: Record<SlideKey, string> = {
@@ -201,21 +102,6 @@
     showResults = true;
   }
 
-  $effect(() => {
-    if (!swipeContainerEl) return;
-    const el = swipeContainerEl;
-    el.addEventListener("touchstart", handleSwipeStart, { passive: true });
-    el.addEventListener("touchmove", handleSwipeMove, { passive: false });
-    el.addEventListener("touchend", handleSwipeEnd, { passive: true });
-    el.addEventListener("touchcancel", handleSwipeEnd, { passive: true });
-    return () => {
-      el.removeEventListener("touchstart", handleSwipeStart);
-      el.removeEventListener("touchmove", handleSwipeMove);
-      el.removeEventListener("touchend", handleSwipeEnd);
-      el.removeEventListener("touchcancel", handleSwipeEnd);
-    };
-  });
-
   onMount(() => {
     calculateAll();
 
@@ -256,7 +142,7 @@
     <div class="flex border-b shrink-0">
       {#each SLIDES as key, i}
         <button
-          class="flex-1 py-2 text-sm font-medium text-center transition-colors {realIndex ===
+          class="flex-1 py-2 text-sm font-medium text-center transition-colors {currentSlide ===
           i
             ? 'text-primary border-b-2 border-primary'
             : 'text-muted-foreground'}"
@@ -267,81 +153,54 @@
       {/each}
     </div>
 
-    <div
+    <Carousel
       class="flex-1 min-h-0 overflow-hidden"
       style="touch-action: pan-y"
-      bind:this={swipeContainerEl}
+      opts={{ loop: true }}
+      setApi={(api: CarouselAPI) => {
+        carouselApi = api;
+        api.on("select", () => {
+          currentSlide = (api.selectedScrollSnap() - 1 + 3) % 3;
+        });
+      }}
     >
-      <div
-        class="flex h-full {animating
-          ? 'transition-transform duration-300 ease-in-out'
-          : ''}"
-        style="transform: translateX(calc(-{carouselIndex *
-          100}% + {dragDelta}px))"
-        ontransitionend={handleTransitionEnd}
-      >
-        <!-- Clone of last slide (table) -->
-        <div class="w-full flex-shrink-0 h-full flex flex-col">
-          <div class="flex-1 min-h-0 p-3 flex flex-col">
-            {#if hasResults}
-              <AmortizationTable
-                onrowclick={openExtraPayment}
-                defaultExpanded={true}
-                flexMode={true}
-              />
-            {/if}
+      <CarouselContent class="h-full">
+        <CarouselItem class="h-full w-full flex-shrink-0">
+          <div class="h-full flex flex-col">
+            <div class="flex-1 min-h-0 p-2">
+              {#if hasResults}
+                <ComparisonChart
+                  onlongpress={openExtraPayment}
+                  fullHeight={true}
+                />
+              {/if}
+            </div>
           </div>
-        </div>
-
-        <!-- Real slides -->
-        {#each SLIDES as key}
-          {#if key === "chart"}
-            <div class="w-full flex-shrink-0 h-full flex flex-col">
-              <div class="flex-1 min-h-0 p-2">
-                {#if hasResults}
-                  <ComparisonChart
-                    onlongpress={openExtraPayment}
-                    fullHeight={true}
-                  />
-                {/if}
-              </div>
+        </CarouselItem>
+        <CarouselItem class="h-full w-full flex-shrink-0">
+          <div class="h-full overflow-y-auto">
+            <div class="p-3">
+              {#if hasResults}
+                <ResultsSummary />
+              {/if}
             </div>
-          {:else if key === "results"}
-            <div class="w-full flex-shrink-0 h-full overflow-y-auto">
-              <div class="p-3">
-                {#if hasResults}
-                  <ResultsSummary />
-                {/if}
-              </div>
-            </div>
-          {:else}
-            <div class="w-full flex-shrink-0 h-full flex flex-col">
-              <div class="flex-1 min-h-0 p-3 flex flex-col">
-                {#if hasResults}
-                  <AmortizationTable
-                    onrowclick={openExtraPayment}
-                    defaultExpanded={true}
-                    flexMode={true}
-                  />
-                {/if}
-              </div>
-            </div>
-          {/if}
-        {/each}
-
-        <!-- Clone of first slide (chart) -->
-        <div class="w-full flex-shrink-0 h-full flex flex-col">
-          <div class="flex-1 min-h-0 p-2">
-            {#if hasResults}
-              <ComparisonChart
-                onlongpress={openExtraPayment}
-                fullHeight={true}
-              />
-            {/if}
           </div>
-        </div>
-      </div>
-    </div>
+        </CarouselItem>
+        <CarouselItem class="h-full w-full flex-shrink-0">
+          <div class="h-full flex flex-col">
+            <div class="flex-1 min-h-0 p-3 flex flex-col">
+              {#if hasResults}
+                <AmortizationTable
+                  onrowclick={openExtraPayment}
+                  defaultExpanded={true}
+                  flexMode={true}
+                />
+              {/if}
+            </div>
+          </div>
+        </CarouselItem>
+      </CarouselContent>
+    </Carousel>
 
     <div class="shrink-0 bg-background border-t px-3 pt-2 pb-3">
       <CalculatorForm
