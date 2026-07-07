@@ -59,7 +59,7 @@
   }
 
   function goToSlide(index: number) {
-    carouselApi?.scrollTo(index + 1);
+    carouselApi?.scrollTo(index);
     currentSlide = index;
   }
 
@@ -160,7 +160,8 @@
       setApi={(api: CarouselAPI) => {
         carouselApi = api;
         api.on("select", () => {
-          currentSlide = (api.selectedScrollSnap() - 1 + 3) % 3;
+          const idx = api.selectedScrollSnap();
+          currentSlide = idx;
         });
       }}
     >
