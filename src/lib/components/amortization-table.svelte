@@ -1,21 +1,22 @@
 <script lang="ts">
   import { formatNumber } from "$lib/calculator";
-  import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
+  import {
+    allResultsStore,
+    studiesStore,
+    isMobile,
+    isDesktop,
+  } from "$lib/stores/calculator-store";
   import type { Installment } from "$lib/calculator/types";
   import { SMALL_SCREEN_BREAKPOINT } from "$lib/constants";
 
   let {
     onrowclick = (_month: number) => {},
-    defaultExpanded = false,
-    flexMode = false,
   }: {
     onrowclick?: (month: number) => void;
-    defaultExpanded?: boolean;
-    flexMode?: boolean;
   } = $props();
 
   // svelte-ignore state_referenced_locally
-  let expanded = $state(defaultExpanded);
+  let expanded = $state(false);
   let viewMode = $state<"financing" | "field">("financing");
   let selectedField = $state<"payment" | "principal" | "interest" | "balance">(
     "payment",
@@ -134,18 +135,89 @@
   }
 </script>
 
+{#snippet menu(show: boolean)}
+  {#if show}
+    <div
+      class="flex items-center justify-between"
+      class:mt-2={$isMobile}
+      class:mb-2={$isDesktop}
+    >
+      <div class="flex rounded-md border overflow-hidden">
+        <button
+          class="px-2 py-1 text-xs font-medium transition-colors {viewMode ===
+          'financing'
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-muted text-muted-foreground hover:bg-muted/80'}"
+          onclick={() => (viewMode = "financing")}
+        >
+          {viewMode === "field" && isSmallScreen ? "Financ." : "Financiamento"}
+        </button>
+        {#if viewMode === "financing"}
+          <button
+            class="px-2 py-1 text-xs font-medium transition-colors"
+            onclick={() => (viewMode = "field")}
+          >
+            Comparar
+          </button>
+        {:else}
+          {#each FIELDS as f}
+            <button
+              class="px-2 py-1 text-xs font-medium transition-colors {selectedField ===
+              f.key
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-background'}"
+              onclick={() => (selectedField = f.key)}
+            >
+              {f.label}
+            </button>
+          {/each}
+        {/if}
+      </div>
+      {#if $isMobile}
+        <div class="flex rounded-md border overflow-hidden">
+          <button
+            class="px-2 py-1 text-xs font-medium hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed"
+            onclick={() => navigateExtraPayment("up")}
+            disabled={selectedExtraPaymentIndex <= 0}
+            aria-label="Linha anterior"
+          >
+            ▲
+          </button>
+          <button
+            class="px-2 py-1 text-xs font-medium hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed"
+            onclick={() => navigateExtraPayment("down")}
+            disabled={selectedExtraPaymentIndex >= maxIndex}
+            aria-label="Próxima linha"
+          >
+            ▼
+          </button>
+        </div>
+      {/if}
+      {#if $isDesktop}
+        <button
+          class="text-xs text-primary hover:underline py-1"
+          onclick={() => (expanded = !expanded)}
+        >
+          {expanded ? "▲ Ver resumo" : "▼ Ver tudo"}
+        </button>
+      {/if}
+    </div>
+  {/if}
+{/snippet}
+
 {#if activeStudyResult}
-  <div class={flexMode ? "flex flex-col flex-1 min-h-0" : ""}>
+  <div class={expanded ? "flex flex-col flex-1 min-h-0" : ""}>
+    {@render menu($isDesktop)}
     <p class="text-xs text-muted-foreground mb-1">
       Toque em uma parcela para adicionar pagamento extra.
     </p>
 
     {#if viewMode === "financing"}
       <div
-        class={flexMode
+        class={expanded
           ? "flex-1 min-h-0 overflow-auto border rounded-lg"
           : "overflow-auto border rounded-lg"}
-        style={flexMode ? "" : "max-height: 45vh"}
+        style={expanded ? "" : "max-height: 45vh"}
       >
         <table class="w-full text-xs border-collapse table-fixed">
           <thead class="sticky top-0 z-10">
@@ -218,10 +290,10 @@
       </div>
     {:else}
       <div
-        class={flexMode
+        class={expanded
           ? "flex-1 min-h-0 overflow-auto border rounded-lg extra-payments-table"
           : "overflow-auto border rounded-lg extra-payments-table"}
-        style={flexMode ? "" : "max-height: 45vh"}
+        style={expanded ? "" : "max-height: 45vh"}
       >
         <table class="w-full text-xs border-collapse table-fixed">
           <thead class="sticky top-0 z-10">
@@ -274,67 +346,6 @@
       </div>
     {/if}
 
-    {#if !defaultExpanded && viewMode === "financing"}
-      <div class="flex justify-end mt-1">
-        <button
-          class="text-xs text-primary hover:underline py-1"
-          onclick={() => (expanded = !expanded)}
-        >
-          {expanded ? "▲ Ver resumo" : "▼ Ver tudo"}
-        </button>
-      </div>
-    {/if}
-
-    <div class="flex items-center justify-between mt-2">
-      <div class="flex rounded-md border overflow-hidden">
-        <button
-          class="px-2 py-1 text-xs font-medium transition-colors {viewMode ===
-          'financing'
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-muted text-muted-foreground hover:bg-muted/80'}"
-          onclick={() => (viewMode = "financing")}
-        >
-          {viewMode === "field" && isSmallScreen ? "Financ." : "Financiamento"}
-        </button>
-        {#if viewMode === "financing"}
-          <button
-            class="px-2 py-1 text-xs font-medium transition-colors"
-            onclick={() => (viewMode = "field")}
-          >
-            Comparar
-          </button>
-        {:else}
-          {#each FIELDS as f}
-            <button
-              class="px-2 py-1 text-xs font-medium transition-colors {selectedField ===
-              f.key
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-background'}"
-              onclick={() => (selectedField = f.key)}
-            >
-              {f.label}
-            </button>
-          {/each}
-        {/if}
-      </div>
-      <div class="flex rounded-md border overflow-hidden">
-        <button
-          class="px-2 py-1 text-xs font-medium hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed"
-          onclick={() => navigateExtraPayment("up")}
-          disabled={selectedExtraPaymentIndex <= 0}
-          aria-label="Linha anterior"
-        >
-          ▲
-        </button>
-        <button
-          class="px-2 py-1 text-xs font-medium hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed"
-          onclick={() => navigateExtraPayment("down")}
-          disabled={selectedExtraPaymentIndex >= maxIndex}
-          aria-label="Próxima linha"
-        >
-          ▼
-        </button>
-      </div>
-    </div>
+    {@render menu($isMobile)}
   </div>
 {/if}

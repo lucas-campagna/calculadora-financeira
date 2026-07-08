@@ -191,11 +191,7 @@
           <div class="h-full flex flex-col">
             <div class="flex-1 min-h-0 p-3 flex flex-col">
               {#if hasResults}
-                <AmortizationTable
-                  onrowclick={openExtraPayment}
-                  defaultExpanded={true}
-                  flexMode={true}
-                />
+                <AmortizationTable onrowclick={openExtraPayment} />
               {/if}
             </div>
           </div>
@@ -221,14 +217,16 @@
       </p>
     </div>
 
-    <CalculatorForm onchange={() => (userHasInteracted = true)} />
+    <div class="space-y-6">
+      <CalculatorForm onchange={() => (userHasInteracted = true)} />
+      <ExportButtons />
+    </div>
 
     {#if hasResults && showResults}
       <div class="mt-6 space-y-6">
         <ResultsSummary />
         <ComparisonChart onlongpress={openExtraPayment} />
         <AmortizationTable onrowclick={openExtraPayment} />
-        <ExportButtons />
       </div>
     {/if}
   </div>

@@ -1,6 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
+  import {
+    allResultsStore,
+    studiesStore,
+    isMobile,
+    isDesktop,
+  } from "$lib/stores/calculator-store";
   import type { Installment } from "$lib/calculator/types";
 
   let canvasEl: HTMLCanvasElement = $state(
@@ -265,10 +270,36 @@
       clearTimeout(longPressTimer);
       longPressTimer = null;
     }
+    if (!hasMoved && !longPressTriggered) {
+      const month = getMonthFromPosition(touchStartX);
+      console.log("tap toggle", {
+        month,
+        selectedMonth,
+        match: selectedMonth === month,
+      });
+      if (month !== null) {
+        if (selectedMonth === month) {
+          selectedMonth = null;
+        } else {
+          selectedMonth = month;
+        }
+      }
+    }
     if (longPressTriggered && selectedMonth !== null) {
       onlongpress(selectedMonth);
     }
     longPressTriggered = false;
+    hasMoved = false;
+  }
+
+  function handleCanvasClick(e: MouseEvent) {
+    const month = getMonthFromPosition(e.clientX);
+    if (month === null) return;
+    if (selectedMonth === month) {
+      selectedMonth = null;
+    } else {
+      selectedMonth = month;
+    }
   }
 
   $effect(() => {
@@ -320,11 +351,32 @@
   });
 </script>
 
+{#snippet selectChartType(show: boolean)}
+  {#if show}
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex rounded-md border overflow-hidden">
+        {#each FIELDS as f}
+          <button
+            class="px-2 py-1 text-xs font-medium transition-colors {selectedField ===
+            f.key
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-background'}"
+            onclick={() => (selectedField = f.key)}
+          >
+            {f.label}
+          </button>
+        {/each}
+      </div>
+    </div>
+  {/if}
+{/snippet}
+
 {#if Object.keys($allResultsStore).length > 0}
   <div
     class="p-2 sm:p-4 {fullHeight ? 'flex flex-col' : ''}"
     style={fullHeight ? "height: 100%" : ""}
   >
+    {@render selectChartType($isDesktop)}
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-xs font-semibold">
         Evolução {selectedField === "balance"
@@ -345,27 +397,10 @@
       role="img"
       aria-label="Gráfico de evolucao do saldo devedor"
       style="touch-action: none;"
-      onclick={(e) => {
-        const month = getMonthFromPosition(e.clientX);
-        if (month !== null) selectedMonth = month;
-      }}
+      onclick={handleCanvasClick}
     >
       <canvas bind:this={canvasEl}></canvas>
     </div>
-    <div class="flex items-center justify-between mt-2">
-      <div class="flex rounded-md border overflow-hidden">
-        {#each FIELDS as f}
-          <button
-            class="px-2 py-1 text-xs font-medium transition-colors {selectedField ===
-            f.key
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-background'}"
-            onclick={() => (selectedField = f.key)}
-          >
-            {f.label}
-          </button>
-        {/each}
-      </div>
-    </div>
+    {@render selectChartType($isMobile)}
   </div>
 {/if}

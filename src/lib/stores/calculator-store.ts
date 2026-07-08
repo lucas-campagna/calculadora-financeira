@@ -316,10 +316,10 @@ function createStudiesStore() {
           newPayments = study.extraPayments.map((ep) =>
             ep.month === payment.month
               ? {
-                  ...ep,
-                  amount: ep.amount + payment.amount,
-                  type: payment.type,
-                }
+                ...ep,
+                amount: ep.amount + payment.amount,
+                type: payment.type,
+              }
               : ep,
           );
         } else {
@@ -475,12 +475,17 @@ export function calculateAll() {
   }, THROTTLE_MS);
 }
 
-export const isMobile = writable(false);
+export const isMobile = writable(true);
+export const isDesktop = writable(false);
 
 if (typeof window !== "undefined") {
   const check = () => window.innerWidth < 768;
   isMobile.set(check());
-  window.addEventListener("resize", () => isMobile.set(check()));
+  isDesktop.set(!check());
+  window.addEventListener("resize", () => {
+    isMobile.set(check());
+    isDesktop.set(check());
+  });
 }
 
 export type { FieldKey };
