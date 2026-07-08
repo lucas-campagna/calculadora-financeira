@@ -24,6 +24,40 @@
   let editModalOpen = $state(false);
   let editMode = $state<"add" | "edit">("add");
   let editStudy: Partial<Study> | undefined = $state(undefined);
+  let deferredPrompt = $state<{
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: string }>;
+  } | null>(null);
+
+  const isStandalone = $derived(
+    typeof window !== "undefined" &&
+      (window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as Navigator & { standalone?: boolean }).standalone),
+  );
+
+  async function triggerInstall() {
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  }
+
+  $effect(() => {
+    function handleBeforeInstallPrompt(e: Event) {
+      alert("handleBeforeInstallPrompt");
+      e.preventDefault();
+      deferredPrompt = e as unknown as typeof deferredPrompt;
+    }
+    window.addEventListener(
+      "beforeinstallprompt",
+      handleBeforeInstallPrompt as EventListener,
+    );
+    return () =>
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+  });
 
   const effectivePrincipal = $derived(
     $studiesStore.overrides[$studiesStore.activeStudyId]?.principal ??
@@ -197,12 +231,36 @@
         />
       </div>
     </div>
-    <button
-      class="w-full mt-2 h-12 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
-      onclick={() => (exportModalOpen = true)}
-    >
-      Exportar
-    </button>
+    <div class="flex gap-2 mt-2">
+      {#if !isStandalone && deferredPrompt}
+        <button
+          class="h-12 w-12 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shrink-0"
+          onclick={() => triggerInstall()}
+          aria-label="Instalar app"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="mx-auto"
+          >
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </button>
+      {/if}
+      <button
+        class="flex-1 h-12 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
+        onclick={() => (exportModalOpen = true)}
+      >
+        Exportar
+      </button>
+    </div>
   </div>
 
   <ExportModal bind:open={exportModalOpen} />

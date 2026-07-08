@@ -1,0 +1,26 @@
+{
+  "name": "Calculadora de Financiamento",
+  "short_name": "CalcFin",
+  "description": "Simule financiamentos com os sistemas PRICE, SAC, SAM e Americano. Compare opções e veja a tabela de amortização completa.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff3e00",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["finance", "utilities"]
+}

@@ -2,6 +2,7 @@
   import "../app.css";
   import AdsenseScript from "$lib/components/ads/adsense-script.svelte";
   import AdUnit from "$lib/components/ads/ad-unit.svelte";
+  import PwaInstallBanner from "$lib/components/ui/pwa-install-banner.svelte";
 
   let { children } = $props();
 
@@ -42,3 +43,5 @@
     </div>
   </footer>
 </div>
+
+<PwaInstallBanner />
