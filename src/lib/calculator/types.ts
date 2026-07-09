@@ -43,6 +43,7 @@ export interface Study {
   name: string;
   system: AmortizationSystem;
   extraPayments: ExtraPayment[];
+  disabled?: boolean;
 }
 
 export const SYSTEM_LABELS: Record<AmortizationSystem, string> = {

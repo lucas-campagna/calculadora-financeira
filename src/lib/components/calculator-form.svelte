@@ -135,12 +135,9 @@
     editModalOpen = true;
   }
 
-  function handleEditStudy() {
+  function handleEditStudy(study: Study) {
     editMode = "edit";
-    const activeStudy = $studiesStore.studies.find(
-      (s: Study) => s.id === $studiesStore.activeStudyId,
-    );
-    editStudy = { ...activeStudy };
+    editStudy = { ...study };
     editModalOpen = true;
   }
 

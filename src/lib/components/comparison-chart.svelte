@@ -69,7 +69,8 @@
   ];
 
   async function renderChart() {
-    const studies = $studiesStore.studies;
+    const allStudies = $studiesStore.studies;
+    const studies = allStudies.filter((s) => !s.disabled);
     const firstResult = $allResultsStore[studies[0]?.id];
     if (!firstResult) return;
 
@@ -93,9 +94,10 @@
     }
 
     const datasets: import("chart.js").ChartDataset[] = [];
-    studies.forEach((study, i) => {
+    studies.forEach((study) => {
       const result = $allResultsStore[study.id];
       if (!result) return;
+      const originalIndex = allStudies.findIndex((s) => s.id === study.id);
       const filtered = result.installments.filter(
         (_: Installment, idx: number) =>
           idx % showEvery === 0 ||
@@ -105,8 +107,8 @@
       datasets.push({
         label: study.name,
         data: filtered.map((inst: Installment) => inst[selectedField]),
-        borderColor: COLORS[i % COLORS.length],
-        backgroundColor: COLORS[i % COLORS.length] + "20",
+        borderColor: COLORS[originalIndex % COLORS.length],
+        backgroundColor: COLORS[originalIndex % COLORS.length] + "20",
         fill: false,
         tension: 0.1,
       });

@@ -13,13 +13,25 @@
     "#ef4444",
   ];
 
-  function getPillClasses(isActive: boolean, hasOverrides: boolean): string {
+  function getPillClasses(
+    isActive: boolean,
+    hasOverrides: boolean,
+    isDisabled: boolean,
+  ): string {
+    if (isDisabled) return "text-white border-transparent";
     if (isActive) return "text-white border-transparent";
     if (hasOverrides) return "text-white border-transparent";
     return "text-white border-transparent";
   }
 
-  function getPillStyle(isActive: boolean, colorIndex: number): string {
+  function getPillStyle(
+    isActive: boolean,
+    colorIndex: number,
+    isDisabled: boolean,
+  ): string {
+    if (isDisabled) {
+      return "background-color: #9ca3af; border-color: #9ca3af;";
+    }
     const color = COLORS[colorIndex % COLORS.length];
     const dimmedBg = color + "b3";
     if (isActive) {
@@ -61,9 +73,20 @@
   let isRestored = $derived(isInitialState());
 
   function handlePillClick(id: string) {
+    const study = $studiesStore.studies.find((s) => s.id === id);
+    if (!study) return;
+
+    if (study.disabled) {
+      if ($studiesStore.activeStudyId === id) {
+        const firstStudy = $studiesStore.studies.find((s) => !s.disabled);
+        if (firstStudy) studiesStore.setActive(firstStudy.id);
+      }
+      onedit(study);
+      return;
+    }
+
     if (id === $studiesStore.activeStudyId) {
-      const study = $studiesStore.studies.find((s) => s.id === id);
-      if (study) onedit(study);
+      onedit(study);
     } else {
       studiesStore.setActive(id);
     }
@@ -162,12 +185,14 @@
       {@const hasOverrides =
         studyOverrides && Object.keys(studyOverrides).length > 0}
       {@const isActive = $studiesStore.activeStudyId === study.id}
+      {@const isDisabled = !!study.disabled}
       <button
         class="shrink-0 px-3 py-1 text-xs font-medium rounded-full border transition-colors cursor-pointer select-none {getPillClasses(
           isActive,
           hasOverrides,
+          isDisabled,
         )}"
-        style={getPillStyle(isActive, i)}
+        style={getPillStyle(isActive, i, isDisabled)}
         onclick={() => handlePillClick(study.id)}
       >
         {study.name}

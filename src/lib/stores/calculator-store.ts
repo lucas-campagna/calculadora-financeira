@@ -71,6 +71,7 @@ function loadState(): StudiesState {
           name: s.name,
           system: s.system,
           extraPayments: s.extraPayments || [],
+          disabled: s.disabled ?? false,
         }));
         const commonValues: Record<FieldKey, number> = {
           principal:
@@ -183,6 +184,15 @@ function createStudiesStore() {
         ...s,
         studies: s.studies.map((st) =>
           st.id === id ? { ...st, ...patch } : st,
+        ),
+      }));
+      calculateAll();
+    },
+    toggleDisabled(id: string) {
+      update((s) => ({
+        ...s,
+        studies: s.studies.map((st) =>
+          st.id === id ? { ...st, disabled: !st.disabled } : st,
         ),
       }));
       calculateAll();

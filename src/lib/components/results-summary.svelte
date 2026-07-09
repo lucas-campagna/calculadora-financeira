@@ -37,8 +37,11 @@
         )}
         {@const effectivePrincipal = principal - (downPayment || 0)}
         {#if result}
+          {@const isDisabled = study.disabled}
           <div
-            class="border rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-colors"
+            class="border rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-colors {isDisabled
+              ? 'opacity-50'
+              : ''}"
             onclick={() => studiesStore.setActive(study.id)}
           >
             <div class="flex items-center gap-2 mb-3">
@@ -46,6 +49,11 @@
                 class="w-3 h-3 rounded-full {COLORS[i % COLORS.length]}"
               ></div>
               <h3 class="text-sm font-bold">{study.name}</h3>
+              {#if isDisabled}
+                <span class="text-xs text-muted-foreground ml-auto"
+                  >(desabilitado)</span
+                >
+              {/if}
             </div>
             <div class="space-y-1 text-sm">
               <div class="flex justify-between">
