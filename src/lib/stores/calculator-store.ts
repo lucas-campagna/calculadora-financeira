@@ -62,7 +62,7 @@ function loadState(): StudiesState {
     };
   }
   try {
-    const saved = sessionStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed.studies && parsed.studies.length > 0 && parsed.activeStudyId) {
@@ -138,7 +138,7 @@ function createStudiesStore() {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       try {
-        sessionStorage.setItem(
+        localStorage.setItem(
           STORAGE_KEY,
           JSON.stringify({
             studies: state.studies,
@@ -316,10 +316,10 @@ function createStudiesStore() {
           newPayments = study.extraPayments.map((ep) =>
             ep.month === payment.month
               ? {
-                ...ep,
-                amount: ep.amount + payment.amount,
-                type: payment.type,
-              }
+                  ...ep,
+                  amount: ep.amount + payment.amount,
+                  type: payment.type,
+                }
               : ep,
           );
         } else {
