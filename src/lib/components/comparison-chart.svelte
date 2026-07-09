@@ -168,7 +168,7 @@
             ticks: {
               font: { size: 10 },
               callback: (value: string | number, index: number) => {
-                const label = chartInstance?.data.labels?.[index];
+                const label = labels[index];
                 if (!label) return "";
                 const month = Number(label);
                 if (month <= 12) return `${month}M`;
