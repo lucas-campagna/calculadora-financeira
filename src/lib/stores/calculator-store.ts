@@ -492,7 +492,7 @@ if (typeof window !== "undefined") {
   isDesktop.set(!check());
   window.addEventListener("resize", () => {
     isMobile.set(check());
-    isDesktop.set(check());
+    isDesktop.set(!check());
   });
 }
 
