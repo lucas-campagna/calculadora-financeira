@@ -105,24 +105,79 @@
         const xScale = chart.scales.x;
         const yScale = chart.scales.y;
         const labels = chart.data.labels ?? [];
+        const currentSelectedMonth = selectedMonth;
         let closestIdx = 0;
         let minDiff = Infinity;
         labels.forEach((label, i) => {
-          const diff = Math.abs(Number(label) - selectedMonth);
+          const diff = Math.abs(Number(label) - currentSelectedMonth);
           if (diff < minDiff) {
             minDiff = diff;
             closestIdx = i;
           }
         });
         const pixelX = xScale.getPixelForValue(closestIdx);
+        const leftEdge = xScale.getPixelForValue(xScale.min);
         ctx.save();
-        ctx.strokeStyle = "#94a3b8";
+        ctx.strokeStyle = "#777";
+        ctx.fillStyle = "#777";
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
+        let highestYPixel = yScale.bottom;
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          const meta = chart.getDatasetMeta(datasetIndex);
+          if (!meta.visible) return;
+          const dataIndex = meta.data[closestIdx];
+          if (!dataIndex) return;
+          if (dataIndex.y < highestYPixel) {
+            highestYPixel = dataIndex.y;
+          }
+          ctx.beginPath();
+          ctx.moveTo(leftEdge, dataIndex.y);
+          ctx.lineTo(pixelX, dataIndex.y);
+          ctx.stroke();
+        });
         ctx.beginPath();
-        ctx.moveTo(pixelX, yScale.top);
-        ctx.lineTo(pixelX, yScale.bottom);
+        ctx.moveTo(pixelX, yScale.bottom);
+        ctx.lineTo(pixelX, highestYPixel);
         ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = "11px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        const selectedLabel = labels[closestIdx];
+        const month = Number(selectedLabel);
+        let xAxisLabel = "";
+        if (month <= 12) xAxisLabel = `${month}M`;
+        else {
+          const years = Math.floor(month / 12);
+          const months = month % 12;
+          if (months === 0) xAxisLabel = `${years}A`;
+          else xAxisLabel = `${years}A ${months}M`;
+        }
+        ctx.fillText(xAxisLabel, pixelX, yScale.bottom + 14);
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          const meta = chart.getDatasetMeta(datasetIndex);
+          if (!meta.visible) return;
+          const point = meta.data[closestIdx];
+          if (!point) return;
+          const val = dataset.data[closestIdx] as number;
+          const suffixes = ["", "k", "M", "B", "T", "Q"];
+          let suffixIndex = 0;
+          let displayVal = val;
+          while (displayVal >= 1000 && suffixIndex < suffixes.length - 1) {
+            displayVal /= 1000;
+            suffixIndex++;
+          }
+          let yAxisLabel: string;
+          if (displayVal >= 100)
+            yAxisLabel = `${displayVal.toFixed(0)}${suffixes[suffixIndex]}`;
+          else if (displayVal >= 10)
+            yAxisLabel = `${displayVal.toFixed(1)}${suffixes[suffixIndex]}`;
+          else yAxisLabel = `${displayVal.toFixed(2)}${suffixes[suffixIndex]}`;
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText(yAxisLabel, leftEdge - 10, point.y);
+        });
         ctx.restore();
       },
     };
@@ -141,31 +196,24 @@
           intersect: false,
         },
         plugins: {
+          tooltip: {
+            enabled: false
+          },
           legend: {
             display: false,
-          },
-          tooltip: {
-            bodyFont: { size: 11 },
-            callbacks: {
-              title: (items: import("chart.js").TooltipItem<"line">[]) => {
-                if (!items.length) return "";
-                const month = Number(items[0].label);
-                if (month <= 12) return `${month}M`;
-                const years = Math.floor(month / 12);
-                const months = month % 12;
-                if (months === 0) return `${years}A`;
-                return `${years}A ${months}M`;
-              },
-              label: (ctx: import("chart.js").TooltipItem<"line">) => {
-                const val = ctx.parsed.y ?? 0;
-                return `${ctx.dataset.label}: R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-              },
-            },
           },
         },
         scales: {
           x: {
+            border: {
+              // @ts-ignore
+              color: () =>
+                window.matchMedia("(prefers-color-scheme: dark)").matches
+                  ? "#404040"
+                  : "#e0e0e0",
+            },
             ticks: {
+              color: () => (selectedMonth === null ? "#777" : "#eee"),
               font: { size: 10 },
               callback: (value: string | number, index: number) => {
                 const label = labels[index];
@@ -181,7 +229,15 @@
           },
           y: {
             min: 0,
+            border: {
+              // @ts-ignore
+              color: () =>
+                window.matchMedia("(prefers-color-scheme: dark)").matches
+                  ? "#404040"
+                  : "#e0e0e0",
+            },
             ticks: {
+              color: () => (selectedMonth === null ? "#777" : "#eee"),
               callback: (value: string | number) => {
                 const n = Number(value);
                 const suffixes = ["", "k", "M", "B", "T", "Q"];
