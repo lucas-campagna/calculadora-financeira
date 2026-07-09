@@ -272,11 +272,6 @@
     }
     if (!hasMoved && !longPressTriggered) {
       const month = getMonthFromPosition(touchStartX);
-      console.log("tap toggle", {
-        month,
-        selectedMonth,
-        match: selectedMonth === month,
-      });
       if (month !== null) {
         if (selectedMonth === month) {
           selectedMonth = null;
@@ -292,45 +287,6 @@
     hasMoved = false;
   }
 
-  function getVerticalLinePixelX(): number | null {
-    if (!chartInstance || selectedMonth === null) return null;
-    const xScale = chartInstance.scales.x;
-    if (!xScale) return null;
-    const labels = chartInstance.data.labels ?? [];
-    const currentSelectedMonth = selectedMonth;
-    let closestIdx = 0;
-    let minDiff = Infinity;
-    labels.forEach((label, i) => {
-      const diff = Math.abs(Number(label) - currentSelectedMonth);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIdx = i;
-      }
-    });
-    return xScale.getPixelForValue(closestIdx);
-  }
-
-  function handleCanvasClick(e: MouseEvent) {
-    if (selectedMonth !== null) {
-      const linePixelX = getVerticalLinePixelX();
-      if (linePixelX !== null) {
-        const rect = chartInstance!.canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        if (Math.abs(clickX - linePixelX) < 15) {
-          selectedMonth = null;
-          return;
-        }
-      }
-    }
-    const month = getMonthFromPosition(e.clientX);
-    if (month === null) return;
-    if (selectedMonth === month) {
-      selectedMonth = null;
-    } else {
-      selectedMonth = month;
-    }
-  }
-
   $effect(() => {
     if (
       $studiesStore.studies.length > 0 &&
@@ -343,7 +299,8 @@
   });
 
   $effect(() => {
-    if (selectedMonth !== null && chartInstance) {
+    if (chartInstance) {
+      let _ = selectedMonth;
       chartInstance.update("none");
     }
   });
@@ -426,7 +383,6 @@
       role="img"
       aria-label="Gráfico de evolucao do saldo devedor"
       style="touch-action: none;"
-      onclick={handleCanvasClick}
     >
       <canvas bind:this={canvasEl}></canvas>
     </div>
