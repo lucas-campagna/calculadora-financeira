@@ -219,7 +219,11 @@
         class={expanded
           ? "flex-1 min-h-0 overflow-auto border rounded-lg"
           : "overflow-auto border rounded-lg"}
-        style={expanded ? "" : "max-height: 45vh"}
+        style={$isMobile
+          ? "max-height: calc(100vh - 476px)"
+          : expanded
+            ? ""
+            : "max-height: 45vh"}
       >
         <table class="w-full text-xs border-collapse table-fixed">
           <thead class="sticky top-0 z-10">
@@ -292,10 +296,14 @@
       </div>
     {:else}
       <div
-        class={expanded
+        class={expanded || $isMobile
           ? "flex-1 min-h-0 overflow-auto border rounded-lg extra-payments-table"
           : "overflow-auto border rounded-lg extra-payments-table"}
-        style={expanded ? "" : "max-height: 45vh"}
+        style={$isMobile
+          ? "max-height: calc(100vh - 476px)"
+          : expanded
+            ? ""
+            : "max-height: 45vh"}
       >
         <table class="w-full text-xs border-collapse table-fixed">
           <thead class="sticky top-0 z-10">
