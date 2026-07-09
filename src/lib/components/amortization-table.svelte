@@ -208,9 +208,11 @@
 {#if activeStudyResult}
   <div class={expanded ? "flex flex-col flex-1 min-h-0" : ""}>
     {@render menu($isDesktop)}
-    <p class="text-xs text-muted-foreground mb-1">
-      Toque em uma parcela para adicionar pagamento extra.
-    </p>
+    {#if $isMobile}
+      <p class="text-xs text-muted-foreground mb-1">
+        Toque em uma parcela para adicionar pagamento extra.
+      </p>
+    {/if}
 
     {#if viewMode === "financing"}
       <div
@@ -347,5 +349,10 @@
     {/if}
 
     {@render menu($isMobile)}
+    {#if $isDesktop}
+      <p class="text-xs text-muted-foreground mb-1">
+        Toque em uma parcela para adicionar pagamento extra.
+      </p>
+    {/if}
   </div>
 {/if}
