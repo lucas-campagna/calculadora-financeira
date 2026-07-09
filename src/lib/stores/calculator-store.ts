@@ -386,6 +386,10 @@ function createStudiesStore() {
           commonValues: { ...DEFAULT_VALUES },
         },
       });
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem("hasHeldChart");
+      }
       calculateAll();
     },
     reset() {
@@ -400,6 +404,10 @@ function createStudiesStore() {
           commonValues: { ...DEFAULT_VALUES },
         },
       });
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(STORAGE_KEY);
+        sessionStorage.removeItem("hasHeldChart");
+      }
       calculateAll();
     },
   };
