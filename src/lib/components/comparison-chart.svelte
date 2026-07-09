@@ -20,6 +20,21 @@
   let longPressTriggered = false;
   let selectedMonth = $state<number | null>(null);
 
+  let hasHeldChart = $state(
+    typeof sessionStorage !== "undefined" &&
+      sessionStorage.getItem("hasHeldChart") === "true",
+  );
+
+  $effect(() => {
+    if (typeof sessionStorage !== "undefined") {
+      if (hasHeldChart) {
+        sessionStorage.setItem("hasHeldChart", "true");
+      } else {
+        sessionStorage.removeItem("hasHeldChart");
+      }
+    }
+  });
+
   let {
     onlongpress = (_month: number) => {},
     fullHeight = false,
@@ -197,7 +212,7 @@
         },
         plugins: {
           tooltip: {
-            enabled: false
+            enabled: false,
           },
           legend: {
             display: false,
@@ -337,6 +352,7 @@
       }
     }
     if (longPressTriggered && selectedMonth !== null) {
+      hasHeldChart = true;
       onlongpress(selectedMonth);
     }
     longPressTriggered = false;
@@ -429,9 +445,11 @@
               ? "da Amortização"
               : "dos Juros"} (R$)
       </h2>
-      <p class="text-xs text-muted-foreground mt-1">
-        Segure e solte no gráfico para adicionar pagamento extra.
-      </p>
+      {#if !hasHeldChart}
+        <p class="text-xs text-muted-foreground mt-1">
+          Segure e solte no gráfico para adicionar pagamento extra.
+        </p>
+      {/if}
     </div>
     <div
       bind:this={chartContainerEl}
