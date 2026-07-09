@@ -348,7 +348,7 @@
     }
   });
 
-  let chartContainerEl: HTMLDivElement = $state();
+  let chartContainerEl = $state<HTMLDivElement | undefined>();
 
   onMount(() => {
     const container = chartContainerEl;
