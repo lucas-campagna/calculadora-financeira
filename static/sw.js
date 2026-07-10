@@ -1,6 +1,11 @@
 const CACHE_NAME = "CALCFIN_CACHE_v1";
 
-const PRECACHE_URLS = ["/", "/icon.svg", "/manifest.webmanifest"];
+const PRECACHE_URLS = [
+  "/",
+  "/index.html",
+  "/icon.svg",
+  "/manifest.webmanifest",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

@@ -260,7 +260,7 @@
       showInterstitial = true;
       showResults = false;
     }}
-    class="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-red-500 text-white shadow-lg flex items-center justify-center hover:bg-red-600 transition-opacity"
+    class="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full bg-red-500 text-white shadow-lg flex items-center justify-center hover:bg-red-600 transition-opacity"
     aria-label="Mostrar popup de anúncio"
   >
     AD

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   const isDev = import.meta.env.DEV;
 
   let {
@@ -13,6 +15,20 @@
   let countdown = $state(5);
   let timer: ReturnType<typeof setTimeout>;
   let countdownTimer: ReturnType<typeof setInterval>;
+  let insElement: HTMLModElement | null = null;
+
+  $effect(() => {
+    if (open && insElement) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({
+          element: insElement,
+        });
+      } catch (e) {
+        console.warn("AdSense not loaded yet");
+      }
+    }
+  });
 
   $effect(() => {
     if (open) {
@@ -81,6 +97,7 @@
         class="min-h-[250px] flex items-center justify-center bg-muted/30 rounded-lg mb-4"
       >
         <ins
+          bind:this={insElement}
           class="adsbygoogle"
           style="display:block"
           data-ad-client="ca-pub-1972364870511142"

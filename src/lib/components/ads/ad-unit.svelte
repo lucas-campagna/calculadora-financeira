@@ -11,14 +11,18 @@
     class?: string;
   } = $props();
 
+  let insElement: HTMLModElement | null = null;
+
   onMount(() => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push(
-        {},
-      );
-    } catch (e) {
-      console.warn("AdSense not loaded yet");
+    if (insElement) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({
+          element: insElement,
+        });
+      } catch (e) {
+        console.warn("AdSense not loaded yet");
+      }
     }
   });
 </script>
@@ -28,6 +32,7 @@
     class={`ad-container min-h-[90px] flex items-center justify-center bg-muted/30 rounded-md ${className}`}
   >
     <ins
+      bind:this={insElement}
       class="adsbygoogle"
       style="display:block"
       data-ad-client="ca-pub-1972364870511142"
