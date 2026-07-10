@@ -85,7 +85,7 @@
   ];
 
   function tickColor(): string {
-    return isDark ? "#aaa" : "#666";
+    return isDark ? "#aaa" : "#555";
   }
 
   function tickSelectedColor(): string {
@@ -94,6 +94,10 @@
 
   function borderColor(): string {
     return isDark ? "#404040" : "#e0e0e0";
+  }
+
+  function gridColor(): string {
+    return isDark ? "#303030" : "#e0e0e0";
   }
 
   function getTickColor(selectedMonth: number | null): string {
@@ -179,7 +183,7 @@
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
         let highestYPixel = yScale.bottom;
-        chart.data.datasets.forEach((dataset, datasetIndex) => {
+        chart.data.datasets.forEach((_dataset, datasetIndex) => {
           const meta = chart.getDatasetMeta(datasetIndex);
           if (!meta.visible) return;
           const dataIndex = meta.data[closestIdx];
@@ -197,7 +201,7 @@
         ctx.lineTo(pixelX, highestYPixel);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.font = "11px system-ui";
+        ctx.font = "12px system-ui";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
         const selectedLabel = labels[closestIdx];
@@ -262,12 +266,17 @@
         scales: {
           x: {
             border: {
+              // @ts-ignore
               color: () => getBorderColor(),
+            },
+            grid: {
+              // display: false,
+              color: () => gridColor(),
             },
             ticks: {
               color: () => getTickColor(selectedMonth),
               font: { size: 10 },
-              callback: (value: string | number, index: number) => {
+              callback: (_value: string | number, index: number) => {
                 const label = labels[index];
                 if (!label) return "";
                 const month = Number(label);
@@ -282,7 +291,12 @@
           y: {
             min: 0,
             border: {
+              // @ts-ignore
               color: () => getBorderColor(),
+            },
+            grid: {
+              // display: false,
+              color: () => gridColor(),
             },
             ticks: {
               color: () => getTickColor(selectedMonth),
