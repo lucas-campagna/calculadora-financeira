@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { isMobile } from "$lib/stores/calculator-store";
-
   const isDev = import.meta.env.DEV;
 
   let {
@@ -18,14 +16,18 @@
 
   $effect(() => {
     if (open) {
-      canClose = false;
-      countdown = 5;
-      timer = setTimeout(() => {
+      if (isDev) {
         canClose = true;
-      }, 5000);
-      countdownTimer = setInterval(() => {
-        countdown = Math.max(0, countdown - 1);
-      }, 1000);
+      } else {
+        canClose = false;
+        countdown = 5;
+        timer = setTimeout(() => {
+          canClose = true;
+        }, 5000);
+        countdownTimer = setInterval(() => {
+          countdown = Math.max(0, countdown - 1);
+        }, 1000);
+      }
     }
     return () => {
       clearTimeout(timer);
@@ -49,7 +51,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if open && $isMobile && !isDev}
+{#if open}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
   <div
     class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"

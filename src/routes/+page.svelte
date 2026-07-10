@@ -32,6 +32,8 @@
   const FIRST_INTERSTITIAL_MS = 1 * 60 * 1000;
   const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 
+  const isDev = import.meta.env.DEV;
+
   let showScrollTop = $state(false);
   let mobileHeight = $state("100dvh");
 
@@ -76,7 +78,7 @@
         .join(",");
       if (hash !== previousResultHash) {
         previousResultHash = hash;
-        if (userHasInteracted && $isMobile) {
+        if (userHasInteracted) {
           const now = Date.now();
           const timeout =
             lastInterstitialTime === 0
@@ -249,6 +251,19 @@
       stroke-linecap="round"
       stroke-linejoin="round"><path d="M18 15l-6-6-6 6" /></svg
     >
+  </button>
+{/if}
+
+{#if isDev}
+  <button
+    onclick={() => {
+      showInterstitial = true;
+      showResults = false;
+    }}
+    class="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-red-500 text-white shadow-lg flex items-center justify-center hover:bg-red-600 transition-opacity"
+    aria-label="Mostrar popup de anúncio"
+  >
+    AD
   </button>
 {/if}
 
