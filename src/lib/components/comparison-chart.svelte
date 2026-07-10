@@ -68,6 +68,14 @@
     "#ef4444",
   ];
 
+  function getTickColor(selectedMonth: number | null): string {
+    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (selectedMonth === null) {
+      return isDark ? "#999" : "#777";
+    }
+    return isDark ? "#222" : "#eee";
+  }
+
   async function renderChart() {
     const allStudies = $studiesStore.studies;
     const studies = allStudies.filter((s) => !s.disabled);
@@ -230,7 +238,7 @@
                   : "#e0e0e0",
             },
             ticks: {
-              color: () => (selectedMonth === null ? "#777" : "#eee"),
+              color: () => getTickColor(selectedMonth),
               font: { size: 10 },
               callback: (value: string | number, index: number) => {
                 const label = labels[index];
@@ -254,7 +262,7 @@
                   : "#e0e0e0",
             },
             ticks: {
-              color: () => (selectedMonth === null ? "#777" : "#eee"),
+              color: () => getTickColor(selectedMonth),
               callback: (value: string | number) => {
                 const n = Number(value);
                 const suffixes = ["", "k", "M", "B", "T", "Q"];
