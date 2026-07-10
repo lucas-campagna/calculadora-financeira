@@ -150,6 +150,12 @@
     return `${yearLabel} e ${monthLabel}`;
   });
 
+  let monthlyRateLabel = $derived.by(() => {
+    if (effectiveAnnualRate === 0) return "";
+    const monthly = ((1 + effectiveAnnualRate / 100) ** (1 / 12) - 1) * 100;
+    return `~${monthly.toFixed(2)}% a.m.`;
+  });
+
   function makeActionButtons(
     field: FieldKey,
   ): { icon: () => string; onclick: () => void }[] {
@@ -209,6 +215,7 @@
           onchange={(v) => updateField("annualRate", v)}
           min={0.01}
           step={0.1}
+          label={monthlyRateLabel}
           actionButtons={makeActionButtons("annualRate")}
         />
       </div>
@@ -307,6 +314,7 @@
           min={0.01}
           step={0.1}
           class="mt-1"
+          label={monthlyRateLabel}
           actionButtons={makeActionButtons("annualRate")}
         />
       </div>
