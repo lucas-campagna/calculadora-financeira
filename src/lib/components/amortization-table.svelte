@@ -206,7 +206,7 @@
 {/snippet}
 
 {#if activeStudyResult}
-  <div class={expanded ? "flex flex-col flex-1 min-h-0" : ""}>
+  <div class="flex flex-col flex-1 min-h-0">
     {@render menu($isDesktop)}
     {#if $isMobile}
       <p class="text-xs text-muted-foreground mb-1">
@@ -215,16 +215,7 @@
     {/if}
 
     {#if viewMode === "financing"}
-      <div
-        class={expanded
-          ? "flex-1 min-h-0 overflow-auto border rounded-lg"
-          : "overflow-auto border rounded-lg"}
-        style={$isMobile
-          ? "max-height: calc(100vh - 476px)"
-          : expanded
-            ? ""
-            : "max-height: 45vh"}
-      >
+      <div class="flex-1 min-h-0 overflow-auto border rounded-lg">
         <table class="w-full text-xs border-collapse table-fixed">
           <thead class="sticky top-0 z-10">
             <tr class="border-b bg-muted">
@@ -296,14 +287,7 @@
       </div>
     {:else}
       <div
-        class={expanded || $isMobile
-          ? "flex-1 min-h-0 overflow-auto border rounded-lg extra-payments-table"
-          : "overflow-auto border rounded-lg extra-payments-table"}
-        style={$isMobile
-          ? "max-height: calc(100vh - 476px)"
-          : expanded
-            ? ""
-            : "max-height: 45vh"}
+        class="flex-1 min-h-0 overflow-auto border rounded-lg extra-payments-table"
       >
         <table class="w-full text-xs border-collapse table-fixed">
           <thead class="sticky top-0 z-10">
