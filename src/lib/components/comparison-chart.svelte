@@ -25,6 +25,12 @@
       sessionStorage.getItem("hasHeldChart") === "true",
   );
 
+  let isDark = $state(false);
+
+  function syncDarkMode() {
+    isDark = document.documentElement.classList.contains("dark");
+  }
+
   $effect(() => {
     if (typeof sessionStorage !== "undefined") {
       if (hasHeldChart) {
@@ -33,6 +39,16 @@
         sessionStorage.removeItem("hasHeldChart");
       }
     }
+  });
+
+  onMount(() => {
+    syncDarkMode();
+    const observer = new MutationObserver(syncDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
   });
 
   let {
@@ -68,12 +84,27 @@
     "#ef4444",
   ];
 
-  function getTickColor(selectedMonth: number | null): string {
-    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (selectedMonth === null) {
-      return isDark ? "#999" : "#777";
-    }
+  function tickColor(): string {
+    return isDark ? "#aaa" : "#666";
+  }
+
+  function tickSelectedColor(): string {
     return isDark ? "#222" : "#eee";
+  }
+
+  function borderColor(): string {
+    return isDark ? "#404040" : "#e0e0e0";
+  }
+
+  function getTickColor(selectedMonth: number | null): string {
+    if (selectedMonth === null) {
+      return tickColor();
+    }
+    return tickSelectedColor();
+  }
+
+  function getBorderColor(): string {
+    return borderColor();
   }
 
   async function renderChart() {
@@ -143,8 +174,8 @@
         const pixelX = xScale.getPixelForValue(closestIdx);
         const leftEdge = xScale.getPixelForValue(xScale.min);
         ctx.save();
-        ctx.strokeStyle = "#777";
-        ctx.fillStyle = "#777";
+        ctx.strokeStyle = tickColor();
+        ctx.fillStyle = tickColor();
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
         let highestYPixel = yScale.bottom;
@@ -231,11 +262,7 @@
         scales: {
           x: {
             border: {
-              // @ts-ignore
-              color: () =>
-                window.matchMedia("(prefers-color-scheme: dark)").matches
-                  ? "#404040"
-                  : "#e0e0e0",
+              color: () => getBorderColor(),
             },
             ticks: {
               color: () => getTickColor(selectedMonth),
@@ -255,11 +282,7 @@
           y: {
             min: 0,
             border: {
-              // @ts-ignore
-              color: () =>
-                window.matchMedia("(prefers-color-scheme: dark)").matches
-                  ? "#404040"
-                  : "#e0e0e0",
+              color: () => getBorderColor(),
             },
             ticks: {
               color: () => getTickColor(selectedMonth),
@@ -370,6 +393,7 @@
   }
 
   $effect(() => {
+    void isDark;
     if (
       $studiesStore.studies.length > 0 &&
       canvasEl &&
