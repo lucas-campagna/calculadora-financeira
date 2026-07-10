@@ -215,7 +215,11 @@
     {/if}
 
     {#if viewMode === "financing"}
-      <div class="flex-1 min-h-0 overflow-auto border rounded-lg">
+      <div
+        class="{expanded || !$isDesktop
+          ? 'flex-1 min-h-0'
+          : 'max-h-[40vh]'} overflow-auto border rounded-lg"
+      >
         <table class="w-full text-xs border-collapse table-fixed">
           <thead class="sticky top-0 z-10">
             <tr class="border-b bg-muted">
@@ -287,7 +291,9 @@
       </div>
     {:else}
       <div
-        class="flex-1 min-h-0 overflow-auto border rounded-lg extra-payments-table"
+        class="{expanded || !$isDesktop
+          ? 'flex-1 min-h-0'
+          : 'max-h-[40vh]'} overflow-auto border rounded-lg extra-payments-table"
       >
         <table class="w-full text-xs border-collapse table-fixed">
           <thead class="sticky top-0 z-10">
