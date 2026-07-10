@@ -44,7 +44,6 @@
 
   $effect(() => {
     function handleBeforeInstallPrompt(e: Event) {
-      alert("handleBeforeInstallPrompt");
       e.preventDefault();
       deferredPrompt = e as unknown as typeof deferredPrompt;
     }
