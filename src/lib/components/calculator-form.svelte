@@ -150,11 +150,38 @@
     return `${yearLabel} e ${monthLabel}`;
   });
 
-  let monthlyRateLabel = $derived.by(() => {
+  let rateMode = $state<"annual" | "monthly">("annual");
+
+  function annualToMonthly(annual: number): number {
+    return ((1 + annual / 100) ** (1 / 12) - 1) * 100;
+  }
+
+  function monthlyToAnnual(monthly: number): number {
+    return ((1 + monthly / 100) ** 12 - 1) * 100;
+  }
+
+  let displayRate = $derived(
+    rateMode === "annual"
+      ? effectiveAnnualRate
+      : annualToMonthly(effectiveAnnualRate),
+  );
+
+  let rateLabel = $derived.by(() => {
     if (effectiveAnnualRate === 0) return "";
-    const monthly = ((1 + effectiveAnnualRate / 100) ** (1 / 12) - 1) * 100;
-    return `~${monthly.toFixed(2)}% a.m.`;
+    if (rateMode === "annual") {
+      const monthly = annualToMonthly(effectiveAnnualRate);
+      return `~${monthly.toFixed(2)}% a.m.`;
+    } else {
+      const annual = monthlyToAnnual(displayRate);
+      return `~${annual.toFixed(2)}% a.a.`;
+    }
   });
+
+  let rateModeIcon = $derived(rateMode === "annual" ? "a" : "m");
+
+  function toggleRateMode() {
+    rateMode = rateMode === "annual" ? "monthly" : "annual";
+  }
 
   function makeActionButtons(
     field: FieldKey,
@@ -206,17 +233,30 @@
         />
       </div>
       <div>
-        <Label for="m-rate" class="text-xs">Taxa (% a.a.)</Label>
+        <Label for="m-rate" class="text-xs"
+          >Taxa (% {rateMode === "annual" ? "a.a." : "a.m."})</Label
+        >
         <SwipeInput
           id="m-rate"
           decimals={2}
           placeholder="10"
-          value={effectiveAnnualRate}
-          onchange={(v) => updateField("annualRate", v)}
+          value={displayRate}
+          onchange={(v) =>
+            updateField(
+              "annualRate",
+              rateMode === "annual" ? v : monthlyToAnnual(v),
+            )}
           min={0.01}
           step={0.1}
-          label={monthlyRateLabel}
-          actionButtons={makeActionButtons("annualRate")}
+          label={rateLabel}
+          actionButtons={[
+            ...makeActionButtons("annualRate"),
+            {
+              icon: () =>
+                `<span class="text-xs font-bold">${rateModeIcon}</span>`,
+              onclick: toggleRateMode,
+            },
+          ]}
         />
       </div>
       <div>
@@ -304,18 +344,31 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <Label for="annualRate" class="text-sm">Taxa de Juros (% ao ano)</Label>
+        <Label for="annualRate" class="text-sm"
+          >Taxa de Juros (% {rateMode === "annual" ? "a.a." : "a.m."})</Label
+        >
         <SwipeInput
           id="annualRate"
           decimals={2}
           placeholder="Ex: 10,5"
-          value={effectiveAnnualRate}
-          onchange={(v) => updateField("annualRate", v)}
+          value={displayRate}
+          onchange={(v) =>
+            updateField(
+              "annualRate",
+              rateMode === "annual" ? v : monthlyToAnnual(v),
+            )}
           min={0.01}
           step={0.1}
           class="mt-1"
-          label={monthlyRateLabel}
-          actionButtons={makeActionButtons("annualRate")}
+          label={rateLabel}
+          actionButtons={[
+            ...makeActionButtons("annualRate"),
+            {
+              icon: () =>
+                `<span class="text-xs font-bold">${rateModeIcon}</span>`,
+              onclick: toggleRateMode,
+            },
+          ]}
         />
       </div>
 
