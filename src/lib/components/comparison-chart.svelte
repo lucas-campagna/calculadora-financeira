@@ -6,7 +6,7 @@
     isMobile,
     isDesktop,
   } from "$lib/stores/calculator-store";
-  import type { Installment } from "$lib/calculator/types";
+  import type { Installment, ExtraPayment } from "$lib/calculator/types";
 
   let canvasEl: HTMLCanvasElement = $state(
     undefined as unknown as HTMLCanvasElement,
@@ -129,31 +129,45 @@
     );
     const showEvery = maxLen > 60 ? Math.ceil(maxLen / 30) : 1;
 
-    const labels: string[] = [];
-    for (let i = 1; i <= maxLen; i++) {
-      if (i % showEvery === 0 || i === 1 || i === maxLen) {
-        labels.push(`${i}`);
+    const allExtraIndices = new Set<number>();
+    studies.forEach((study) => {
+      study.extraPayments.forEach((ep: ExtraPayment) => {
+        allExtraIndices.add(ep.month - 1);
+      });
+    });
+
+    const allIndices = new Set<number>();
+    for (let i = 0; i < maxLen; i++) {
+      if (i === 0 || i === maxLen - 1 || i % showEvery === 0) {
+        allIndices.add(i);
       }
     }
+    allExtraIndices.forEach((idx) => allIndices.add(idx));
+    const sortedIndices = [...allIndices].sort((a, b) => a - b);
+    const labels = sortedIndices.map((i) => `${i + 1}`);
 
     const datasets: import("chart.js").ChartDataset[] = [];
     studies.forEach((study) => {
       const result = $allResultsStore[study.id];
       if (!result) return;
       const originalIndex = allStudies.findIndex((s) => s.id === study.id);
-      const filtered = result.installments.filter(
-        (_: Installment, idx: number) =>
-          idx % showEvery === 0 ||
-          idx === 0 ||
-          idx === result.installments.length - 1,
-      );
+
+      const data = sortedIndices
+        .filter((idx) => idx < result.installments.length)
+        .map((idx) => {
+          const inst = result.installments[idx];
+          return inst ? { x: idx + 1, y: inst[selectedField] } : null;
+        })
+        .filter((d): d is { x: number; y: number } => d !== null);
+
       datasets.push({
         label: study.name,
-        data: filtered.map((inst: Installment) => inst[selectedField]),
+        data,
         borderColor: COLORS[originalIndex % COLORS.length],
         backgroundColor: COLORS[originalIndex % COLORS.length] + "20",
         fill: false,
         tension: 0.1,
+        spanGaps: true,
       });
     });
 
@@ -164,48 +178,65 @@
         const ctx = chart.ctx;
         const xScale = chart.scales.x;
         const yScale = chart.scales.y;
-        const labels = chart.data.labels ?? [];
         const currentSelectedMonth = selectedMonth;
-        let closestIdx = 0;
-        let minDiff = Infinity;
-        labels.forEach((label, i) => {
-          const diff = Math.abs(Number(label) - currentSelectedMonth);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestIdx = i;
-          }
-        });
-        const pixelX = xScale.getPixelForValue(closestIdx);
         const leftEdge = xScale.getPixelForValue(xScale.min);
+
+        let minDist = Infinity;
+        let nearestX = 0;
+        let nearestY = 0;
+        chart.data.datasets.forEach((dataset, i) => {
+          const meta = chart.getDatasetMeta(i);
+          if (!meta.visible) return;
+          const data = dataset.data as any[];
+          data.forEach((p: any) => {
+            if (!p) return;
+            const dist = Math.abs(p.x - currentSelectedMonth);
+            if (dist < minDist) {
+              minDist = dist;
+              nearestX = p.x;
+              nearestY = p.y;
+            }
+          });
+        });
+
+        if (minDist === Infinity) return;
+
+        const pointPixelX = xScale.getPixelForValue(nearestX);
+
         ctx.save();
         ctx.strokeStyle = tickColor();
         ctx.fillStyle = tickColor();
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
+
         let highestYPixel = yScale.bottom;
-        chart.data.datasets.forEach((_dataset, datasetIndex) => {
-          const meta = chart.getDatasetMeta(datasetIndex);
+        chart.data.datasets.forEach((dataset, i) => {
+          const meta = chart.getDatasetMeta(i);
           if (!meta.visible) return;
-          const dataIndex = meta.data[closestIdx];
-          if (!dataIndex) return;
-          if (dataIndex.y < highestYPixel) {
-            highestYPixel = dataIndex.y;
+          const data = dataset.data as any[];
+          const point = data.find(
+            (p: any) => p && Math.abs(p.x - nearestX) < 5,
+          );
+          if (point) {
+            const pY = yScale.getPixelForValue(point.y);
+            if (pY < highestYPixel) highestYPixel = pY;
+            ctx.beginPath();
+            ctx.moveTo(leftEdge, pY);
+            ctx.lineTo(pointPixelX, pY);
+            ctx.stroke();
           }
-          ctx.beginPath();
-          ctx.moveTo(leftEdge, dataIndex.y);
-          ctx.lineTo(pixelX, dataIndex.y);
-          ctx.stroke();
         });
+
         ctx.beginPath();
-        ctx.moveTo(pixelX, yScale.bottom);
-        ctx.lineTo(pixelX, highestYPixel);
+        ctx.moveTo(pointPixelX, yScale.bottom);
+        ctx.lineTo(pointPixelX, highestYPixel);
         ctx.stroke();
+
         ctx.setLineDash([]);
         ctx.font = "12px system-ui";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        const selectedLabel = labels[closestIdx];
-        const month = Number(selectedLabel);
+        const month = Math.round(nearestX);
         let xAxisLabel = "";
         if (month <= 12) xAxisLabel = `${month}M`;
         else {
@@ -214,29 +245,35 @@
           if (months === 0) xAxisLabel = `${years}A`;
           else xAxisLabel = `${years}A ${months}M`;
         }
-        ctx.fillText(xAxisLabel, pixelX, yScale.bottom + 14);
-        chart.data.datasets.forEach((dataset, datasetIndex) => {
-          const meta = chart.getDatasetMeta(datasetIndex);
+        ctx.fillText(xAxisLabel, pointPixelX, yScale.bottom + 14);
+
+        chart.data.datasets.forEach((dataset, i) => {
+          const meta = chart.getDatasetMeta(i);
           if (!meta.visible) return;
-          const point = meta.data[closestIdx];
-          if (!point) return;
-          const val = dataset.data[closestIdx] as number;
-          const suffixes = ["", "k", "M", "B", "T", "Q"];
-          let suffixIndex = 0;
-          let displayVal = val;
-          while (displayVal >= 1000 && suffixIndex < suffixes.length - 1) {
-            displayVal /= 1000;
-            suffixIndex++;
+          const data = dataset.data as any[];
+          const point = data.find(
+            (p: any) => p && Math.abs(p.x - nearestX) < 5,
+          );
+          if (point) {
+            const pY = yScale.getPixelForValue(point.y);
+            const suffixes = ["", "k", "M", "B", "T", "Q"];
+            let suffixIndex = 0;
+            let displayVal = point.y;
+            while (displayVal >= 1000 && suffixIndex < suffixes.length - 1) {
+              displayVal /= 1000;
+              suffixIndex++;
+            }
+            let yAxisLabel: string;
+            if (displayVal >= 100)
+              yAxisLabel = `${displayVal.toFixed(0)}${suffixes[suffixIndex]}`;
+            else if (displayVal >= 10)
+              yAxisLabel = `${displayVal.toFixed(1)}${suffixes[suffixIndex]}`;
+            else
+              yAxisLabel = `${displayVal.toFixed(2)}${suffixes[suffixIndex]}`;
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            ctx.fillText(yAxisLabel, leftEdge - 10, pY);
           }
-          let yAxisLabel: string;
-          if (displayVal >= 100)
-            yAxisLabel = `${displayVal.toFixed(0)}${suffixes[suffixIndex]}`;
-          else if (displayVal >= 10)
-            yAxisLabel = `${displayVal.toFixed(1)}${suffixes[suffixIndex]}`;
-          else yAxisLabel = `${displayVal.toFixed(2)}${suffixes[suffixIndex]}`;
-          ctx.textAlign = "right";
-          ctx.textBaseline = "middle";
-          ctx.fillText(yAxisLabel, leftEdge - 10, point.y);
         });
         ctx.restore();
       },
@@ -265,6 +302,9 @@
         },
         scales: {
           x: {
+            type: "linear",
+            min: 1,
+            max: maxLen,
             border: {
               // @ts-ignore
               color: () => getBorderColor(),
@@ -276,10 +316,9 @@
             ticks: {
               color: () => getTickColor(selectedMonth),
               font: { size: 10 },
-              callback: (_value: string | number, index: number) => {
-                const label = labels[index];
-                if (!label) return "";
-                const month = Number(label);
+              callback: (value: string | number) => {
+                const month = Number(value);
+                if (!Number.isInteger(month)) return "";
                 if (month <= 12) return `${month}M`;
                 const years = Math.floor(month / 12);
                 const months = month % 12;
@@ -337,10 +376,37 @@
     const maxLen = firstResult.installments.length;
     if (maxLen === 0) return null;
 
-    const showEvery = maxLen > 60 ? Math.ceil(maxLen / 30) : 1;
-    const labelIndex = Math.round(xScale.getValueForPixel(x) ?? 0);
-    const month = labelIndex * showEvery + 1;
+    const month = Math.round(xScale.getValueForPixel(x) ?? 0);
     return Math.max(1, Math.min(month, maxLen));
+  }
+
+  function getNearestDataPointMonth(clientX: number): number | null {
+    if (!chartInstance) return null;
+    const canvas = chartInstance.canvas;
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const xScale = chartInstance.scales.x;
+    if (!xScale) return null;
+
+    const currentMonth = xScale.getValueForPixel(x);
+    if (currentMonth === null || currentMonth === undefined) return null;
+
+    let nearestMonth: number | null = null;
+    let minDist = Infinity;
+
+    chartInstance.data.datasets.forEach((dataset) => {
+      const data = dataset.data as any[];
+      data.forEach((p) => {
+        if (!p) return;
+        const dist = Math.abs(p.x - currentMonth);
+        if (dist < minDist) {
+          minDist = dist;
+          nearestMonth = Math.round(p.x);
+        }
+      });
+    });
+
+    return nearestMonth;
   }
 
   function handleCanvasTouchStart(e: TouchEvent) {
@@ -371,7 +437,7 @@
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      const month = getMonthFromPosition(e.touches[0].clientX);
+      const month = getNearestDataPointMonth(e.touches[0].clientX);
       if (month !== null) {
         selectedMonth = month;
       }
@@ -389,7 +455,7 @@
       longPressTimer = null;
     }
     if (!hasMoved && !longPressTriggered) {
-      const month = getMonthFromPosition(touchStartX);
+      const month = getNearestDataPointMonth(touchStartX);
       if (month !== null) {
         if (selectedMonth === month) {
           selectedMonth = null;
@@ -421,7 +487,7 @@
   $effect(() => {
     if (chartInstance) {
       let _ = selectedMonth;
-      chartInstance.update("none");
+      chartInstance.update();
     }
   });
 
