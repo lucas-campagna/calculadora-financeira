@@ -422,10 +422,8 @@
     touchStartY = e.touches[0].clientY;
     hasMoved = false;
     const result = getNearestDataPoint(touchStartX, touchStartY);
-    if (result.studyId !== null) {
-      selectedMonth = result.month;
-      selectedStudyId = result.studyId;
-    }
+    selectedMonth = result.month;
+    selectedStudyId = result.studyId;
   }
 
   function handleCanvasTouchMove(e: TouchEvent) {
@@ -439,10 +437,8 @@
         e.touches[0].clientX,
         e.touches[0].clientY,
       );
-      if (result.studyId !== null) {
-        selectedMonth = result.month;
-        selectedStudyId = result.studyId;
-      }
+      selectedMonth = result.month;
+      selectedStudyId = result.studyId;
     }
   }
 
