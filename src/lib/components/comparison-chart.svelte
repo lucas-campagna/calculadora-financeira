@@ -19,6 +19,7 @@
   let hasMoved = false;
   let longPressTriggered = false;
   let selectedMonth = $state<number | null>(null);
+  let selectedStudyId = $state<string | null>(null);
 
   let hasHeldChart = $state(
     typeof sessionStorage !== "undefined" &&
@@ -52,10 +53,10 @@
   });
 
   let {
-    onlongpress = (_month: number) => {},
+    onlongpress = (_month: number, _studyId?: string) => {},
     fullHeight = false,
   }: {
-    onlongpress?: (month: number) => void;
+    onlongpress?: (month: number, studyId?: string) => void;
     fullHeight?: boolean;
   } = $props();
 
@@ -156,9 +157,13 @@
         .filter((idx) => idx < result.installments.length)
         .map((idx) => {
           const inst = result.installments[idx];
-          return inst ? { x: idx + 1, y: inst[selectedField] } : null;
+          return inst
+            ? { x: idx + 1, y: inst[selectedField], studyId: study.id }
+            : null;
         })
-        .filter((d): d is { x: number; y: number } => d !== null);
+        .filter(
+          (d): d is { x: number; y: number; studyId: string } => d !== null,
+        );
 
       datasets.push({
         label: study.name,
@@ -245,7 +250,7 @@
           if (months === 0) xAxisLabel = `${years}A`;
           else xAxisLabel = `${years}A ${months}M`;
         }
-        ctx.fillText(xAxisLabel, pointPixelX, yScale.bottom + 14);
+        ctx.fillText(xAxisLabel, pointPixelX, yScale.bottom + 10);
 
         chart.data.datasets.forEach((dataset, i) => {
           const meta = chart.getDatasetMeta(i);
@@ -380,33 +385,51 @@
     return Math.max(1, Math.min(month, maxLen));
   }
 
-  function getNearestDataPointMonth(clientX: number): number | null {
-    if (!chartInstance) return null;
+  function getNearestDataPoint(
+    clientX: number,
+    clientY: number,
+  ): { month: number; studyId: string | null } {
+    if (!chartInstance) return { month: 1, studyId: null };
     const canvas = chartInstance.canvas;
     const rect = canvas.getBoundingClientRect();
     const x = clientX - rect.left;
+    const y = clientY - rect.top;
     const xScale = chartInstance.scales.x;
-    if (!xScale) return null;
+    const yScale = chartInstance.scales.y;
+    if (!xScale || !yScale) return { month: 0, studyId: null };
 
     const currentMonth = xScale.getValueForPixel(x);
-    if (currentMonth === null || currentMonth === undefined) return null;
+    if (currentMonth === null || currentMonth === undefined)
+      return { month: 1, studyId: null };
 
-    let nearestMonth: number | null = null;
-    let minDist = Infinity;
+    let nearestMonth = 1;
+    let nearestStudyId: string | null = null;
+    let minDistX = Infinity;
+    let minDistY = Infinity;
 
     chartInstance.data.datasets.forEach((dataset) => {
       const data = dataset.data as any[];
       data.forEach((p) => {
-        if (!p) return;
-        const dist = Math.abs(p.x - currentMonth);
-        if (dist < minDist) {
-          minDist = dist;
+        if (!p || !p.studyId) return;
+        const pointPixelX = xScale.getPixelForValue(p.x);
+        const pointPixelY = yScale.getPixelForValue(p.y);
+        const distX = Math.abs(pointPixelX - x);
+        const distY = Math.abs(pointPixelY - y);
+        if (distX < minDistX) {
+          minDistX = distX;
           nearestMonth = Math.round(p.x);
+        }
+        if (distX + distY <= 25) {
+          minDistY = distY;
+          nearestStudyId = p.studyId;
         }
       });
     });
 
-    return nearestMonth;
+    return {
+      month: nearestMonth,
+      studyId: nearestStudyId,
+    };
   }
 
   function handleCanvasTouchStart(e: TouchEvent) {
@@ -416,10 +439,9 @@
     longPressTriggered = false;
     longPressTimer = setTimeout(() => {
       longPressTriggered = true;
-      const month = getMonthFromPosition(touchStartX);
-      if (month !== null) {
-        selectedMonth = month;
-      }
+      const result = getNearestDataPoint(touchStartX, touchStartY);
+      selectedMonth = result.month;
+      selectedStudyId = result.studyId;
     }, 600);
   }
 
@@ -437,10 +459,12 @@
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      const month = getNearestDataPointMonth(e.touches[0].clientX);
-      if (month !== null) {
-        selectedMonth = month;
-      }
+      const result = getNearestDataPoint(
+        e.touches[0].clientX,
+        e.touches[0].clientY,
+      );
+      selectedMonth = result.month;
+      selectedStudyId = result.studyId;
     }
   }
 
@@ -455,18 +479,20 @@
       longPressTimer = null;
     }
     if (!hasMoved && !longPressTriggered) {
-      const month = getNearestDataPointMonth(touchStartX);
-      if (month !== null) {
-        if (selectedMonth === month) {
-          selectedMonth = null;
-        } else {
-          selectedMonth = month;
-        }
+      const result = getNearestDataPoint(touchStartX, touchStartY);
+      if (selectedMonth === result.month) {
+        selectedMonth = null;
+        selectedStudyId = null;
+      } else {
+        selectedMonth = result.month;
+        selectedStudyId = result.studyId;
+        if (selectedStudyId)
+          onlongpress(selectedMonth, selectedStudyId ?? undefined);
       }
     }
     if (longPressTriggered && selectedMonth !== null) {
       hasHeldChart = true;
-      onlongpress(selectedMonth);
+      onlongpress(selectedMonth, selectedStudyId ?? undefined);
     }
     longPressTriggered = false;
     hasMoved = false;
@@ -493,6 +519,19 @@
 
   let chartContainerEl = $state<HTMLDivElement | undefined>();
 
+  function handleCanvasClick(e: MouseEvent) {
+    // const result = getNearestDataPoint(e.clientX, e.clientY);
+    // console.log('Click')
+    // if (result.studyId !== null) {
+    //   selectedMonth = result.month;
+    //   selectedStudyId = result.studyId;
+    //   onlongpress(result.month, result.studyId);
+    // } else {
+    //   selectedMonth = null;
+    //   selectedStudyId = null;
+    // }
+  }
+
   onMount(() => {
     const container = chartContainerEl;
     if (container) {
@@ -508,6 +547,7 @@
       container.addEventListener("touchcancel", handleCanvasTouchEnd, {
         passive: false,
       });
+      container.addEventListener("click", handleCanvasClick);
     }
     return () => {
       if (chartInstance) {
@@ -518,6 +558,7 @@
         container.removeEventListener("touchmove", handleCanvasTouchMove);
         container.removeEventListener("touchend", handleCanvasTouchEnd);
         container.removeEventListener("touchcancel", handleCanvasTouchEnd);
+        container.removeEventListener("click", handleCanvasClick);
       }
     };
   });

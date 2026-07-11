@@ -48,12 +48,13 @@
     extraPaymentModalOpen = false;
   }
 
-  function openExtraPayment(month: number) {
+  function openExtraPayment(month: number, studyId?: string) {
     extraPaymentMonth = month;
-    const activeStudy = $studiesStore.studies.find(
-      (s) => s.id === $studiesStore.activeStudyId,
+    const targetStudyId = studyId ?? $studiesStore.activeStudyId;
+    const targetStudy = $studiesStore.studies.find(
+      (s) => s.id === targetStudyId,
     );
-    const existing = activeStudy?.extraPayments.find(
+    const existing = targetStudy?.extraPayments.find(
       (ep) => ep.month === month,
     );
     extraPaymentEdit = existing;
