@@ -21,11 +21,26 @@
   let selectedMonth = $state<number | null>(null);
   let selectedStudyId = $state<string | null>(null);
 
+  let hasHeldChart = $state(
+    typeof sessionStorage !== "undefined" &&
+      sessionStorage.getItem("hasHeldChart") === "true",
+  );
+
   let isDark = $state(false);
 
   function syncDarkMode() {
     isDark = document.documentElement.classList.contains("dark");
   }
+
+  $effect(() => {
+    if (typeof sessionStorage !== "undefined") {
+      if (hasHeldChart) {
+        sessionStorage.setItem("hasHeldChart", "true");
+      } else {
+        sessionStorage.removeItem("hasHeldChart");
+      }
+    }
+  });
 
   onMount(() => {
     syncDarkMode();
@@ -421,9 +436,13 @@
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     hasMoved = false;
-    const result = getNearestDataPoint(touchStartX, touchStartY);
-    selectedMonth = result.month;
-    selectedStudyId = result.studyId;
+    longPressTriggered = false;
+    longPressTimer = setTimeout(() => {
+      longPressTriggered = true;
+      const result = getNearestDataPoint(touchStartX, touchStartY);
+      selectedMonth = result.month;
+      selectedStudyId = result.studyId;
+    }, 600);
   }
 
   function handleCanvasTouchMove(e: TouchEvent) {
@@ -443,6 +462,15 @@
   }
 
   function handleCanvasTouchEnd(e: TouchEvent) {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    if (longPressTriggered && selectedMonth !== null) {
+      hasHeldChart = true;
+      onlongpress(selectedMonth, selectedStudyId ?? undefined);
+    }
+    longPressTriggered = false;
     hasMoved = false;
   }
 
@@ -548,9 +576,11 @@
               ? "da Amortização"
               : "dos Juros"} (R$)
       </h2>
-      <p class="text-xs text-muted-foreground mt-1">
-        Clique em um ponto do gráfico para adicionar pagamento extra.
-      </p>
+      {#if !hasHeldChart}
+        <p class="text-xs text-muted-foreground mt-1">
+          Clique em um ponto do gráfico para adicionar pagamento extra.
+        </p>
+      {/if}
     </div>
     <div
       bind:this={chartContainerEl}
