@@ -21,26 +21,11 @@
   let selectedMonth = $state<number | null>(null);
   let selectedStudyId = $state<string | null>(null);
 
-  let hasHeldChart = $state(
-    typeof sessionStorage !== "undefined" &&
-      sessionStorage.getItem("hasHeldChart") === "true",
-  );
-
   let isDark = $state(false);
 
   function syncDarkMode() {
     isDark = document.documentElement.classList.contains("dark");
   }
-
-  $effect(() => {
-    if (typeof sessionStorage !== "undefined") {
-      if (hasHeldChart) {
-        sessionStorage.setItem("hasHeldChart", "true");
-      } else {
-        sessionStorage.removeItem("hasHeldChart");
-      }
-    }
-  });
 
   onMount(() => {
     syncDarkMode();
@@ -436,13 +421,11 @@
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     hasMoved = false;
-    longPressTriggered = false;
-    longPressTimer = setTimeout(() => {
-      longPressTriggered = true;
-      const result = getNearestDataPoint(touchStartX, touchStartY);
+    const result = getNearestDataPoint(touchStartX, touchStartY);
+    if (result.studyId !== null) {
       selectedMonth = result.month;
       selectedStudyId = result.studyId;
-    }, 600);
+    }
   }
 
   function handleCanvasTouchMove(e: TouchEvent) {
@@ -450,51 +433,20 @@
     const dy = Math.abs(e.touches[0].clientY - touchStartY);
     if (dx > 10 || dy > 10) {
       hasMoved = true;
-      if (longPressTimer && !longPressTriggered) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-      }
     }
-    if (longPressTriggered) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
+    if (hasMoved) {
       const result = getNearestDataPoint(
         e.touches[0].clientX,
         e.touches[0].clientY,
       );
-      selectedMonth = result.month;
-      selectedStudyId = result.studyId;
+      if (result.studyId !== null) {
+        selectedMonth = result.month;
+        selectedStudyId = result.studyId;
+      }
     }
   }
 
   function handleCanvasTouchEnd(e: TouchEvent) {
-    if (longPressTriggered) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-    }
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      longPressTimer = null;
-    }
-    if (!hasMoved && !longPressTriggered) {
-      const result = getNearestDataPoint(touchStartX, touchStartY);
-      if (selectedMonth === result.month) {
-        selectedMonth = null;
-        selectedStudyId = null;
-      } else {
-        selectedMonth = result.month;
-        selectedStudyId = result.studyId;
-        if (selectedStudyId)
-          onlongpress(selectedMonth, selectedStudyId ?? undefined);
-      }
-    }
-    if (longPressTriggered && selectedMonth !== null) {
-      hasHeldChart = true;
-      onlongpress(selectedMonth, selectedStudyId ?? undefined);
-    }
-    longPressTriggered = false;
     hasMoved = false;
   }
 
@@ -600,11 +552,9 @@
               ? "da Amortização"
               : "dos Juros"} (R$)
       </h2>
-      {#if !hasHeldChart}
-        <p class="text-xs text-muted-foreground mt-1">
-          Segure e solte no gráfico para adicionar pagamento extra.
-        </p>
-      {/if}
+      <p class="text-xs text-muted-foreground mt-1">
+        Clique em um ponto do gráfico para adicionar pagamento extra.
+      </p>
     </div>
     <div
       bind:this={chartContainerEl}
