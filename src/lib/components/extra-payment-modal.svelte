@@ -19,9 +19,13 @@
   let extraAmount = $state(0);
   let extraType = $state<"reduce_term" | "reduce_installment">("reduce_term");
   let showRemoveConfirm = $state(false);
+  let originalMonth = $state<number | null>(null);
+  let focusElementOnOpen = $state<HTMLInputElement | undefined>(undefined);
+  // Delay to avoid cancel on open (Tech Debt)
+  // let delayToCancel = $state<ReturnType<typeof setTimeout> | null>(null);
+  let canCancel = $state(false);
 
   const isEdit = $derived(editPayment !== undefined);
-
   const isValid = $derived(extraMonth > 0 && extraAmount > 0);
 
   $effect(() => {
@@ -39,13 +43,13 @@
         originalMonth = null;
       }
       setTimeout(() => {
-        const el = document.getElementById("extra-modal-amount");
-        el?.focus();
+        canCancel = true;
+        focusElementOnOpen?.focus();
       }, 100);
+    } else {
+      canCancel = false;
     }
   });
-
-  let originalMonth = $state<number | null>(null);
 
   function updateMonth(v: number) {
     extraMonth = v;
@@ -86,8 +90,10 @@
   }
 
   function handleCancel() {
-    open = false;
-    onclose?.();
+    if (canCancel) {
+      open = false;
+      onclose?.();
+    }
   }
 </script>
 
@@ -95,7 +101,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
     class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
-    onclick={handleCancel}
+    onclick={open && handleCancel}
     onkeydown={(e: KeyboardEvent) => {
       if (e.key === "Escape") handleCancel();
     }}
@@ -133,6 +139,7 @@
             >Valor (R$)</label
           >
           <SwipeInput
+            this={focusElementOnOpen}
             id="extra-modal-amount"
             decimals={2}
             placeholder="Ex: 5.000"

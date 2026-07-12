@@ -30,7 +30,7 @@
     label,
     actionButtons = [],
     onchange: handleChange = (_v: number) => {},
-    this: inputRef = undefined as HTMLInputElement | undefined,
+    this: inputRef = $bindable(undefined) as HTMLInputElement | undefined,
   }: SwipeInputProps = $props();
 
   let touchStartY = 0;

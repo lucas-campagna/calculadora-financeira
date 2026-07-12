@@ -16,14 +16,16 @@
   let longPressTimer: ReturnType<typeof setTimeout> | null = null;
   let touchStartX = 0;
   let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
   let hasMoved = false;
   let longPressTriggered = false;
   let selectedMonth = $state<number | null>(null);
   let selectedStudyId = $state<string | null>(null);
 
-  let hasHeldChart = $state(
+  let hasSelectedData = $state(
     typeof sessionStorage !== "undefined" &&
-      sessionStorage.getItem("hasHeldChart") === "true",
+      sessionStorage.getItem("hasSelectedData") === "true",
   );
 
   let isDark = $state(false);
@@ -34,10 +36,10 @@
 
   $effect(() => {
     if (typeof sessionStorage !== "undefined") {
-      if (hasHeldChart) {
-        sessionStorage.setItem("hasHeldChart", "true");
+      if (hasSelectedData) {
+        sessionStorage.setItem("hasSelectedData", "true");
       } else {
-        sessionStorage.removeItem("hasHeldChart");
+        sessionStorage.removeItem("hasSelectedData");
       }
     }
   });
@@ -53,10 +55,10 @@
   });
 
   let {
-    onlongpress = (_month: number, _studyId?: string) => {},
+    onselectdata: onselectdata = (_month: number, _studyId: string) => {},
     fullHeight = false,
   }: {
-    onlongpress?: (month: number, studyId?: string) => void;
+    onselectdata?: (month: number, studyId: string) => void;
     fullHeight?: boolean;
   } = $props();
 
@@ -399,8 +401,9 @@
     if (!xScale || !yScale) return { month: 0, studyId: null };
 
     const currentMonth = xScale.getValueForPixel(x);
-    if (currentMonth === null || currentMonth === undefined)
+    if (currentMonth === null || currentMonth === undefined) {
       return { month: 1, studyId: null };
+    }
 
     let nearestMonth = 1;
     let nearestStudyId: string | null = null;
@@ -419,7 +422,7 @@
           minDistX = distX;
           nearestMonth = Math.round(p.x);
         }
-        if (distX + distY <= 25) {
+        if (distY <= minDistY && distX + distY <= 25) {
           minDistY = distY;
           nearestStudyId = p.studyId;
         }
@@ -433,8 +436,8 @@
   }
 
   function handleCanvasTouchStart(e: TouchEvent) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
+    touchEndX = touchStartX = e.touches[0].clientX;
+    touchEndY = touchStartY = e.touches[0].clientY;
     hasMoved = false;
     longPressTriggered = false;
     longPressTimer = setTimeout(() => {
@@ -446,18 +449,23 @@
   }
 
   function handleCanvasTouchMove(e: TouchEvent) {
-    const dx = Math.abs(e.touches[0].clientX - touchStartX);
-    const dy = Math.abs(e.touches[0].clientY - touchStartY);
-    if (dx > 10 || dy > 10) {
+    touchEndX = e.touches[0].clientX;
+    touchEndY = e.touches[0].clientY;
+    const dx = Math.abs(touchEndX - touchStartX);
+    const dy = Math.abs(touchEndY - touchStartY);
+    if (dx > 0 || dy > 0) {
       hasMoved = true;
     }
-    if (hasMoved) {
-      const result = getNearestDataPoint(
-        e.touches[0].clientX,
-        e.touches[0].clientY,
-      );
+    if (!hasMoved) return;
+    if (longPressTriggered) {
+      e.stopPropagation();
+      e.preventDefault();
+      const result = getNearestDataPoint(touchEndX, touchEndY);
       selectedMonth = result.month;
       selectedStudyId = result.studyId;
+    } else if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
     }
   }
 
@@ -466,9 +474,12 @@
       clearTimeout(longPressTimer);
       longPressTimer = null;
     }
-    if (longPressTriggered && selectedMonth !== null) {
-      hasHeldChart = true;
-      onlongpress(selectedMonth, selectedStudyId ?? undefined);
+    const result = getNearestDataPoint(touchEndX, touchEndY);
+    selectedMonth = result.month;
+    selectedStudyId = result.studyId;
+    if (selectedStudyId && (!longPressTriggered || !hasMoved)) {
+      hasSelectedData = true;
+      onselectdata(selectedMonth, selectedStudyId);
     }
     longPressTriggered = false;
     hasMoved = false;
@@ -576,7 +587,7 @@
               ? "da Amortização"
               : "dos Juros"} (R$)
       </h2>
-      {#if !hasHeldChart}
+      {#if !hasSelectedData}
         <p class="text-xs text-muted-foreground mt-1">
           Clique em um ponto do gráfico para adicionar pagamento extra.
         </p>
