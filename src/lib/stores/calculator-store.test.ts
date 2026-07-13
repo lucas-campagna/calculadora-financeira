@@ -190,4 +190,65 @@ describe("calculator-store", () => {
       expect(state.overrides["1"]?.principal).toBe(700000);
     });
   });
+
+  describe("updateStudyColor", () => {
+    it("updates study color", () => {
+      studiesStore.updateStudyColor("1", "#ff0000");
+      const state = get(studiesStore);
+      expect(state.studies.find((s) => s.id === "1")?.color).toBe("#ff0000");
+    });
+
+    it("does not affect other studies", () => {
+      studiesStore.updateStudyColor("1", "#ff0000");
+      const state = get(studiesStore);
+      expect(state.studies.find((s) => s.id === "2")?.color).toBeUndefined();
+    });
+  });
+
+  describe("cloneStudy", () => {
+    it("clones a study with new id", () => {
+      const newId = studiesStore.cloneStudy("1");
+      const state = get(studiesStore);
+      expect(state.studies).toHaveLength(3);
+      expect(newId).toBeTruthy();
+      const cloned = state.studies.find((s) => s.id === newId);
+      expect(cloned?.name).toBe("SAC 2");
+      expect(cloned?.system).toBe("sac");
+    });
+
+    it("sets cloned study as active", () => {
+      const newId = studiesStore.cloneStudy("1");
+      const state = get(studiesStore);
+      expect(state.activeStudyId).toBe(newId);
+    });
+
+    it("appends number to name if name ends with number", () => {
+      studiesStore.updateStudy("1", { name: "Test 1" });
+      const newId = studiesStore.cloneStudy("1");
+      const state = get(studiesStore);
+      const cloned = state.studies.find((s) => s.id === newId);
+      expect(cloned?.name).toBe("Test 2");
+    });
+
+    it("copies extra payments to cloned study", () => {
+      studiesStore.addExtraPayment("1", {
+        month: 12,
+        amount: 5000,
+        type: "reduce_term",
+      });
+      const newId = studiesStore.cloneStudy("1");
+      const state = get(studiesStore);
+      const cloned = state.studies.find((s) => s.id === newId);
+      expect(cloned?.extraPayments).toHaveLength(1);
+      expect(cloned?.extraPayments[0].month).toBe(12);
+    });
+
+    it("copies overrides to cloned study", () => {
+      studiesStore.toggleFieldLock("principal");
+      studiesStore.updateField("principal", 600000);
+      const newId = studiesStore.cloneStudy("1");
+      const state = get(studiesStore);
+      expect(state.overrides[newId!]?.principal).toBe(600000);
+    });
+  });
 });

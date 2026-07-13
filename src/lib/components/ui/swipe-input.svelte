@@ -115,6 +115,7 @@
       restartDragTimer();
       if (e.cancelable) {
         e.preventDefault();
+        e.stopPropagation();
       }
       lastTickY -= ticksCount * TICK_PX;
       const dir = ticksCount > 0 ? "up" : "down";
