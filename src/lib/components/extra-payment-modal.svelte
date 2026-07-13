@@ -45,9 +45,6 @@
   const isValid = $derived(
     extraMonth > 0 && (reduceTermAmount > 0 || reduceInstallmentAmount > 0),
   );
-  const showSwapButton = $derived(
-    reduceTermAmount > 0 && reduceInstallmentAmount > 0,
-  );
 
   const swapIcon = () =>
     '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>';
@@ -237,7 +234,7 @@
             value={reduceTermAmount}
             onchange={updateReduceTerm}
             min={0}
-            actionButtons={showSwapButton
+            actionButtons={reduceTermAmount > 0
               ? [{ icon: swapIcon, onclick: swapValues }]
               : []}
             class="mt-1.5"
@@ -259,7 +256,7 @@
             value={reduceInstallmentAmount}
             onchange={updateReduceInstallment}
             min={0}
-            actionButtons={showSwapButton
+            actionButtons={reduceInstallmentAmount > 0
               ? [{ icon: swapIcon, onclick: swapValues }]
               : []}
             class="mt-1.5"
