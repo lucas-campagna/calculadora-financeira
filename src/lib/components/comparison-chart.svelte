@@ -474,8 +474,11 @@
       clearTimeout(longPressTimer);
       longPressTimer = null;
     }
+    if (hasMoved && !longPressTriggered) {
+      return;
+    }
     const result = getNearestDataPoint(touchEndX, touchEndY);
-    if (result.month == selectedMonth && !hasMoved) {
+    if (result.month == selectedMonth && !hasMoved && !longPressTriggered) {
       selectedMonth = null;
       selectedStudyId = null;
       longPressTriggered = false;
