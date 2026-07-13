@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { studiesStore, calculateAll } from "$lib/stores/calculator-store";
+  import { studiesStore } from "$lib/stores/calculator-store";
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
   import type { ExtraPayment } from "$lib/calculator/types";
 
@@ -32,6 +32,7 @@
     "#ef4444",
   ];
 
+  // let extraMonth = $state(editPayment?.month || month || 1);
   let extraMonth = $state(1);
   let reduceTermAmount = $state(0);
   let reduceInstallmentAmount = $state(0);
@@ -59,23 +60,24 @@
     if (open) {
       showRemoveConfirm = false;
       if (editPayment) {
-        extraMonth = editPayment.month;
+        if (!isEdit) extraMonth = editPayment.month;
         originalMonth = editPayment.month;
         originalStudyId = targetStudyId ?? null;
         const studyId = originalStudyId ?? targetStudyId;
         if (studyId) {
           const study = $studiesStore.studies.find((s) => s.id === studyId);
           const termPayment = study?.extraPayments.find(
-            (ep) => ep.month === extraMonth && ep.type === "reduce_term",
+            (ep) => ep.month === originalMonth && ep.type === "reduce_term",
           );
           const installmentPayment = study?.extraPayments.find(
-            (ep) => ep.month === extraMonth && ep.type === "reduce_installment",
+            (ep) =>
+              ep.month === originalMonth && ep.type === "reduce_installment",
           );
           reduceTermAmount = termPayment?.amount ?? 0;
           reduceInstallmentAmount = installmentPayment?.amount ?? 0;
         }
       } else {
-        extraMonth = month;
+        if (!isEdit) extraMonth = month;
         reduceTermAmount = 0;
         reduceInstallmentAmount = 0;
         originalMonth = null;
