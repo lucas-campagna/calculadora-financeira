@@ -2,114 +2,156 @@
   import { studiesStore, calculateAll } from "$lib/stores/calculator-store";
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
   import Button from "$lib/components/ui/button.svelte";
+  import type { ExtraPayment } from "$lib/calculator/types";
 
-  let activePayments = $derived(
-    $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)
-      ?.extraPayments ?? [],
-  );
+  interface GroupedPayment {
+    month: number;
+    reduceTerm: number;
+    reduceInstallment: number;
+  }
+
+  let groupedPayments = $derived.by(() => {
+    const payments =
+      $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)
+        ?.extraPayments ?? [];
+
+    const grouped = new Map<number, GroupedPayment>();
+    for (const ep of payments) {
+      const existing = grouped.get(ep.month);
+      if (existing) {
+        if (ep.type === "reduce_term") {
+          existing.reduceTerm = ep.amount;
+        } else {
+          existing.reduceInstallment = ep.amount;
+        }
+      } else {
+        grouped.set(ep.month, {
+          month: ep.month,
+          reduceTerm: ep.type === "reduce_term" ? ep.amount : 0,
+          reduceInstallment: ep.type === "reduce_installment" ? ep.amount : 0,
+        });
+      }
+    }
+    return Array.from(grouped.values()).sort((a, b) => a.month - b.month);
+  });
 
   function addExtraPayment() {
+    const existingMonths = groupedPayments.map((p) => p.month);
+    let newMonth = 1;
+    while (existingMonths.includes(newMonth)) {
+      newMonth++;
+    }
     studiesStore.addExtraPayment($studiesStore.activeStudyId, {
-      month: 1,
+      month: newMonth,
       amount: 0,
+      type: "reduce_term",
+    });
+    studiesStore.addExtraPayment($studiesStore.activeStudyId, {
+      month: newMonth,
+      amount: 0,
+      type: "reduce_installment",
+    });
+  }
+
+  function removeExtraPayment(month: number) {
+    studiesStore.removeExtraPayment($studiesStore.activeStudyId, month);
+  }
+
+  function updateMonth(month: number, newMonth: number) {
+    const studyId = $studiesStore.activeStudyId;
+    const study = $studiesStore.studies.find((s) => s.id === studyId);
+    if (!study) return;
+
+    const termPayment = study.extraPayments.find(
+      (ep) => ep.month === month && ep.type === "reduce_term",
+    );
+    const installmentPayment = study.extraPayments.find(
+      (ep) => ep.month === month && ep.type === "reduce_installment",
+    );
+
+    if (termPayment) {
+      studiesStore.addExtraPayment(studyId, {
+        month: newMonth,
+        amount: termPayment.amount,
+        type: "reduce_term",
+      });
+      studiesStore.removeExtraPayment(studyId, month);
+    }
+    if (installmentPayment) {
+      studiesStore.addExtraPayment(studyId, {
+        month: newMonth,
+        amount: installmentPayment.amount,
+        type: "reduce_installment",
+      });
+    }
+  }
+
+  function updateReduceTerm(month: number, value: number) {
+    studiesStore.addExtraPayment($studiesStore.activeStudyId, {
+      month,
+      amount: value,
       type: "reduce_term",
     });
   }
 
-  function removeExtraPayment(index: number) {
-    const studyId = $studiesStore.activeStudyId;
-    studiesStore.updateStudy(studyId, {
-      extraPayments: activePayments.filter((_, i) => i !== index),
+  function updateReduceInstallment(month: number, value: number) {
+    studiesStore.addExtraPayment($studiesStore.activeStudyId, {
+      month,
+      amount: value,
+      type: "reduce_installment",
     });
-    calculateAll();
-  }
-
-  function updateMonth(index: number, v: number) {
-    const month = v;
-    const updated = [...activePayments];
-    updated[index] = { ...updated[index], month };
-    studiesStore.updateStudy($studiesStore.activeStudyId, {
-      extraPayments: updated,
-    });
-    calculateAll();
-  }
-
-  function updateAmount(index: number, v: number) {
-    const amount = v;
-    const updated = [...activePayments];
-    updated[index] = { ...updated[index], amount };
-    studiesStore.updateStudy($studiesStore.activeStudyId, {
-      extraPayments: updated,
-    });
-    calculateAll();
-  }
-
-  function updateType(
-    index: number,
-    type: "reduce_installment" | "reduce_term",
-  ) {
-    const updated = [...activePayments];
-    updated[index] = { ...updated[index], type };
-    studiesStore.updateStudy($studiesStore.activeStudyId, {
-      extraPayments: updated,
-    });
-    calculateAll();
   }
 </script>
 
 <div class="mt-3 space-y-3">
-  {#each activePayments as ep, i}
+  {#each groupedPayments as gp}
     <div class="flex flex-wrap gap-2 items-end border rounded-md p-3">
       <div class="flex-1 min-w-[80px]">
-        <label for="extra-month-{i}" class="text-xs text-muted-foreground"
-          >Mês</label
+        <label
+          for="extra-month-{gp.month}"
+          class="text-xs text-muted-foreground">Mês</label
         >
         <SwipeInput
-          id="extra-month-{i}"
+          id="extra-month-{gp.month}"
           decimals={0}
-          value={String(ep.month)}
-          onchange={(v) => updateMonth(i, v)}
-          min="1"
+          value={gp.month}
+          onchange={(v) => updateMonth(gp.month, v)}
+          min={1}
           class="mt-1"
         />
       </div>
       <div class="flex-1 min-w-[100px]">
-        <label for="extra-amount-{i}" class="text-xs text-muted-foreground"
-          >Valor (R$)</label
+        <label
+          for="extra-reduce-term-{gp.month}"
+          class="text-xs text-muted-foreground">Reduzir prazo (R$)</label
         >
         <SwipeInput
-          id="extra-amount-{i}"
+          id="extra-reduce-term-{gp.month}"
           decimals={2}
-          value={String(ep.amount)}
-          onchange={(v) => updateAmount(i, v)}
-          min="0"
+          value={gp.reduceTerm}
+          onchange={(v) => updateReduceTerm(gp.month, v)}
+          min={0}
           class="mt-1"
         />
       </div>
-      <div class="flex-1 min-w-[120px]">
-        <label for="extra-type-{i}" class="text-xs text-muted-foreground"
-          >Tipo</label
+      <div class="flex-1 min-w-[100px]">
+        <label
+          for="extra-reduce-installment-{gp.month}"
+          class="text-xs text-muted-foreground">Reduzir parcela (R$)</label
         >
-        <select
-          id="extra-type-{i}"
-          class="flex h-12 w-full rounded-lg border border-input bg-background px-3 py-3 text-base mt-1"
-          value={ep.type}
-          onchange={(e: Event) =>
-            updateType(
-              i,
-              (e.target as HTMLSelectElement).value as
-                | "reduce_installment"
-                | "reduce_term",
-            )}
-        >
-          <option value="reduce_term">Reduzir prazo</option>
-          <option value="reduce_installment">Reduzir parcela</option>
-        </select>
+        <SwipeInput
+          id="extra-reduce-installment-{gp.month}"
+          decimals={2}
+          value={gp.reduceInstallment}
+          onchange={(v) => updateReduceInstallment(gp.month, v)}
+          min={0}
+          class="mt-1"
+        />
       </div>
       <Button
         variant="destructive"
         size="sm"
-        onclick={() => removeExtraPayment(i)}>X</Button
+        onclick={() => removeExtraPayment(gp.month)}>X</Button
       >
     </div>
   {/each}

@@ -319,17 +319,13 @@ function createStudiesStore() {
         const study = s.studies.find((st) => st.id === studyId);
         if (!study) return s;
         const existing = study.extraPayments.find(
-          (ep) => ep.month === payment.month,
+          (ep) => ep.month === payment.month && ep.type === payment.type,
         );
         let newPayments: ExtraPayment[];
         if (existing) {
           newPayments = study.extraPayments.map((ep) =>
-            ep.month === payment.month
-              ? {
-                  ...ep,
-                  amount: ep.amount + payment.amount,
-                  type: payment.type,
-                }
+            ep.month === payment.month && ep.type === payment.type
+              ? { ...ep, amount: payment.amount }
               : ep,
           );
         } else {
@@ -349,7 +345,7 @@ function createStudiesStore() {
         const study = s.studies.find((st) => st.id === studyId);
         if (!study) return s;
         const newPayments = study.extraPayments.map((ep) =>
-          ep.month === payment.month ? payment : ep,
+          ep.month === payment.month && ep.type === payment.type ? payment : ep,
         );
         return {
           ...s,

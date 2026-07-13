@@ -33,32 +33,42 @@
   ];
 
   let extraMonth = $state(1);
-  let extraAmount = $state(0);
-  let extraType = $state<"reduce_term" | "reduce_installment">("reduce_term");
+  let reduceTermAmount = $state(0);
+  let reduceInstallmentAmount = $state(0);
   let showRemoveConfirm = $state(false);
   let originalMonth = $state<number | null>(null);
   let originalStudyId = $state<string | null>(null);
   let focusElementOnOpen = $state<HTMLInputElement | undefined>(undefined);
-  // Delay to avoid cancel on open (Tech Debt)
-  // let delayToCancel = $state<ReturnType<typeof setTimeout> | null>(null);
   let canCancel = $state(false);
 
-  const isEdit = $derived(editPayment !== undefined);
-  const isValid = $derived(extraMonth > 0 && extraAmount > 0);
+  const isEdit = $derived(originalMonth !== null);
+  const isValid = $derived(
+    extraMonth > 0 && (reduceTermAmount > 0 || reduceInstallmentAmount > 0),
+  );
 
   $effect(() => {
     if (open) {
       showRemoveConfirm = false;
       if (editPayment) {
         extraMonth = editPayment.month;
-        extraAmount = editPayment.amount;
-        extraType = editPayment.type;
         originalMonth = editPayment.month;
         originalStudyId = targetStudyId ?? null;
+        const studyId = originalStudyId ?? targetStudyId;
+        if (studyId) {
+          const study = $studiesStore.studies.find((s) => s.id === studyId);
+          const termPayment = study?.extraPayments.find(
+            (ep) => ep.month === extraMonth && ep.type === "reduce_term",
+          );
+          const installmentPayment = study?.extraPayments.find(
+            (ep) => ep.month === extraMonth && ep.type === "reduce_installment",
+          );
+          reduceTermAmount = termPayment?.amount ?? 0;
+          reduceInstallmentAmount = installmentPayment?.amount ?? 0;
+        }
       } else {
         extraMonth = month;
-        extraAmount = 0;
-        extraType = "reduce_term";
+        reduceTermAmount = 0;
+        reduceInstallmentAmount = 0;
         originalMonth = null;
         originalStudyId = null;
       }
@@ -75,28 +85,68 @@
     extraMonth = v;
   }
 
-  function updateAmount(v: number) {
-    extraAmount = v;
+  function updateReduceTerm(v: number) {
+    reduceTermAmount = v;
+  }
+
+  function updateReduceInstallment(v: number) {
+    reduceInstallmentAmount = v;
   }
 
   function handleSave() {
     const m = extraMonth;
-    const a = extraAmount;
-    if (m <= 0 || a <= 0) return;
+    if (m <= 0) return;
 
     const studyId = isEdit ? (originalStudyId ?? targetStudyId) : targetStudyId;
     if (!studyId) return;
 
-    const payment: ExtraPayment = { month: m, amount: a, type: extraType };
-    if (isEdit && originalMonth !== null) {
-      if (m !== originalMonth) {
-        studiesStore.removeExtraPayment(studyId, originalMonth);
-        studiesStore.addExtraPayment(studyId, payment);
-      } else {
-        studiesStore.updateExtraPayment(studyId, payment);
+    if (isEdit && originalMonth !== null && originalMonth !== m) {
+      if (reduceTermAmount > 0) {
+        studiesStore.addExtraPayment(studyId, {
+          month: m,
+          amount: reduceTermAmount,
+          type: "reduce_term",
+        });
       }
+      if (reduceInstallmentAmount > 0) {
+        studiesStore.addExtraPayment(studyId, {
+          month: m,
+          amount: reduceInstallmentAmount,
+          type: "reduce_installment",
+        });
+      }
+      studiesStore.removeExtraPayment(studyId, originalMonth);
     } else {
-      studiesStore.addExtraPayment(studyId, payment);
+      if (reduceTermAmount > 0) {
+        studiesStore.addExtraPayment(studyId, {
+          month: m,
+          amount: reduceTermAmount,
+          type: "reduce_term",
+        });
+      } else {
+        const study = $studiesStore.studies.find((s) => s.id === studyId);
+        const existing = study?.extraPayments.find(
+          (ep) => ep.month === m && ep.type === "reduce_term",
+        );
+        if (existing) {
+          studiesStore.removeExtraPayment(studyId, m);
+        }
+      }
+      if (reduceInstallmentAmount > 0) {
+        studiesStore.addExtraPayment(studyId, {
+          month: m,
+          amount: reduceInstallmentAmount,
+          type: "reduce_installment",
+        });
+      } else {
+        const study = $studiesStore.studies.find((s) => s.id === studyId);
+        const existing = study?.extraPayments.find(
+          (ep) => ep.month === m && ep.type === "reduce_installment",
+        );
+        if (existing) {
+          studiesStore.removeExtraPayment(studyId, m);
+        }
+      }
     }
     open = false;
     onclose?.();
@@ -164,35 +214,43 @@
         </div>
 
         <div>
-          <label for="extra-modal-amount" class="text-sm font-medium"
-            >Valor (R$)</label
+          <label for="extra-modal-reduce-term" class="text-sm font-medium"
+            >Reduzir prazo (R$)</label
           >
           <SwipeInput
             this={focusElementOnOpen}
-            id="extra-modal-amount"
+            id="extra-modal-reduce-term"
             decimals={2}
             placeholder="Ex: 5.000"
-            value={extraAmount}
-            onchange={updateAmount}
+            value={reduceTermAmount}
+            onchange={updateReduceTerm}
             min={0}
             actionButtons={[]}
             class="mt-1.5"
           />
           <p class="text-xs text-muted-foreground mt-1">
-            Arraste para cima/baixo para ajustar o valor
+            Mantém valor da parcela, reduz prazo
           </p>
         </div>
 
         <div>
-          <label for="extra-modal-type" class="text-sm font-medium">Tipo</label>
-          <select
-            id="extra-modal-type"
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1.5"
-            bind:value={extraType}
+          <label
+            for="extra-modal-reduce-installment"
+            class="text-sm font-medium">Reduzir parcela (R$)</label
           >
-            <option value="reduce_term">Reduzir prazo</option>
-            <option value="reduce_installment">Reduzir parcela</option>
-          </select>
+          <SwipeInput
+            id="extra-modal-reduce-installment"
+            decimals={2}
+            placeholder="Ex: 5.000"
+            value={reduceInstallmentAmount}
+            onchange={updateReduceInstallment}
+            min={0}
+            actionButtons={[]}
+            class="mt-1.5"
+          />
+          <p class="text-xs text-muted-foreground mt-1">
+            Mantém prazo, reduz valor da parcela
+          </p>
         </div>
       </div>
 
