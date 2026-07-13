@@ -1,7 +1,7 @@
 <script lang="ts">
   import { studiesStore } from "$lib/stores/calculator-store";
   import type { FieldKey } from "$lib/stores/calculator-store";
-  import { splitMonths, throttle } from "$lib/utils";
+  import { splitMonths } from "$lib/utils";
   import lockClosedIcon from "$lib/assets/icons/lock-closed.svg?raw";
   import lockOpenIcon from "$lib/assets/icons/lock-open.svg?raw";
   import revertIcon from "$lib/assets/icons/revert.svg?raw";
@@ -24,16 +24,21 @@
   let editModalOpen = $state(false);
   let editMode = $state<"add" | "edit">("add");
   let editStudy: Partial<Study> | undefined = $state(undefined);
-  let deferredPrompt = $state<{
+  interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;
-    userChoice: Promise<{ outcome: string }>;
-  } | null>(null);
+    userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+  }
 
-  const isStandalone = $derived(
-    typeof window !== "undefined" &&
-      (window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as Navigator & { standalone?: boolean }).standalone),
-  );
+  let deferredPrompt = $state<BeforeInstallPromptEvent | null>(null);
+
+  let isStandalone = $state(false);
+
+  $effect(() => {
+    isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone ||
+      false;
+  });
 
   async function triggerInstall() {
     if (!deferredPrompt) return;
@@ -45,7 +50,7 @@
   $effect(() => {
     function handleBeforeInstallPrompt(e: Event) {
       e.preventDefault();
-      deferredPrompt = e as unknown as typeof deferredPrompt;
+      deferredPrompt = e as unknown as BeforeInstallPromptEvent;
     }
     window.addEventListener(
       "beforeinstallprompt",
@@ -75,21 +80,6 @@
       $studiesStore.commonValues.termMonths,
   );
 
-  const FORM_CHANGE_THROTTLE_MS = 1_000;
-
-  const throttledUpdateDownPayment = throttle(
-    (raw: string | number) =>
-      effectivePrincipal < effectiveDownPayment &&
-      studiesStore.updateField("downPayment", raw),
-    FORM_CHANGE_THROTTLE_MS,
-  );
-  const throttledUpdatePrincipal = throttle(
-    (raw: string | number) =>
-      effectivePrincipal < effectiveDownPayment &&
-      studiesStore.updateField("principal", raw),
-    FORM_CHANGE_THROTTLE_MS,
-  );
-
   function isLocked(field: FieldKey): boolean {
     return (
       $studiesStore.overrides[$studiesStore.activeStudyId]?.[field] ===
@@ -112,20 +102,18 @@
     studiesStore.revertFieldToCommon(field);
   }
 
-  function handleBindValues(field: FieldKey, raw: string | number) {
-    switch (field) {
-      case "principal":
-        throttledUpdateDownPayment(raw);
-        break;
-      case "downPayment":
-        throttledUpdatePrincipal(raw);
-        break;
-    }
-  }
-
   function updateField(field: FieldKey, raw: string | number) {
-    handleBindValues(field, raw);
-    studiesStore.updateField(field, raw);
+    const numValue = typeof raw === "number" ? raw : Number(raw) || 0;
+    if (field === "downPayment" && numValue > effectivePrincipal) {
+      return;
+    }
+    if (field === "principal" && numValue < effectiveDownPayment) {
+      studiesStore.updateField("downPayment", numValue);
+      studiesStore.updateField(field, numValue);
+    } else {
+      studiesStore.updateField(field, raw);
+    }
+    handleFormChange();
   }
 
   function handleAddStudy() {
@@ -143,7 +131,9 @@
   let termMonthsLabel = $derived.by(() => {
     if (effectiveTermMonths === 0) return "";
     const { years, months } = splitMonths(effectiveTermMonths);
-    if (years === 0) return "";
+    if (years === 0) {
+      return months === 1 ? "1 mês" : `${months} meses`;
+    }
     const yearLabel = years === 1 ? "1 ano" : `${years} anos`;
     if (months === 0) return yearLabel;
     const monthLabel = months === 1 ? "1 mês" : `${months} meses`;
@@ -172,8 +162,7 @@
       const monthly = annualToMonthly(effectiveAnnualRate);
       return `${monthly.toFixed(3)}% a.m.`;
     } else {
-      const annual = monthlyToAnnual(displayRate);
-      return `${annual.toFixed(2)}% a.a.`;
+      return `${effectiveAnnualRate.toFixed(2)}% a.a.`;
     }
   });
 
@@ -182,6 +171,19 @@
   function toggleRateMode() {
     rateMode = rateMode === "annual" ? "monthly" : "annual";
   }
+
+  const actionButtonsMap = $derived({
+    principal: makeActionButtons("principal"),
+    downPayment: makeActionButtons("downPayment"),
+    annualRate: [
+      ...makeActionButtons("annualRate"),
+      {
+        icon: () => `<span class="text-xs font-bold">${rateModeIcon}</span>`,
+        onclick: toggleRateMode,
+      },
+    ],
+    termMonths: makeActionButtons("termMonths"),
+  });
 
   function makeActionButtons(
     field: FieldKey,
@@ -218,7 +220,7 @@
           value={effectivePrincipal}
           onchange={(v) => updateField("principal", v)}
           min={1}
-          actionButtons={makeActionButtons("principal")}
+          actionButtons={actionButtonsMap.principal}
         />
       </div>
       <div>
@@ -229,7 +231,7 @@
           placeholder="0"
           value={effectiveDownPayment}
           onchange={(v) => updateField("downPayment", v)}
-          actionButtons={makeActionButtons("downPayment")}
+          actionButtons={actionButtonsMap.downPayment}
         />
       </div>
       <div>
@@ -248,14 +250,7 @@
             )}
           min={0.01}
           label={rateLabel}
-          actionButtons={[
-            ...makeActionButtons("annualRate"),
-            {
-              icon: () =>
-                `<span class="text-xs font-bold">${rateModeIcon}</span>`,
-              onclick: toggleRateMode,
-            },
-          ]}
+          actionButtons={actionButtonsMap.annualRate}
         />
       </div>
       <div>
@@ -269,7 +264,7 @@
           min={1}
           step={1}
           label={termMonthsLabel}
-          actionButtons={makeActionButtons("termMonths")}
+          actionButtons={actionButtonsMap.termMonths}
         />
       </div>
     </div>
@@ -323,7 +318,7 @@
           onchange={(v) => updateField("principal", v)}
           min={1}
           class="mt-1"
-          actionButtons={makeActionButtons("principal")}
+          actionButtons={actionButtonsMap.principal}
         />
       </div>
 
@@ -336,7 +331,7 @@
           value={effectiveDownPayment}
           onchange={(v) => updateField("downPayment", v)}
           class="mt-1"
-          actionButtons={makeActionButtons("downPayment")}
+          actionButtons={actionButtonsMap.downPayment}
         />
       </div>
     </div>
@@ -358,14 +353,7 @@
             )}
           min={0.01}
           class="mt-1"
-          actionButtons={[
-            ...makeActionButtons("annualRate"),
-            {
-              icon: () =>
-                `<span class="text-xs font-bold">${rateModeIcon}</span>`,
-              onclick: toggleRateMode,
-            },
-          ]}
+          actionButtons={actionButtonsMap.annualRate}
         />
       </div>
 
@@ -381,7 +369,7 @@
           step={1}
           class="mt-1"
           label={termMonthsLabel}
-          actionButtons={makeActionButtons("termMonths")}
+          actionButtons={actionButtonsMap.termMonths}
         />
       </div>
     </div>
