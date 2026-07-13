@@ -170,14 +170,14 @@
     if (effectiveAnnualRate === 0) return "";
     if (rateMode === "annual") {
       const monthly = annualToMonthly(effectiveAnnualRate);
-      return `~${monthly.toFixed(2)}% a.m.`;
+      return `${monthly.toFixed(3)}% a.m.`;
     } else {
       const annual = monthlyToAnnual(displayRate);
-      return `~${annual.toFixed(2)}% a.a.`;
+      return `${annual.toFixed(2)}% a.a.`;
     }
   });
 
-  let rateModeIcon = $derived(rateMode === "annual" ? "a" : "m");
+  let rateModeIcon = $derived(rateMode === "annual" ? "a.a." : "a.m.");
 
   function toggleRateMode() {
     rateMode = rateMode === "annual" ? "monthly" : "annual";
@@ -238,7 +238,7 @@
         >
         <SwipeInput
           id="m-rate"
-          decimals={2}
+          decimals={rateMode === "annual" ? 2 : 3}
           placeholder="10"
           value={displayRate}
           onchange={(v) =>
@@ -247,7 +247,6 @@
               rateMode === "annual" ? v : monthlyToAnnual(v),
             )}
           min={0.01}
-          step={0.1}
           label={rateLabel}
           actionButtons={[
             ...makeActionButtons("annualRate"),
@@ -349,7 +348,7 @@
         >
         <SwipeInput
           id="annualRate"
-          decimals={2}
+          decimals={rateMode === "annual" ? 2 : 3}
           placeholder="Ex: 10,5"
           value={displayRate}
           onchange={(v) =>
@@ -358,9 +357,7 @@
               rateMode === "annual" ? v : monthlyToAnnual(v),
             )}
           min={0.01}
-          step={0.1}
           class="mt-1"
-          label={rateLabel}
           actionButtons={[
             ...makeActionButtons("annualRate"),
             {
