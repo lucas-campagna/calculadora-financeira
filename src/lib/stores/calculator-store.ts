@@ -6,6 +6,7 @@ import type {
   FinancingResult,
   Study,
 } from "$lib/calculator/types";
+import { decodeStateFromUrl } from "./share-state";
 
 type FieldKey = "principal" | "annualRate" | "termMonths" | "downPayment";
 
@@ -63,6 +64,8 @@ function loadState(): StudiesState {
       },
     };
   }
+  const urlState = decodeStateFromUrl(window.location.search);
+  if (urlState) return urlState;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {

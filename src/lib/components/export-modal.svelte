@@ -2,13 +2,18 @@
   import { formatCurrency } from "$lib/calculator";
   import jspdf from "jspdf";
   import papaparse from "papaparse";
+  import { get } from "svelte/store";
   import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
+  import { copyShareLink } from "$lib/stores/share-state";
+  import { Link } from "lucide-svelte";
 
   let {
     open = $bindable(false),
   }: {
     open?: boolean;
   } = $props();
+
+  let copyFeedback = $state<string | null>(null);
 
   function getResult() {
     const study = $studiesStore.studies.find(
@@ -97,6 +102,14 @@
     );
     open = false;
   }
+
+  async function copyLink() {
+    const ok = await copyShareLink(get(studiesStore));
+    copyFeedback = ok ? "Link copiado!" : "Erro ao copiar";
+    if (ok) {
+      setTimeout(() => (copyFeedback = null), 2000);
+    }
+  }
 </script>
 
 {#if open}
@@ -111,7 +124,7 @@
     }}
     role="dialog"
     aria-modal="true"
-    aria-label="Exportar"
+    aria-label="Exportar/Compartilhar"
     tabindex="0"
   >
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -120,7 +133,20 @@
       class="bg-background w-full max-w-md rounded-t-xl p-4"
       onclick={(e) => e.stopPropagation()}
     >
-      <h2 class="text-base font-semibold mb-3">Exportar</h2>
+      <h2 class="text-base font-semibold mb-3">Exportar/Compartilhar</h2>
+
+      <button
+        class="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent cursor-pointer mb-3"
+        onclick={copyLink}
+      >
+        <Link class="w-4 h-4" />
+        Copiar link
+      </button>
+      {#if copyFeedback}
+        <p class="text-xs text-green-600 dark:text-green-400 text-center mb-2">
+          {copyFeedback}
+        </p>
+      {/if}
 
       {#each $studiesStore.studies as study}
         {@const result = $allResultsStore[study.id]}

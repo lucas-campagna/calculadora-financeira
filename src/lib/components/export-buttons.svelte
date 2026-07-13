@@ -2,8 +2,13 @@
   import { formatCurrency } from "$lib/calculator";
   import jspdf from "jspdf";
   import papaparse from "papaparse";
+  import { get } from "svelte/store";
   import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
+  import { copyShareLink } from "$lib/stores/share-state";
   import Button from "$lib/components/ui/button.svelte";
+  import { Link } from "lucide-svelte";
+
+  let copyFeedback = $state<string | null>(null);
 
   function exportCSV() {
     const study = $studiesStore.studies.find(
@@ -86,15 +91,34 @@
       `financiamento-${study.name.toLowerCase().replace(/\s+/g, "-")}.pdf`,
     );
   }
+
+  async function copyLink() {
+    const ok = await copyShareLink(get(studiesStore));
+    copyFeedback = ok ? "Link copiado!" : "Erro ao copiar";
+    if (ok) {
+      setTimeout(() => (copyFeedback = null), 2000);
+    }
+  }
 </script>
 
-{#if $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId) && $allResultsStore[$studiesStore.activeStudyId]}
-  <div class="flex gap-3 flex-wrap">
-    <Button variant="outline" size="default" onclick={exportCSV}>
-      Exportar CSV
+{#if $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)}
+  <div class="flex gap-3 flex-wrap items-center">
+    <Button variant="outline" size="default" onclick={copyLink}>
+      <Link class="w-4 h-4 mr-1" />
+      Copiar link
     </Button>
-    <Button variant="outline" size="default" onclick={exportPDF}>
-      Exportar PDF
-    </Button>
+    {#if $allResultsStore[$studiesStore.activeStudyId]}
+      <Button variant="outline" size="default" onclick={exportCSV}>
+        Exportar CSV
+      </Button>
+      <Button variant="outline" size="default" onclick={exportPDF}>
+        Exportar PDF
+      </Button>
+    {/if}
+    {#if copyFeedback}
+      <span class="text-xs text-green-600 dark:text-green-400 ml-1"
+        >{copyFeedback}</span
+      >
+    {/if}
   </div>
 {/if}
