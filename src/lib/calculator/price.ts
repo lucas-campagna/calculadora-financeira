@@ -8,7 +8,6 @@ export function calculatePrice(
 ): Installment[] {
   const installments: Installment[] = [];
   let balance = principal;
-  let remainingTerm = termMonths;
 
   const getExtraPayment = (month: number): ExtraPayment | undefined =>
     extraPayments.find((ep) => ep.month === month);
@@ -19,10 +18,13 @@ export function calculatePrice(
       : principal *
         (monthlyRate / (1 - Math.pow(1 + monthlyRate, -termMonths)));
 
+  let currentPmt = pmt;
+  let remainingTerm = termMonths;
+
   for (let i = 1; i <= termMonths && balance > 0.01; i++) {
     const extra = getExtraPayment(i);
     const interest = balance * monthlyRate;
-    let payment = Math.min(pmt, balance + interest);
+    let payment = Math.min(currentPmt, balance + interest);
     const principal_portion = payment - interest;
     let extraAmount = extra
       ? Math.min(extra.amount, balance - principal_portion)
@@ -34,9 +36,23 @@ export function calculatePrice(
 
     if (extra && extra.type === "reduce_term" && balance > 0.01) {
       remainingTerm = Math.ceil(
-        -Math.log(1 - (balance * monthlyRate) / pmt) /
+        -Math.log(1 - (balance * monthlyRate) / currentPmt) /
           Math.log(1 + monthlyRate),
       );
+      if (i >= remainingTerm) {
+        break;
+      }
+    }
+
+    if (extra && extra.type === "reduce_installment" && balance > 0.01) {
+      const monthsRemaining = termMonths - i;
+      if (monthsRemaining > 0) {
+        currentPmt =
+          monthlyRate === 0
+            ? balance / monthsRemaining
+            : balance *
+              (monthlyRate / (1 - Math.pow(1 + monthlyRate, -monthsRemaining)));
+      }
     }
 
     installments.push({
@@ -47,16 +63,6 @@ export function calculatePrice(
       balance: Math.max(balance, 0),
       extraPayment: extraAmount > 0 ? extraAmount : undefined,
     });
-
-    if (extra && extra.type === "reduce_installment" && balance > 0.01) {
-      remainingTerm = Math.ceil(
-        -Math.log(1 - (balance * monthlyRate) / pmt) /
-          Math.log(1 + monthlyRate),
-      );
-    }
-    if (balance > 0.01) {
-      remainingTerm--;
-    }
   }
 
   return installments;

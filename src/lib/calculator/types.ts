@@ -21,7 +21,7 @@ export interface FinancingInput {
   annualRate: number;
   termMonths: number;
   downPayment?: number;
-  extraPayments: ExtraPayment[];
+  extraPayments?: ExtraPayment[];
 }
 
 export interface FinancingResult {

@@ -8,7 +8,8 @@ export function calculateSac(
 ): Installment[] {
   const installments: Installment[] = [];
   let balance = principal;
-  const amortization = principal / termMonths;
+  let remainingMonths = termMonths;
+  let amortization = principal / termMonths;
 
   const getExtraPayment = (month: number): ExtraPayment | undefined =>
     extraPayments.find((ep) => ep.month === month);
@@ -22,6 +23,12 @@ export function calculateSac(
     const payment = totalPrincipal + interest;
 
     balance -= totalPrincipal;
+    remainingMonths--;
+
+    if (extra && extra.type === "reduce_installment" && balance > 0.01) {
+      remainingMonths = termMonths - i;
+      amortization = remainingMonths > 0 ? balance / remainingMonths : 0;
+    }
 
     installments.push({
       number: i,

@@ -124,7 +124,7 @@ describe("calculate", () => {
   });
 
   it("PRICE with short term (6 months)", () => {
-    const result = calculate({ ...baseInput, termMonths: 6});
+    const result = calculate({ ...baseInput, termMonths: 6 });
     expect(result.installments.length).toBe(6);
     expect(result.firstInstallment).toBeCloseTo(result.lastInstallment, 2);
     expect(result.totalPaid).toBeCloseTo(103_347.21, 2);
@@ -132,7 +132,11 @@ describe("calculate", () => {
   });
 
   it("PRICE with short term (6 months) and down payment", () => {
-    const result = calculate({ ...baseInput, termMonths: 6, downPayment: 1_000 });
+    const result = calculate({
+      ...baseInput,
+      termMonths: 6,
+      downPayment: 1_000,
+    });
     expect(result.installments.length).toBe(6);
     expect(result.firstInstallment).toBeCloseTo(result.lastInstallment, 2);
     expect(result.totalPaid).toBeCloseTo(102_313.74, 2);
@@ -154,7 +158,12 @@ describe("calculate", () => {
   });
 
   it("SAC with 6 months calculates correctly and down payment", () => {
-    const result = calculate({ ...baseInput, system: "sac", termMonths: 6, downPayment: 1_000  });
+    const result = calculate({
+      ...baseInput,
+      system: "sac",
+      termMonths: 6,
+      downPayment: 1_000,
+    });
     expect(result.installments.length).toBe(6);
     expect(result.firstInstallment).toBeGreaterThan(result.lastInstallment);
     expect(result.totalPaid).toBeCloseTo(102_287.87, 2);
@@ -198,7 +207,7 @@ describe("calculate", () => {
 });
 
 describe("calculate with extra payments", () => {
-  it("applies extra payment that reduces term", () => {
+  it("reduce_term: finishes earlier with extra payment", () => {
     const input: FinancingInput = {
       system: "price",
       principal: 100000,
@@ -210,9 +219,12 @@ describe("calculate with extra payments", () => {
     const result = calculate(input);
 
     expect(result.installments.length).toBeLessThan(12);
+    expect(result.installments[0].payment).toBeGreaterThan(
+      result.installments[result.installments.length - 1].payment,
+    );
   });
 
-  it("applies extra payment that reduces installment", () => {
+  it("reduce_installment: reduces payment amount but maintains term", () => {
     const input: FinancingInput = {
       system: "price",
       principal: 100000,
@@ -223,7 +235,126 @@ describe("calculate with extra payments", () => {
 
     const result = calculate(input);
 
+    expect(result.installments.length).toBe(12);
     expect(result.installments[2].extraPayment).toBe(5000);
+    const paymentBefore = result.installments[1].payment;
+    const paymentAfter = result.installments[3].payment;
+    expect(paymentAfter).toBeLessThan(paymentBefore);
+  });
+
+  it("reduce_installment: payment decreases significantly after extra payment", () => {
+    const input: FinancingInput = {
+      system: "price",
+      principal: 100000,
+      annualRate: 12,
+      termMonths: 12,
+      extraPayments: [{ month: 1, amount: 30000, type: "reduce_installment" }],
+    };
+
+    const result = calculate(input);
+
+    expect(result.installments.length).toBe(12);
+    const originalPayment = result.installments[0].payment;
+    const newPayment = result.installments[1].payment;
+    expect(newPayment).toBeLessThan(originalPayment);
+  });
+
+  it("reduce_term and reduce_installment produce different results", () => {
+    const baseInput: FinancingInput = {
+      system: "price",
+      principal: 100000,
+      annualRate: 12,
+      termMonths: 12,
+    };
+
+    const reduceTermInput: FinancingInput = {
+      ...baseInput,
+      extraPayments: [{ month: 3, amount: 20000, type: "reduce_term" }],
+    };
+
+    const reduceInstallmentInput: FinancingInput = {
+      ...baseInput,
+      extraPayments: [{ month: 3, amount: 20000, type: "reduce_installment" }],
+    };
+
+    const termResult = calculate(reduceTermInput);
+    const installmentResult = calculate(reduceInstallmentInput);
+
+    expect(termResult.installments.length).not.toBe(
+      installmentResult.installments.length,
+    );
+  });
+
+  it("SAC reduce_installment: reduces payment but maintains term", () => {
+    const input: FinancingInput = {
+      system: "sac",
+      principal: 100000,
+      annualRate: 12,
+      termMonths: 12,
+      extraPayments: [{ month: 3, amount: 10000, type: "reduce_installment" }],
+    };
+
+    const result = calculate(input);
+
+    expect(result.installments.length).toBe(12);
+    expect(result.installments[2].extraPayment).toBe(10000);
+    const paymentBefore = result.installments[1].payment;
+    const paymentAfter = result.installments[3].payment;
+    expect(paymentAfter).toBeLessThan(paymentBefore);
+  });
+
+  it("SAM reduce_installment: reduces payment but maintains term", () => {
+    const input: FinancingInput = {
+      system: "sam",
+      principal: 100000,
+      annualRate: 12,
+      termMonths: 12,
+      extraPayments: [{ month: 3, amount: 10000, type: "reduce_installment" }],
+    };
+
+    const result = calculate(input);
+
+    expect(result.installments.length).toBe(12);
+    expect(result.installments[2].extraPayment).toBe(10000);
+    const paymentBefore = result.installments[1].payment;
+    const paymentAfter = result.installments[3].payment;
+    expect(paymentAfter).toBeLessThan(paymentBefore);
+  });
+
+  it("extra payment pays off loan early with reduce_term", () => {
+    const input: FinancingInput = {
+      system: "price",
+      principal: 50000,
+      annualRate: 10,
+      termMonths: 24,
+      extraPayments: [{ month: 5, amount: 40000, type: "reduce_term" }],
+    };
+
+    const result = calculate(input);
+
+    expect(result.installments.length).toBeLessThan(24);
+    expect(
+      result.installments[result.installments.length - 1].balance,
+    ).toBeLessThan(input.principal);
+  });
+
+  it("multiple extra payments work correctly", () => {
+    const input: FinancingInput = {
+      system: "price",
+      principal: 100000,
+      annualRate: 12,
+      termMonths: 12,
+      extraPayments: [
+        { month: 2, amount: 5000, type: "reduce_installment" },
+        { month: 5, amount: 5000, type: "reduce_installment" },
+      ],
+    };
+
+    const result = calculate(input);
+
+    expect(result.installments.length).toBe(12);
+    expect(result.installments[1].extraPayment).toBe(5000);
+    expect(result.installments[4].extraPayment).toBe(5000);
   });
 });
 

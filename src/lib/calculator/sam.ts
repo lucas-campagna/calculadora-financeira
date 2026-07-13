@@ -10,11 +10,14 @@ export function calculateSam(
   let balance = principal;
 
   const fixedAmort = principal / termMonths;
-  const pmt =
+  const originalPmt =
     monthlyRate === 0
       ? principal / termMonths
       : principal *
         (monthlyRate / (1 - Math.pow(1 + monthlyRate, -termMonths)));
+
+  let remainingMonths = termMonths;
+  let currentPmt = originalPmt;
 
   const getExtraPayment = (month: number): ExtraPayment | undefined =>
     extraPayments.find((ep) => ep.month === month);
@@ -22,8 +25,14 @@ export function calculateSam(
   for (let i = 1; i <= termMonths && balance > 0.01; i++) {
     const extra = getExtraPayment(i);
     const interest = balance * monthlyRate;
-    const sacInstallment = fixedAmort + interest;
-    const samPayment = (sacInstallment + pmt) / 2;
+    const sacAmort = balance / remainingMonths;
+    const sacInstallment = sacAmort + interest;
+    const priceInstallment =
+      monthlyRate === 0
+        ? balance / remainingMonths
+        : balance *
+          (monthlyRate / (1 - Math.pow(1 + monthlyRate, -remainingMonths)));
+    const samPayment = (sacInstallment + priceInstallment) / 2;
     const samPrincipal = Math.max(samPayment - interest, 0);
     const extraAmount = extra
       ? Math.min(extra.amount, balance - samPrincipal)
@@ -32,6 +41,18 @@ export function calculateSam(
     const payment = totalPrincipal + interest;
 
     balance -= totalPrincipal;
+    remainingMonths--;
+
+    if (extra && extra.type === "reduce_installment" && balance > 0.01) {
+      remainingMonths = termMonths - i;
+      if (remainingMonths > 0) {
+        currentPmt =
+          monthlyRate === 0
+            ? balance / remainingMonths
+            : balance *
+              (monthlyRate / (1 - Math.pow(1 + monthlyRate, -remainingMonths)));
+      }
+    }
 
     installments.push({
       number: i,
