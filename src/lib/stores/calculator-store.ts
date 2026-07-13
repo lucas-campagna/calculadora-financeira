@@ -372,6 +372,26 @@ function createStudiesStore() {
       });
       calculateAll();
     },
+    removeExtraPaymentType(
+      studyId: string,
+      month: number,
+      type: "reduce_installment" | "reduce_term",
+    ) {
+      update((s) => {
+        const study = s.studies.find((st) => st.id === studyId);
+        if (!study) return s;
+        const newPayments = study.extraPayments.filter(
+          (ep) => !(ep.month === month && ep.type === type),
+        );
+        return {
+          ...s,
+          studies: s.studies.map((st) =>
+            st.id === studyId ? { ...st, extraPayments: newPayments } : st,
+          ),
+        };
+      });
+      calculateAll();
+    },
     value(field: FieldKey): number {
       let result = DEFAULT_VALUES[field];
       const unsubscribe = subscribe((s) => {

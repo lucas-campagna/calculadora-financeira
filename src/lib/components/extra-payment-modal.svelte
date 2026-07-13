@@ -32,7 +32,6 @@
     "#ef4444",
   ];
 
-  // let extraMonth = $state(editPayment?.month || month || 1);
   let extraMonth = $state(1);
   let reduceTermAmount = $state(0);
   let reduceInstallmentAmount = $state(0);
@@ -47,7 +46,7 @@
     extraMonth > 0 && (reduceTermAmount > 0 || reduceInstallmentAmount > 0),
   );
 
-  const swapIcon = () =>
+  const swapIcon =
     '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>';
 
   function swapValues() {
@@ -60,24 +59,25 @@
     if (open) {
       showRemoveConfirm = false;
       if (editPayment) {
-        if (!isEdit) extraMonth = editPayment.month;
+        extraMonth = editPayment.month;
         originalMonth = editPayment.month;
         originalStudyId = targetStudyId ?? null;
         const studyId = originalStudyId ?? targetStudyId;
         if (studyId) {
           const study = $studiesStore.studies.find((s) => s.id === studyId);
           const termPayment = study?.extraPayments.find(
-            (ep) => ep.month === originalMonth && ep.type === "reduce_term",
+            (ep) => ep.month === editPayment.month && ep.type === "reduce_term",
           );
           const installmentPayment = study?.extraPayments.find(
             (ep) =>
-              ep.month === originalMonth && ep.type === "reduce_installment",
+              ep.month === editPayment.month &&
+              ep.type === "reduce_installment",
           );
           reduceTermAmount = termPayment?.amount ?? 0;
           reduceInstallmentAmount = installmentPayment?.amount ?? 0;
         }
       } else {
-        if (!isEdit) extraMonth = month;
+        extraMonth = month;
         reduceTermAmount = 0;
         reduceInstallmentAmount = 0;
         originalMonth = null;
@@ -105,39 +105,81 @@
   }
 
   function handleSave() {
-    const m = extraMonth;
+    const m = Math.round(extraMonth);
     if (m <= 0) return;
 
     const studyId = isEdit ? (originalStudyId ?? targetStudyId) : targetStudyId;
     if (!studyId) return;
 
-    if (isEdit && originalMonth !== null && originalMonth !== m) {
-      const study = $studiesStore.studies.find((s) => s.id === studyId);
-      if (study) {
-        const existingAtM = study.extraPayments.filter((ep) => ep.month === m);
-        if (existingAtM.length > 0) {
-          studiesStore.removeExtraPayment(studyId, m);
+    if (isEdit && originalMonth !== null) {
+      if (originalMonth !== m) {
+        if (reduceTermAmount > 0) {
+          studiesStore.addExtraPayment(studyId, {
+            month: m,
+            amount: reduceTermAmount,
+            type: "reduce_term",
+          });
+          studiesStore.removeExtraPaymentType(
+            studyId,
+            originalMonth,
+            "reduce_term",
+          );
+        } else {
+          studiesStore.removeExtraPaymentType(
+            studyId,
+            originalMonth,
+            "reduce_term",
+          );
+        }
+
+        if (reduceInstallmentAmount > 0) {
+          studiesStore.addExtraPayment(studyId, {
+            month: m,
+            amount: reduceInstallmentAmount,
+            type: "reduce_installment",
+          });
+          studiesStore.removeExtraPaymentType(
+            studyId,
+            originalMonth,
+            "reduce_installment",
+          );
+        } else {
+          studiesStore.removeExtraPaymentType(
+            studyId,
+            originalMonth,
+            "reduce_installment",
+          );
+        }
+      } else {
+        if (reduceTermAmount > 0) {
+          studiesStore.addExtraPayment(studyId, {
+            month: m,
+            amount: reduceTermAmount,
+            type: "reduce_term",
+          });
+        } else {
+          studiesStore.removeExtraPaymentType(
+            studyId,
+            originalMonth,
+            "reduce_term",
+          );
+        }
+
+        if (reduceInstallmentAmount > 0) {
+          studiesStore.addExtraPayment(studyId, {
+            month: m,
+            amount: reduceInstallmentAmount,
+            type: "reduce_installment",
+          });
+        } else {
+          studiesStore.removeExtraPaymentType(
+            studyId,
+            originalMonth,
+            "reduce_installment",
+          );
         }
       }
-      if (reduceTermAmount > 0) {
-        studiesStore.addExtraPayment(studyId, {
-          month: m,
-          amount: reduceTermAmount,
-          type: "reduce_term",
-        });
-      }
-      if (reduceInstallmentAmount > 0) {
-        studiesStore.addExtraPayment(studyId, {
-          month: m,
-          amount: reduceInstallmentAmount,
-          type: "reduce_installment",
-        });
-      }
-      studiesStore.removeExtraPayment(studyId, originalMonth);
     } else {
-      if (isEdit && originalMonth !== null) {
-        studiesStore.removeExtraPayment(studyId, originalMonth);
-      }
       if (reduceTermAmount > 0) {
         studiesStore.addExtraPayment(studyId, {
           month: m,
@@ -173,17 +215,15 @@
 </script>
 
 {#if open}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
     class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
-    onclick={open && handleCancel}
+    onclick={handleCancel}
     onkeydown={(e: KeyboardEvent) => {
       if (e.key === "Escape") handleCancel();
     }}
     role="dialog"
     aria-modal="true"
     aria-label="Pagamento extra"
-    tabindex="0"
   >
     <div
       role="document"
@@ -213,6 +253,7 @@
             value={extraMonth}
             onchange={updateMonth}
             min={1}
+            step={1}
             actionButtons={[]}
             class="mt-1.5"
           />
@@ -231,7 +272,7 @@
             onchange={updateReduceTerm}
             min={0}
             actionButtons={reduceTermAmount > 0
-              ? [{ icon: swapIcon, onclick: swapValues }]
+              ? [{ icon: () => swapIcon, onclick: swapValues }]
               : []}
             class="mt-1.5"
           />
@@ -253,7 +294,7 @@
             onchange={updateReduceInstallment}
             min={0}
             actionButtons={reduceInstallmentAmount > 0
-              ? [{ icon: swapIcon, onclick: swapValues }]
+              ? [{ icon: () => swapIcon, onclick: swapValues }]
               : []}
             class="mt-1.5"
           />
