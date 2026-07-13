@@ -64,5 +64,23 @@ export function calculateSam(
     });
   }
 
+  const actualTerm = installments.length;
+  const excessPayments = extraPayments
+    .filter((ep) => ep.month > actualTerm)
+    .reduce((sum, ep) => sum + ep.amount, 0);
+
+  if (excessPayments > 0 && installments.length > 0) {
+    const lastIdx = installments.length - 1;
+    const last = installments[lastIdx];
+    const extraAmount = Math.min(excessPayments, last.balance);
+    installments[lastIdx] = {
+      ...last,
+      payment: last.payment + extraAmount,
+      principal: last.principal + extraAmount,
+      balance: Math.max(last.balance - extraAmount, 0),
+      extraPayment: (last.extraPayment || 0) + extraAmount,
+    };
+  }
+
   return installments;
 }

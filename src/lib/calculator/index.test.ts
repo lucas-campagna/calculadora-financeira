@@ -356,6 +356,42 @@ describe("calculate with extra payments", () => {
     expect(result.installments[1].extraPayment).toBe(5000);
     expect(result.installments[4].extraPayment).toBe(5000);
   });
+
+  it("extra payments beyond last month are grouped into last month", () => {
+    const input: FinancingInput = {
+      system: "price",
+      principal: 50000,
+      annualRate: 10,
+      termMonths: 24,
+      extraPayments: [
+        { month: 5, amount: 40000, type: "reduce_term" },
+        { month: 30, amount: 5000, type: "reduce_term" },
+      ],
+    };
+
+    const result = calculate(input);
+
+    const lastInstallment = result.installments[result.installments.length - 1];
+    expect(lastInstallment.extraPayment).toBeGreaterThan(5000);
+    expect(result.installments.length).toBeLessThan(24);
+  });
+
+  it("excess extra payment reduces final balance to zero", () => {
+    const input: FinancingInput = {
+      system: "sac",
+      principal: 50000,
+      annualRate: 10,
+      termMonths: 24,
+      extraPayments: [
+        { month: 5, amount: 45000, type: "reduce_term" },
+        { month: 50, amount: 10000, type: "reduce_term" },
+      ],
+    };
+
+    const result = calculate(input);
+
+    expect(result.installments[result.installments.length - 1].balance).toBe(0);
+  });
 });
 
 describe("installment structure", () => {

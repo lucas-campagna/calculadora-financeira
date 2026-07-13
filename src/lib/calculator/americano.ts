@@ -42,5 +42,21 @@ export function calculateAmericano(
     }
   }
 
+  const actualTerm = installments.length;
+  const excessPayments = extraPayments
+    .filter((ep) => ep.month > actualTerm)
+    .reduce((sum, ep) => sum + ep.amount, 0);
+
+  if (excessPayments > 0 && installments.length > 0) {
+    const lastIdx = installments.length - 1;
+    const last = installments[lastIdx];
+    installments[lastIdx] = {
+      ...last,
+      payment: last.payment + excessPayments,
+      principal: last.principal + excessPayments,
+      extraPayment: (last.extraPayment || 0) + excessPayments,
+    };
+  }
+
   return installments;
 }
