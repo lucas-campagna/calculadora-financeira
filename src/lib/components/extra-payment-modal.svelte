@@ -40,6 +40,8 @@
   let originalStudyId = $state<string | null>(null);
   let focusElementOnOpen = $state<HTMLInputElement | undefined>(undefined);
   let canCancel = $state(false);
+  let showStudySelector = $state(false);
+  let localTargetStudyId = $state<string | undefined>(undefined);
 
   const isEdit = $derived(originalMonth !== null);
   const isValid = $derived(
@@ -58,10 +60,12 @@
   $effect(() => {
     if (open) {
       showRemoveConfirm = false;
+      showStudySelector = false;
       if (editPayment) {
         extraMonth = editPayment.month;
         originalMonth = editPayment.month;
         originalStudyId = targetStudyId ?? null;
+        localTargetStudyId = targetStudyId ?? undefined;
         const studyId = originalStudyId ?? targetStudyId;
         if (studyId) {
           const study = $studiesStore.studies.find((s) => s.id === studyId);
@@ -82,6 +86,7 @@
         reduceInstallmentAmount = 0;
         originalMonth = null;
         originalStudyId = null;
+        localTargetStudyId = targetStudyId;
       }
       setTimeout(() => {
         canCancel = true;
@@ -90,6 +95,18 @@
     } else {
       canCancel = false;
     }
+  });
+
+  $effect(() => {
+    if (!showStudySelector) return;
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".study-selector")) {
+        showStudySelector = false;
+      }
+    }
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   });
 
   function updateMonth(v: number) {
@@ -108,7 +125,9 @@
     const m = Math.round(extraMonth);
     if (m <= 0) return;
 
-    const studyId = isEdit ? (originalStudyId ?? targetStudyId) : targetStudyId;
+    const studyId = isEdit
+      ? (originalStudyId ?? targetStudyId)
+      : (localTargetStudyId ?? targetStudyId);
     if (!studyId) return;
 
     if (isEdit && originalMonth !== null) {
@@ -233,13 +252,43 @@
       <h2 class="text-base font-semibold mb-3 flex items-center gap-2">
         <span>{isEdit ? "Editar Pagamento Extra" : "Pagamento Extra"}</span>
         {#if studyName}
-          {@const color = COLORS[colorIndex % COLORS.length]}
-          <span
-            class="px-2 py-0.5 text-xs font-medium rounded-full text-white"
-            style="background-color: {color};"
-          >
-            {studyName}
-          </span>
+          {@const currentStudy = $studiesStore.studies.find(
+            (s) => s.id === (localTargetStudyId ?? targetStudyId),
+          )}
+          {@const color =
+            currentStudy?.color ?? COLORS[colorIndex % COLORS.length]}
+          <div class="relative">
+            <button
+              class="px-2 py-0.5 text-xs font-medium rounded-full text-white cursor-pointer hover:opacity-80 transition-opacity"
+              style="background-color: {color};"
+              onclick={() => (showStudySelector = !showStudySelector)}
+              aria-label="Selecionar estudo"
+            >
+              {currentStudy?.name ?? studyName}
+              <span class="ml-1">▼</span>
+            </button>
+            {#if showStudySelector}
+              <div
+                class="study-selector absolute top-full left-0 mt-1 bg-background border border-border rounded-md shadow-lg z-10 min-w-[120px]"
+              >
+                {#each $studiesStore.studies as study}
+                  <button
+                    class="w-full px-3 py-2 text-left text-sm hover:bg-accent cursor-pointer flex items-center gap-2"
+                    onclick={() => {
+                      localTargetStudyId = study.id;
+                      showStudySelector = false;
+                    }}
+                  >
+                    <span
+                      class="w-2.5 h-2.5 rounded-full shrink-0"
+                      style="background-color: {study.color ?? COLORS[0]};"
+                    ></span>
+                    <span class="truncate">{study.name}</span>
+                  </button>
+                {/each}
+              </div>
+            {/if}
+          </div>
         {/if}
       </h2>
 
