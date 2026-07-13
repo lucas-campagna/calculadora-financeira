@@ -23,6 +23,21 @@
     { key: "americano", label: "Americano" },
   ];
 
+  const FRIENDLY_NAMES = [
+    "Minha Casa",
+    "Moto dos Sonhos",
+    "Casa na Praia",
+    "Próximo Celular",
+    "Sítio Sossego",
+    "Carro Novo",
+    "Apartamento",
+    "Viagem dos Sonhos",
+    "Escritório",
+    "Quarto Mobiliado",
+    "Chácara",
+    "Reforma Total",
+  ];
+
   let name = $state("");
   let system = $state<AmortizationSystem>("price");
   let principal = $state(0);
@@ -51,6 +66,7 @@
 
   let initialName = $state("");
   let initialSystem = $state<AmortizationSystem>("price");
+  let nameInputEl: HTMLInputElement | undefined;
 
   let isInitialized = false;
 
@@ -114,10 +130,7 @@
         existingColor ?? STUDY_COLORS[studyIndex % STUDY_COLORS.length];
     } else {
       const active = store.studies.find((s: Study) => s.id === activeId);
-      name =
-        active?.name ??
-        SYSTEMS.find((s) => s.key === active?.system)?.label ??
-        "Novo";
+      name = FRIENDLY_NAMES[store.studies.length % FRIENDLY_NAMES.length];
       system = active?.system ?? "price";
       principal = newInitialValues.principal;
       annualRate = newInitialValues.annualRate;
@@ -125,6 +138,10 @@
       downPayment = newInitialValues.downPayment;
       disabled = false;
       previousOverrides = {};
+    }
+
+    if (mode === "add") {
+      nameInputEl?.select();
     }
   });
 
@@ -420,6 +437,7 @@
           <label for="study-name" class="text-sm font-medium">Nome</label>
           <input
             id="study-name"
+            bind:this={nameInputEl}
             type="text"
             class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
             bind:value={name}
