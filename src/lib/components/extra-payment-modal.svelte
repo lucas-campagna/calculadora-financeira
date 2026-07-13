@@ -46,7 +46,7 @@
     extraMonth > 0 && (reduceTermAmount > 0 || reduceInstallmentAmount > 0),
   );
   const showSwapButton = $derived(
-    reduceTermAmount > 0 || reduceInstallmentAmount > 0,
+    reduceTermAmount > 0 && reduceInstallmentAmount > 0,
   );
 
   const swapIcon = () =>
