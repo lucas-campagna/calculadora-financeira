@@ -115,7 +115,6 @@
       restartDragTimer();
       if (e.cancelable) {
         e.preventDefault();
-        e.stopPropagation();
       }
       lastTickY -= ticksCount * TICK_PX;
       const dir = ticksCount > 0 ? "up" : "down";
@@ -178,7 +177,7 @@
   });
 </script>
 
-<div class="relative">
+<div class="relative" style="overscroll-behavior: none;">
   <input
     bind:this={inputEl}
     {id}
@@ -189,6 +188,7 @@
     onblur={handleBlur}
     oninput={handleInput}
     onfocus={() => inputEl?.select()}
+    style="touch-action: pan-x;"
     class={cn(
       "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none transition-colors",
       isSwiping ? "border-primary bg-primary/5" : "",
