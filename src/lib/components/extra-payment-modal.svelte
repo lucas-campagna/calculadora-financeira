@@ -237,7 +237,9 @@
             value={reduceTermAmount}
             onchange={updateReduceTerm}
             min={0}
-            actionButtons={[]}
+            actionButtons={showSwapButton
+              ? [{ icon: swapIcon, onclick: swapValues }]
+              : []}
             class="mt-1.5"
           />
           <p class="text-xs text-muted-foreground mt-1">
