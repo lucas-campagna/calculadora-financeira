@@ -26,13 +26,12 @@
 
   function getPillStyle(
     isActive: boolean,
-    colorIndex: number,
+    color: string,
     isDisabled: boolean,
   ): string {
     if (isDisabled) {
       return "background-color: #9ca3af; border-color: #9ca3af;";
     }
-    const color = COLORS[colorIndex % COLORS.length];
     const dimmedBg = color + "b3";
     if (isActive) {
       return `background-color: ${color}; border-color: color-mix(in srgb, ${color} 60%, black); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);`;
@@ -193,7 +192,11 @@
           hasOverrides,
           isDisabled,
         )}"
-        style={getPillStyle(isActive, i, isDisabled)}
+        style={getPillStyle(
+          isActive,
+          study.color ?? COLORS[i % COLORS.length],
+          isDisabled,
+        )}
         onclick={() => handlePillClick(study.id)}
       >
         {study.name}

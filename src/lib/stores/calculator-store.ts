@@ -35,12 +35,14 @@ function createDefaultStudies(): Study[] {
       name: "SAC",
       system: "sac",
       extraPayments: [],
+      color: "#3b82f6",
     },
     {
       id: "2",
       name: "PRICE",
       system: "price",
       extraPayments: [],
+      color: "#22c55e",
     },
   ];
 }
@@ -72,6 +74,7 @@ function loadState(): StudiesState {
           system: s.system,
           extraPayments: s.extraPayments || [],
           disabled: s.disabled ?? false,
+          color: s.color,
         }));
         const commonValues: Record<FieldKey, number> = {
           principal:
@@ -196,6 +199,51 @@ function createStudiesStore() {
         ),
       }));
       calculateAll();
+    },
+    updateStudyColor(id: string, color: string) {
+      update((s) => ({
+        ...s,
+        studies: s.studies.map((st) => (st.id === id ? { ...st, color } : st)),
+      }));
+      calculateAll();
+    },
+    cloneStudy(id: string): string | null {
+      let newId: string | null = null;
+      update((s) => {
+        const study = s.studies.find((st) => st.id === id);
+        if (!study) return s;
+        newId =
+          crypto.randomUUID?.() ??
+          `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const name = study.name;
+        const endsWithNumber = /\d+$/.test(name);
+        let newName: string;
+        if (endsWithNumber) {
+          const numStr = name.match(/\d+$/)?.[0] ?? "";
+          const num = parseInt(numStr, 10) + 1;
+          newName = name.replace(/\d+$/, String(num));
+        } else {
+          newName = `${name} 2`;
+        }
+        const clonedStudy: Study = {
+          ...study,
+          id: newId,
+          name: newName,
+          extraPayments: [...study.extraPayments],
+        };
+        const newOverrides = { ...s.overrides };
+        if (s.overrides[id]) {
+          newOverrides[newId] = { ...s.overrides[id] };
+        }
+        return {
+          ...s,
+          studies: [...s.studies, clonedStudy],
+          activeStudyId: newId,
+          overrides: newOverrides,
+        };
+      });
+      calculateAll();
+      return newId;
     },
     setActive(id: string) {
       update((s) => ({ ...s, activeStudyId: id }));

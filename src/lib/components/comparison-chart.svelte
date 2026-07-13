@@ -170,8 +170,9 @@
       datasets.push({
         label: study.name,
         data,
-        borderColor: COLORS[originalIndex % COLORS.length],
-        backgroundColor: COLORS[originalIndex % COLORS.length] + "20",
+        borderColor: study.color ?? COLORS[originalIndex % COLORS.length],
+        backgroundColor:
+          (study.color ?? COLORS[originalIndex % COLORS.length]) + "20",
         fill: false,
         tension: 0.1,
         spanGaps: true,

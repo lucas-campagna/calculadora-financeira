@@ -198,16 +198,12 @@
     >
       <CarouselContent class="h-full">
         <CarouselItem class="h-full w-full flex-shrink-0">
-          <div class="h-full flex flex-col">
-            <div class="flex-1 min-h-0 p-2">
-              {#if hasResults}
-                <ComparisonChart
-                  onselectdata={openExtraPayment}
-                  fullHeight={true}
-                />
-              {/if}
-            </div>
-          </div>
+          {#if hasResults}
+            <ComparisonChart
+              onselectdata={openExtraPayment}
+              fullHeight={true}
+            />
+          {/if}
         </CarouselItem>
         <CarouselItem class="h-full w-full flex-shrink-0">
           <div class="h-full overflow-y-auto">

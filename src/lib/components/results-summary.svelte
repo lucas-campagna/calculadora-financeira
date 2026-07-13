@@ -46,7 +46,9 @@
           >
             <div class="flex items-center gap-2 mb-3">
               <div
-                class="w-3 h-3 rounded-full {COLORS[i % COLORS.length]}"
+                class="w-3 h-3 rounded-full"
+                style="background-color: {study.color ??
+                  COLORS[i % COLORS.length]}"
               ></div>
               <h3 class="text-sm font-bold">{study.name}</h3>
               {#if isDisabled}
