@@ -548,7 +548,11 @@
 
 {#snippet selectChartType(show: boolean)}
   {#if show}
-    <div class="flex items-center justify-between mb-2">
+    <div
+      class="flex items-center justify-between"
+      class:mt-2={$isMobile}
+      class:mb-2={$isDesktop}
+    >
       <div class="flex rounded-md border overflow-hidden">
         {#each FIELDS as f}
           <button
@@ -568,7 +572,7 @@
 
 {#if Object.keys($allResultsStore).length > 0}
   <div
-    class="p-2 sm:p-4 {fullHeight ? 'flex flex-col' : ''}"
+    class="p-2 {fullHeight ? 'flex flex-col' : ''}"
     style={fullHeight ? "height: 100%" : ""}
   >
     {@render selectChartType($isDesktop)}
