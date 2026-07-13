@@ -9,36 +9,35 @@ export function calculateAmericano(
   const installments: Installment[] = [];
   let balance = principal;
 
-  const getExtraPayment = (month: number): ExtraPayment | undefined =>
-    extraPayments.find((ep) => ep.month === month);
+  const getExtraPayments = (month: number): ExtraPayment[] =>
+    extraPayments.filter((ep) => ep.month === month);
 
   for (let i = 1; i <= termMonths; i++) {
-    const extra = getExtraPayment(i);
+    const extras = getExtraPayments(i);
     const interest = balance * monthlyRate;
+    const totalExtraAmount = extras.reduce((sum, ep) => sum + ep.amount, 0);
 
     if (i === termMonths) {
       const payment = balance + interest;
-      const extraAmount = extra ? extra.amount : 0;
       installments.push({
         number: i,
-        payment: payment + extraAmount,
-        principal: balance + extraAmount,
+        payment: payment + totalExtraAmount,
+        principal: balance + totalExtraAmount,
         interest,
         balance: 0,
-        extraPayment: extraAmount > 0 ? extraAmount : undefined,
+        extraPayment: totalExtraAmount > 0 ? totalExtraAmount : undefined,
       });
       balance = 0;
     } else {
-      const extraAmount = extra ? extra.amount : 0;
       installments.push({
         number: i,
-        payment: interest + extraAmount,
-        principal: extraAmount,
+        payment: interest + totalExtraAmount,
+        principal: totalExtraAmount,
         interest,
         balance: Math.max(balance, 0),
-        extraPayment: extraAmount > 0 ? extraAmount : undefined,
+        extraPayment: totalExtraAmount > 0 ? totalExtraAmount : undefined,
       });
-      balance -= extraAmount;
+      balance -= totalExtraAmount;
     }
   }
 
