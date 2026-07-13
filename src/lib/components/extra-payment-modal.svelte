@@ -126,20 +126,15 @@
       }
       studiesStore.removeExtraPayment(studyId, originalMonth);
     } else {
+      if (isEdit && originalMonth !== null) {
+        studiesStore.removeExtraPayment(studyId, originalMonth);
+      }
       if (reduceTermAmount > 0) {
         studiesStore.addExtraPayment(studyId, {
           month: m,
           amount: reduceTermAmount,
           type: "reduce_term",
         });
-      } else {
-        const study = $studiesStore.studies.find((s) => s.id === studyId);
-        const existing = study?.extraPayments.find(
-          (ep) => ep.month === m && ep.type === "reduce_term",
-        );
-        if (existing) {
-          studiesStore.removeExtraPayment(studyId, m);
-        }
       }
       if (reduceInstallmentAmount > 0) {
         studiesStore.addExtraPayment(studyId, {
@@ -147,14 +142,6 @@
           amount: reduceInstallmentAmount,
           type: "reduce_installment",
         });
-      } else {
-        const study = $studiesStore.studies.find((s) => s.id === studyId);
-        const existing = study?.extraPayments.find(
-          (ep) => ep.month === m && ep.type === "reduce_installment",
-        );
-        if (existing) {
-          studiesStore.removeExtraPayment(studyId, m);
-        }
       }
     }
     open = false;
