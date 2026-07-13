@@ -24,6 +24,9 @@
   let extraPaymentModalOpen = $state(false);
   let extraPaymentMonth = $state(1);
   let extraPaymentEdit = $state<ExtraPayment | undefined>(undefined);
+  let extraPaymentStudyName = $state<string | undefined>(undefined);
+  let extraPaymentStudyId = $state<string | undefined>(undefined);
+  let extraPaymentColorIndex = $state(0);
   let showInterstitial = $state(false);
   let showResults = $state(false);
   let previousResultHash = $state("");
@@ -51,6 +54,9 @@
   function openExtraPayment(month: number, studyId?: string) {
     extraPaymentMonth = month;
     const targetStudyId = studyId ?? $studiesStore.activeStudyId;
+    const targetStudyIndex = $studiesStore.studies.findIndex(
+      (s) => s.id === targetStudyId,
+    );
     const targetStudy = $studiesStore.studies.find(
       (s) => s.id === targetStudyId,
     );
@@ -58,6 +64,9 @@
       (ep) => ep.month === month,
     );
     extraPaymentEdit = existing;
+    extraPaymentStudyName = targetStudy?.name;
+    extraPaymentStudyId = targetStudyId;
+    extraPaymentColorIndex = targetStudyIndex >= 0 ? targetStudyIndex : 0;
     extraPaymentModalOpen = true;
   }
 
@@ -324,8 +333,13 @@
   bind:open={extraPaymentModalOpen}
   month={extraPaymentMonth}
   editPayment={extraPaymentEdit}
+  studyName={extraPaymentStudyName}
+  targetStudyId={extraPaymentStudyId}
+  colorIndex={extraPaymentColorIndex}
   onclose={() => {
     extraPaymentModalOpen = false;
     extraPaymentEdit = undefined;
+    extraPaymentStudyName = undefined;
+    extraPaymentStudyId = undefined;
   }}
 />

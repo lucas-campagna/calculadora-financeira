@@ -7,19 +7,37 @@
     open = $bindable(false),
     month = 1,
     editPayment = undefined,
+    studyName = undefined,
+    targetStudyId = undefined,
+    colorIndex = 0,
     onclose,
   }: {
     open?: boolean;
     month?: number;
     editPayment?: ExtraPayment | undefined;
+    studyName?: string;
+    targetStudyId?: string;
+    colorIndex?: number;
     onclose?: () => void;
   } = $props();
+
+  const COLORS = [
+    "#3b82f6",
+    "#22c55e",
+    "#eab308",
+    "#a855f7",
+    "#ec4899",
+    "#f97316",
+    "#06b6d4",
+    "#ef4444",
+  ];
 
   let extraMonth = $state(1);
   let extraAmount = $state(0);
   let extraType = $state<"reduce_term" | "reduce_installment">("reduce_term");
   let showRemoveConfirm = $state(false);
   let originalMonth = $state<number | null>(null);
+  let originalStudyId = $state<string | null>(null);
   let focusElementOnOpen = $state<HTMLInputElement | undefined>(undefined);
   // Delay to avoid cancel on open (Tech Debt)
   // let delayToCancel = $state<ReturnType<typeof setTimeout> | null>(null);
@@ -36,11 +54,13 @@
         extraAmount = editPayment.amount;
         extraType = editPayment.type;
         originalMonth = editPayment.month;
+        originalStudyId = targetStudyId ?? null;
       } else {
         extraMonth = month;
         extraAmount = 0;
         extraType = "reduce_term";
         originalMonth = null;
+        originalStudyId = null;
       }
       setTimeout(() => {
         canCancel = true;
@@ -64,27 +84,27 @@
     const a = extraAmount;
     if (m <= 0 || a <= 0) return;
 
+    const studyId = isEdit ? (originalStudyId ?? targetStudyId) : targetStudyId;
+    if (!studyId) return;
+
     const payment: ExtraPayment = { month: m, amount: a, type: extraType };
     if (isEdit && originalMonth !== null) {
       if (m !== originalMonth) {
-        studiesStore.removeExtraPayment(
-          $studiesStore.activeStudyId,
-          originalMonth,
-        );
-        studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
+        studiesStore.removeExtraPayment(studyId, originalMonth);
+        studiesStore.addExtraPayment(studyId, payment);
       } else {
-        studiesStore.updateExtraPayment($studiesStore.activeStudyId, payment);
+        studiesStore.updateExtraPayment(studyId, payment);
       }
     } else {
-      studiesStore.addExtraPayment($studiesStore.activeStudyId, payment);
+      studiesStore.addExtraPayment(studyId, payment);
     }
     open = false;
     onclose?.();
   }
 
   function handleRemove() {
-    if (originalMonth === null) return;
-    studiesStore.removeExtraPayment($studiesStore.activeStudyId, originalMonth);
+    if (originalMonth === null || !originalStudyId) return;
+    studiesStore.removeExtraPayment(originalStudyId, originalMonth);
     open = false;
     onclose?.();
   }
@@ -115,8 +135,17 @@
       class="bg-background p-6 rounded-xl max-w-sm w-full mx-4"
       onclick={(e) => e.stopPropagation()}
     >
-      <h2 class="text-base font-semibold mb-3">
-        {isEdit ? "Editar Pagamento Extra" : "Pagamento Extra"}
+      <h2 class="text-base font-semibold mb-3 flex items-center gap-2">
+        <span>{isEdit ? "Editar Pagamento Extra" : "Pagamento Extra"}</span>
+        {#if studyName}
+          {@const color = COLORS[colorIndex % COLORS.length]}
+          <span
+            class="px-2 py-0.5 text-xs font-medium rounded-full text-white"
+            style="background-color: {color};"
+          >
+            {studyName}
+          </span>
+        {/if}
       </h2>
 
       <div class="space-y-4">
