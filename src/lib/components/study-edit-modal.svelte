@@ -4,17 +4,7 @@
   import type { AmortizationSystem, Study } from "$lib/calculator/types";
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
   import revertIcon from "$lib/assets/icons/revert.svg?raw";
-
-  const COLORS = [
-    "#3b82f6",
-    "#22c55e",
-    "#f59e0b",
-    "#ef4444",
-    "#8b5cf6",
-    "#ec4899",
-    "#06b6d4",
-    "#f97316",
-  ];
+  import { STUDY_COLORS } from "$lib/constants";
 
   let {
     open = $bindable(false),
@@ -48,7 +38,7 @@
       : false,
   );
 
-  let currentColor = $state(COLORS[0]);
+  let currentColor = $state(STUDY_COLORS[0]);
 
   let initialValues = $state({
     principal: 0,
@@ -116,10 +106,12 @@
       previousOverrides = { ...overrides };
       initialName = name;
       initialSystem = system;
+      const studyIndex = store.studies.findIndex((s) => s.id === editStudy.id);
       const existingColor = store.studies.find(
         (s) => s.id === editStudy.id,
       )?.color;
-      currentColor = existingColor ?? COLORS[0];
+      currentColor =
+        existingColor ?? STUDY_COLORS[studyIndex % STUDY_COLORS.length];
     } else {
       const active = store.studies.find((s: Study) => s.id === activeId);
       name =
@@ -272,9 +264,9 @@
 
   function handleCycleColor() {
     if (!editStudy?.id) return;
-    const currentIndex = COLORS.indexOf(currentColor);
-    const nextIndex = (currentIndex + 1) % COLORS.length;
-    currentColor = COLORS[nextIndex];
+    const currentIndex = STUDY_COLORS.indexOf(currentColor);
+    const nextIndex = (currentIndex + 1) % STUDY_COLORS.length;
+    currentColor = STUDY_COLORS[nextIndex];
     studiesStore.updateStudyColor(editStudy.id, currentColor);
   }
 

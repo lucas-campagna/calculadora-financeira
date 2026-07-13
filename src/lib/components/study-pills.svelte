@@ -1,17 +1,7 @@
 <script lang="ts">
   import { studiesStore } from "$lib/stores/calculator-store";
   import type { Study } from "$lib/calculator/types";
-
-  const COLORS = [
-    "#3b82f6",
-    "#22c55e",
-    "#eab308",
-    "#a855f7",
-    "#ec4899",
-    "#f97316",
-    "#06b6d4",
-    "#ef4444",
-  ];
+  import { STUDY_COLORS } from "$lib/constants";
 
   function getPillClasses(
     isActive: boolean,
@@ -194,7 +184,7 @@
         )}"
         style={getPillStyle(
           isActive,
-          study.color ?? COLORS[i % COLORS.length],
+          study.color ?? STUDY_COLORS[i % STUDY_COLORS.length],
           isDisabled,
         )}
         onclick={() => handlePillClick(study.id)}
