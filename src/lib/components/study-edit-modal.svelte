@@ -64,6 +64,26 @@
 
   let isInitialized = false;
 
+  let rateMode = $state<"annual" | "monthly">("annual");
+
+  function annualToMonthly(annual: number): number {
+    return ((1 + annual / 100) ** (1 / 12) - 1) * 100;
+  }
+
+  function monthlyToAnnual(monthly: number): number {
+    return ((1 + monthly / 100) ** 12 - 1) * 100;
+  }
+
+  let displayRate = $derived(
+    rateMode === "annual" ? annualRate : annualToMonthly(annualRate),
+  );
+
+  let rateModeIcon = $derived(rateMode === "annual" ? "a.a." : "a.m.");
+
+  function toggleRateMode() {
+    rateMode = rateMode === "annual" ? "monthly" : "annual";
+  }
+
   $effect(() => {
     if (!open) {
       isInitialized = false;
@@ -269,14 +289,22 @@
   function makeActionButtons(
     field: FieldKey,
   ): { icon: () => string; onclick: () => void }[] {
+    if (field === "annualRate") {
+      return [
+        {
+          icon: () =>
+            `<span class="text-xs font-bold">% ${rateModeIcon}</span>`,
+          onclick: toggleRateMode,
+        },
+      ];
+    }
+
     const currentValue =
       field === "principal"
         ? principal
-        : field === "annualRate"
-          ? annualRate
-          : field === "termMonths"
-            ? termMonths
-            : downPayment;
+        : field === "termMonths"
+          ? termMonths
+          : downPayment;
     const isOverridden = currentValue !== initialValues[field];
 
     if (isOverridden) {
@@ -456,15 +484,14 @@
             />
           </div>
           <div>
-            <label for="study-rate" class="text-sm font-medium"
-              >Taxa (% a.a.)</label
-            >
+            <label for="study-rate" class="text-sm font-medium">Taxa</label>
             <SwipeInput
               id="study-rate"
-              decimals={2}
+              decimals={rateMode === "annual" ? 2 : 3}
               placeholder="10"
-              value={annualRate}
-              onchange={(v) => (annualRate = v)}
+              value={displayRate}
+              onchange={(v) =>
+                (annualRate = rateMode === "annual" ? v : monthlyToAnnual(v))}
               min={0.01}
               class="mt-1"
               actionButtons={makeActionButtons("annualRate")}

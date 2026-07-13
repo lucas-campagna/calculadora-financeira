@@ -178,7 +178,7 @@
     annualRate: [
       ...makeActionButtons("annualRate"),
       {
-        icon: () => `<span class="text-xs font-bold">${rateModeIcon}</span>`,
+        icon: () => `<span class="text-xs font-bold">% ${rateModeIcon}</span>`,
         onclick: toggleRateMode,
       },
     ],
@@ -235,9 +235,7 @@
         />
       </div>
       <div>
-        <Label for="m-rate" class="text-xs"
-          >Taxa (% {rateMode === "annual" ? "a.a." : "a.m."})</Label
-        >
+        <Label for="m-rate" class="text-xs">Taxa</Label>
         <SwipeInput
           id="m-rate"
           decimals={rateMode === "annual" ? 2 : 3}
@@ -249,7 +247,6 @@
               rateMode === "annual" ? v : monthlyToAnnual(v),
             )}
           min={0.01}
-          label={rateLabel}
           actionButtons={actionButtonsMap.annualRate}
         />
       </div>
