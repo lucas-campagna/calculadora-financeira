@@ -110,6 +110,13 @@
     if (!studyId) return;
 
     if (isEdit && originalMonth !== null && originalMonth !== m) {
+      const study = $studiesStore.studies.find((s) => s.id === studyId);
+      if (study) {
+        const existingAtM = study.extraPayments.filter((ep) => ep.month === m);
+        if (existingAtM.length > 0) {
+          studiesStore.removeExtraPayment(studyId, m);
+        }
+      }
       if (reduceTermAmount > 0) {
         studiesStore.addExtraPayment(studyId, {
           month: m,
