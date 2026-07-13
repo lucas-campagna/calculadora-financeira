@@ -66,6 +66,7 @@
       const st = s.studies[i];
       const df = defaults[i];
       if (!st || st.name !== df.name || st.system !== df.system) return false;
+      if (st.extraPayments.length > 0) return false;
     }
     return true;
   }
