@@ -475,6 +475,13 @@
       longPressTimer = null;
     }
     const result = getNearestDataPoint(touchEndX, touchEndY);
+    if (result.month == selectedMonth && !hasMoved) {
+      selectedMonth = null;
+      selectedStudyId = null;
+      longPressTriggered = false;
+      hasMoved = false;
+      return;
+    }
     selectedMonth = result.month;
     selectedStudyId = result.studyId;
     if (selectedStudyId && (!longPressTriggered || !hasMoved)) {
@@ -506,19 +513,6 @@
 
   let chartContainerEl = $state<HTMLDivElement | undefined>();
 
-  function handleCanvasClick(e: MouseEvent) {
-    // const result = getNearestDataPoint(e.clientX, e.clientY);
-    // console.log('Click')
-    // if (result.studyId !== null) {
-    //   selectedMonth = result.month;
-    //   selectedStudyId = result.studyId;
-    //   onlongpress(result.month, result.studyId);
-    // } else {
-    //   selectedMonth = null;
-    //   selectedStudyId = null;
-    // }
-  }
-
   onMount(() => {
     const container = chartContainerEl;
     if (container) {
@@ -534,7 +528,6 @@
       container.addEventListener("touchcancel", handleCanvasTouchEnd, {
         passive: false,
       });
-      container.addEventListener("click", handleCanvasClick);
     }
     return () => {
       if (chartInstance) {
@@ -545,7 +538,6 @@
         container.removeEventListener("touchmove", handleCanvasTouchMove);
         container.removeEventListener("touchend", handleCanvasTouchEnd);
         container.removeEventListener("touchcancel", handleCanvasTouchEnd);
-        container.removeEventListener("click", handleCanvasClick);
       }
     };
   });
