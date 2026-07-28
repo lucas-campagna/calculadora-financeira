@@ -6,6 +6,7 @@
     calculateAll,
     studiesStore,
   } from "$lib/stores/calculator-store";
+  import { headerAdsVisible } from "$lib/stores/ads-visibility-store";
 
   function getEconomy(
     baseTotalInterest: number,
@@ -16,6 +17,12 @@
       baseTotalInterest > 0 ? (interest / baseTotalInterest) * 100 : 0;
     return { interest, percent };
   }
+
+  $effect(() => {
+    if ($studiesStore.studies.length >= 2) {
+      headerAdsVisible.set(true);
+    }
+  });
 
   onMount(() => {
     calculateAll();
@@ -159,8 +166,53 @@
       </div>
     {/if}
   {:else}
-    <p class="text-muted-foreground">
-      Adicione pelo menos 2 estudos para comparar.
-    </p>
+    <div class="space-y-6">
+      <div class="p-6 bg-muted rounded-lg">
+        <h2 class="font-semibold mb-2">Como Comparar Estudos</h2>
+        <ol
+          class="text-sm text-muted-foreground space-y-2 list-decimal list-inside"
+        >
+          <li>Crie pelo menos 2 estudos na calculadora principal</li>
+          <li>
+            Cada estudo pode representar um cenário diferente de financiamento
+          </li>
+          <li>Compare juros totais, parcelas e custo final entre sistemas</li>
+        </ol>
+      </div>
+      <div class="p-4 bg-muted rounded-lg">
+        <h3 class="font-semibold mb-3 text-lg">Sistemas de Amortização</h3>
+        <div class="grid gap-4 md:grid-cols-2 text-sm">
+          <div>
+            <p class="font-medium text-primary">PRICE (Price)</p>
+            <p class="text-muted-foreground">
+              Parcelas fixas, juros maiores no início. Muito usado em imóveis.
+            </p>
+          </div>
+          <div>
+            <p class="font-medium text-primary">SAC</p>
+            <p class="text-muted-foreground">
+              Parcelas decrescentes, juros menores no total. Melhor para quem
+              pode pagar mais no início.
+            </p>
+          </div>
+          <div>
+            <p class="font-medium text-primary">SAM</p>
+            <p class="text-muted-foreground">
+              Média entre PRICE e SAC. Parcelas intermediárias.
+            </p>
+          </div>
+          <div>
+            <p class="font-medium text-primary">Americano</p>
+            <p class="text-muted-foreground">
+              Juros sobre saldo devedor. Última parcela geralmente maior.
+            </p>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-muted-foreground">
+        Volte à <a href="/" class="text-primary hover:underline">calculadora</a> para
+        criar seus estudos.
+      </p>
+    </div>
   {/if}
 </div>

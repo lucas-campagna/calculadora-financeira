@@ -3,6 +3,7 @@
   import AdsenseScript from "$lib/components/ads/adsense-script.svelte";
   import AdUnit from "$lib/components/ads/ad-unit.svelte";
   import PwaInstallBanner from "$lib/components/ui/pwa-install-banner.svelte";
+  import { headerAdsVisible } from "$lib/stores/ads-visibility-store";
 
   let { children } = $props();
 
@@ -16,8 +17,12 @@
     class="border-b bg-background sticky top-0 z-40 flex items-center justify-center"
   >
     <div class="container mx-auto px-4">
-      {#if !isDev}
+      {#if !isDev && $headerAdsVisible}
         <AdUnit slot="" format="auto" />
+      {:else if !isDev}
+        <div class="h-[90px] flex items-center justify-center">
+          <p class="text-xs text-muted-foreground">Anúncio</p>
+        </div>
       {:else}
         <div
           class="h-[90px] flex items-center justify-center bg-muted/30 rounded-md text-xs text-muted-foreground"

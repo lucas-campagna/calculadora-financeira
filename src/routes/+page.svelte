@@ -19,6 +19,7 @@
     calculateAll,
     studiesStore,
   } from "$lib/stores/calculator-store";
+  import { headerAdsVisible } from "$lib/stores/ads-visibility-store";
   import type { ExtraPayment } from "$lib/calculator/types";
 
   let extraPaymentModalOpen = $state(false);
@@ -105,6 +106,7 @@
         } else {
           showResults = true;
         }
+        headerAdsVisible.set(true);
       }
     }
   });
