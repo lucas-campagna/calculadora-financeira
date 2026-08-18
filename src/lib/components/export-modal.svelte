@@ -5,7 +5,7 @@
   import { get } from "svelte/store";
   import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
   import { copyShareLink } from "$lib/stores/share-state";
-  import { Link } from "lucide-svelte";
+  import { Link } from "@lucide/svelte";
 
   let {
     open = $bindable(false),

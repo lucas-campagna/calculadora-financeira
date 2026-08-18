@@ -1,7 +1,7 @@
 <script lang="ts">
   import { cn } from "$lib/utils";
   import Button from "./button.svelte";
-  import { X, Download } from "lucide-svelte";
+  import { X, Download } from "@lucide/svelte";
 
   type BeforeInstallPromptEvent = {
     prompt: () => Promise<void>;
