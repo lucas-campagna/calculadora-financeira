@@ -17,19 +17,19 @@
     class="border-b bg-background sticky top-0 z-40 flex items-center justify-center"
   >
     <div class="container mx-auto px-4">
-      {#if !isDev && $headerAdsVisible}
-        <AdUnit slot="" format="auto" />
-      {:else if !isDev}
-        <div class="h-[90px] flex items-center justify-center">
-          <p class="text-xs text-muted-foreground">Anúncio</p>
-        </div>
-      {:else}
-        <div
-          class="h-[90px] flex items-center justify-center bg-muted/30 rounded-md text-xs text-muted-foreground"
-        >
-          AdSense (dev mode)
-        </div>
-      {/if}
+      <!-- {#if !isDev && $headerAdsVisible} -->
+      <!--   <AdUnit slot="" format="auto" /> -->
+      <!-- {:else if !isDev} -->
+      <!--   <div class="h-[90px] flex items-center justify-center"> -->
+      <!--     <p class="text-xs text-muted-foreground">Anúncio</p> -->
+      <!--   </div> -->
+      <!-- {:else} -->
+      <!--   <div -->
+      <!--     class="h-[90px] flex items-center justify-center bg-muted/30 rounded-md text-xs text-muted-foreground" -->
+      <!--   > -->
+      <!--     AdSense (dev mode) -->
+      <!--   </div> -->
+      <!-- {/if} -->
     </div>
   </header>
 

@@ -20,7 +20,7 @@
 
   $effect(() => {
     if ($studiesStore.studies.length >= 2) {
-      headerAdsVisible.set(true);
+      // headerAdsVisible.set(true);
     }
   });
 

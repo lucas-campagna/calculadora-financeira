@@ -106,7 +106,7 @@
         } else {
           showResults = true;
         }
-        headerAdsVisible.set(true);
+        // headerAdsVisible.set(true);
       }
     }
   });

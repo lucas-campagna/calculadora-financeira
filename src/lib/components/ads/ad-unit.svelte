@@ -31,15 +31,16 @@
   <div
     class={`ad-container min-h-[90px] flex items-center justify-center bg-muted/30 rounded-md ${className}`}
   >
-    <ins
-      bind:this={insElement}
-      class="adsbygoogle"
-      style="display:block"
+    <amp-ad
+      width="100vw"
+      height="90"
+      type="adsense"
       data-ad-client="ca-pub-1972364870511142"
-      data-ad-slot={slot}
-      data-ad-format={format}
-      data-full-width-responsive="true"
-    ></ins>
+      data-ad-slot="8500998005"
+      data-auto-format="rspv"
+      data-full-width=""
+    >
+    </amp-ad>
   </div>
 {:else}
   <div
