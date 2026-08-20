@@ -4,6 +4,8 @@ import { defineConfig } from "vitest/config";
 import { svelteTesting } from "@testing-library/svelte/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+const base = process.env.SVELTE_BASE_PATH ?? "";
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -19,21 +21,21 @@ export default defineConfig({
         short_name: "CalcFin",
         description:
           "Simule financiamentos com os sistemas PRICE, SAC, SAM e Americano.",
-        start_url: "/",
-        scope: "/",
+        start_url: `${base}/`,
+        scope: `${base}/`,
         display: "standalone",
         background_color: "#ffffff",
         theme_color: "#ff3e00",
         orientation: "portrait",
         icons: [
           {
-            src: "/icon.svg",
+            src: `${base}/icon.svg`,
             sizes: "any",
             type: "image/svg+xml",
             purpose: "any",
           },
           {
-            src: "/icon.svg",
+            src: `${base}/icon.svg`,
             sizes: "any",
             type: "image/svg+xml",
             purpose: "maskable",
