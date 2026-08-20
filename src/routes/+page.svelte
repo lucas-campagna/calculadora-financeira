@@ -5,7 +5,6 @@
   import AmortizationTable from "$lib/components/amortization-table.svelte";
   import ComparisonChart from "$lib/components/comparison-chart.svelte";
   import ExportButtons from "$lib/components/export-buttons.svelte";
-  import AdInterstitial from "$lib/components/ads/ad-interstitial.svelte";
   import ExtraPaymentModal from "$lib/components/extra-payment-modal.svelte";
   import {
     Carousel,
@@ -19,7 +18,6 @@
     calculateAll,
     studiesStore,
   } from "$lib/stores/calculator-store";
-  import { headerAdsVisible } from "$lib/stores/ads-visibility-store";
   import type { ExtraPayment } from "$lib/calculator/types";
 
   let extraPaymentModalOpen = $state(false);
@@ -28,13 +26,8 @@
   let extraPaymentStudyName = $state<string | undefined>(undefined);
   let extraPaymentStudyId = $state<string | undefined>(undefined);
   let extraPaymentColorIndex = $state(0);
-  let showInterstitial = $state(false);
   let showResults = $state(false);
   let previousResultHash = $state("");
-  let userHasInteracted = $state(false);
-  let lastInterstitialTime = 0;
-  const FIRST_INTERSTITIAL_MS = 1 * 60 * 1000;
-  const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 
   const isDev = import.meta.env.DEV;
 
@@ -46,11 +39,6 @@
 
   let currentSlide = $state(0);
   let carouselApi = $state<CarouselAPI | undefined>(undefined);
-
-  function closeAllPopups() {
-    (document.activeElement as HTMLElement)?.blur();
-    extraPaymentModalOpen = false;
-  }
 
   function openExtraPayment(month: number, studyId?: string) {
     extraPaymentMonth = month;
@@ -89,32 +77,10 @@
         .join(",");
       if (hash !== previousResultHash) {
         previousResultHash = hash;
-        if (userHasInteracted) {
-          const now = Date.now();
-          const timeout =
-            lastInterstitialTime === 0
-              ? FIRST_INTERSTITIAL_MS
-              : INTERSTITIAL_COOLDOWN_MS;
-          if (now - lastInterstitialTime >= timeout) {
-            closeAllPopups();
-            showInterstitial = true;
-            showResults = false;
-            lastInterstitialTime = now;
-          } else {
-            showResults = true;
-          }
-        } else {
-          showResults = true;
-        }
-        // headerAdsVisible.set(true);
+        showResults = true;
       }
     }
   });
-
-  function handleInterstitialClose() {
-    showInterstitial = false;
-    showResults = true;
-  }
 
   onMount(() => {
     initTheme();
@@ -229,10 +195,7 @@
     </Carousel>
 
     <div class="shrink-0 bg-background border-t px-3 pt-2 pb-3">
-      <CalculatorForm
-        compact={true}
-        onchange={() => (userHasInteracted = true)}
-      />
+      <CalculatorForm compact={true} />
     </div>
   </div>
 {:else}
@@ -247,7 +210,7 @@
     </div>
 
     <div class="space-y-6">
-      <CalculatorForm onchange={() => (userHasInteracted = true)} />
+      <CalculatorForm />
       <ExportButtons />
     </div>
 
@@ -322,20 +285,8 @@
         >
       {/if}
     </button>
-    <button
-      onclick={() => {
-        showInterstitial = true;
-        showResults = false;
-      }}
-      class="h-12 w-12 rounded-full bg-red-500 text-white shadow-lg flex items-center justify-center hover:bg-red-600 transition-opacity"
-      aria-label="Mostrar popup de anúncio"
-    >
-      AD
-    </button>
   </div>
 {/if}
-
-<AdInterstitial open={showInterstitial} onclose={handleInterstitialClose} />
 
 <ExtraPaymentModal
   bind:open={extraPaymentModalOpen}
