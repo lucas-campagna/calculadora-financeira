@@ -45,6 +45,11 @@
         Calculadora de Financiamento — Simulação educacional. Consulte um
         profissional antes de decisões financeiras.
       </p>
+      <nav class="mt-3 flex justify-center gap-4 text-sm">
+        <a href="/" class="hover:underline">Calculadora</a>
+        <a href="/comparar" class="hover:underline">Comparar</a>
+        <a href="/sobre" class="hover:underline">Sobre</a>
+      </nav>
     </div>
   </footer>
 </div>

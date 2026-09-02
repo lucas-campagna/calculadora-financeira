@@ -135,6 +135,13 @@
   }
 </script>
 
+<svelte:head>
+  <meta property="og:title" content="Calculadora de Financiamento — PRICE, SAC, SAM, Americano" />
+  <meta property="og:description" content="Simule financiamentos com os sistemas PRICE, SAC, SAM e Americano. Compare cenários, veja tabela de amortização e exporte resultados." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://calculadora-financiamento.com/" />
+</svelte:head>
+
 {#if $isMobile}
   <div class="flex flex-col overflow-hidden" style="height: {mobileHeight}">
     <!-- MOBILE -->
