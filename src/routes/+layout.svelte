@@ -1,5 +1,6 @@
 <script lang="ts">
   import "../app.css";
+  import { base } from "$app/paths";
   import AdsenseScript from "$lib/components/ads/adsense-script.svelte";
   import AdUnit from "$lib/components/ads/ad-unit.svelte";
   import PwaInstallBanner from "$lib/components/ui/pwa-install-banner.svelte";
@@ -46,9 +47,9 @@
         profissional antes de decisões financeiras.
       </p>
       <nav class="mt-3 flex justify-center gap-4 text-sm">
-        <a href="/" class="hover:underline">Calculadora</a>
-        <a href="/comparar" class="hover:underline">Comparar</a>
-        <a href="/sobre" class="hover:underline">Sobre</a>
+        <a href="{base}/" class="hover:underline">Calculadora</a>
+        <a href="{base}/comparar" class="hover:underline">Comparar</a>
+        <a href="{base}/sobre" class="hover:underline">Sobre</a>
       </nav>
     </div>
   </footer>

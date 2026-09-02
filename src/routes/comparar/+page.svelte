@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { base } from "$app/paths";
   import { formatCurrency } from "$lib/calculator";
   import {
     allResultsStore,
@@ -210,7 +211,7 @@
         </div>
       </div>
       <p class="text-center text-muted-foreground">
-        Volte à <a href="/" class="text-primary hover:underline">calculadora</a> para
+        Volte à <a href="{base}/" class="text-primary hover:underline">calculadora</a> para
         criar seus estudos.
       </p>
     </div>
