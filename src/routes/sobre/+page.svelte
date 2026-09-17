@@ -73,6 +73,16 @@ Antes de tomar qualquer decisão financeira, consulte um profissional qualificad
 
 A Calculadora de Financiamento não coleta, armazena ou transmite dados pessoais dos usuários. Todos os cálculos são realizados localmente no navegador, e nenhuma informação é enviada a servidores externos. Os dados inseridos permanecem apenas no seu dispositivo.
 
+## Nossa Equipe
+
+A Calculadora de Financiamento foi desenvolvida por três irmãos com experiências complementares no universo financeiro e tecnológico:
+
+- **Lucas Prett Campagna** — Desenvolvedor de Software na HP
+- **Daniel Prett Campagna** — Analista de Dados na 7D Analytics
+- **André Prett Campagna** — Gerente Bancário no Sicred
+
+Conheça mais sobre cada autor na nossa página de [autor](/autor).
+
 ## Contato
 
 Em caso de dúvidas ou sugestões, entre em contato através do repositório do projeto no GitHub.
