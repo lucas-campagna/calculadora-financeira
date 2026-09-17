@@ -1,5 +1,6 @@
 <script lang="ts">
   import { marked } from "marked";
+  import { base } from "$app/paths";
 
   const content = `
 ## O que é a Calculadora de Financiamento?
@@ -81,7 +82,7 @@ A Calculadora de Financiamento foi desenvolvida por três irmãos com experiênc
 - **Daniel Prett Campagna** — Analista de Dados na 7D Analytics
 - **André Prett Campagna** — Gerente Bancário no Sicred
 
-Conheça mais sobre cada autor na nossa página de [autor](/autor).
+Conheça mais sobre cada autor na nossa página de [autor](${base}/autor).
 
 ## Contato
 
