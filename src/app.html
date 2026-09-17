@@ -159,11 +159,21 @@
         var staticWrapper = document.getElementById('static-content-wrapper');
         var svelteApp = document.getElementById('svelte-app');
 
-        btns.forEach(function(btn) {
-          btn.addEventListener('click', function() {
+        var showingDoc = false;
+        staticWrapper.style.display = 'none';
+        svelteApp.style.display = 'block';
+        window.toggleDoc = () => {
+          if (showingDoc) {
+            staticWrapper.style.display = 'block';
+            svelteApp.style.display = 'none';
+          } else {
             staticWrapper.style.display = 'none';
             svelteApp.style.display = 'block';
-          });
+          }
+          showingDoc = !showingDoc;
+        }
+        btns.forEach(function(btn) {
+          btn.addEventListener('click', window.toggleDoc)
         });
       })();
     </script>

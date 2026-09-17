@@ -6,6 +6,7 @@
   import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
   import { copyShareLink } from "$lib/stores/share-state";
   import Button from "$lib/components/ui/button.svelte";
+  import Book from "$lib/components/ui/icons/book.svelte";
   import { Link } from "@lucide/svelte";
 
   let copyFeedback = $state<string | null>(null);
@@ -103,6 +104,12 @@
 
 {#if $studiesStore.studies.find((s) => s.id === $studiesStore.activeStudyId)}
   <div class="flex gap-3 flex-wrap items-center">
+    <Button
+      variant="outline"
+      size="default"
+      onclick={() => (window as any)?.toggleDoc()}
+      ><Book color="#3e3e3e" /></Button
+    >
     <Button variant="outline" size="default" onclick={copyLink}>
       <Link class="w-4 h-4 mr-1" />
       Copiar link

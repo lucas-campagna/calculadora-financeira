@@ -11,6 +11,7 @@
   import StudyPills from "$lib/components/study-pills.svelte";
   import StudyEditModal from "$lib/components/study-edit-modal.svelte";
   import type { Study } from "$lib/calculator/types";
+  import Book from "$lib/components/ui/icons/book.svelte";
 
   let {
     onchange: handleFormChange = () => {},
@@ -288,6 +289,12 @@
           </svg>
         </button>
       {/if}
+      <button
+        class="w-12 h-12 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer flex justify-center items-center"
+        onclick={() => (window as any)?.toggleDoc()}
+      >
+        <Book color="white" />
+      </button>
       <button
         class="flex-1 h-12 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
         onclick={() => (exportModalOpen = true)}
