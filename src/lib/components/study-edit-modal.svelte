@@ -5,6 +5,7 @@
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
   import revertIcon from "$lib/assets/icons/revert.svg?raw";
   import { STUDY_COLORS } from "$lib/constants";
+  import { friendlyStudyNames, getLocale, ratePeriod, t } from "$lib/i18n";
 
   let {
     open = $bindable(false),
@@ -21,21 +22,6 @@
     { key: "sac", label: "SAC" },
     { key: "sam", label: "SAM" },
     { key: "americano", label: "Americano" },
-  ];
-
-  const FRIENDLY_NAMES = [
-    "Minha Casa",
-    "Moto dos Sonhos",
-    "Casa na Praia",
-    "Próximo Celular",
-    "Sítio Sossego",
-    "Carro Novo",
-    "Apartamento",
-    "Viagem dos Sonhos",
-    "Escritório",
-    "Quarto Mobiliado",
-    "Chácara",
-    "Reforma Total",
   ];
 
   let name = $state("");
@@ -84,7 +70,7 @@
     rateMode === "annual" ? annualRate : annualToMonthly(annualRate),
   );
 
-  let rateModeIcon = $derived(rateMode === "annual" ? "a.a." : "a.m.");
+  let rateModeIcon = $derived(ratePeriod(rateMode));
 
   function toggleRateMode() {
     rateMode = rateMode === "annual" ? "monthly" : "annual";
@@ -130,7 +116,8 @@
         existingColor ?? STUDY_COLORS[studyIndex % STUDY_COLORS.length];
     } else {
       const active = store.studies.find((s: Study) => s.id === activeId);
-      name = FRIENDLY_NAMES[store.studies.length % FRIENDLY_NAMES.length];
+      const friendlyNames = friendlyStudyNames[getLocale()];
+      name = friendlyNames[store.studies.length % friendlyNames.length];
       system = active?.system ?? "price";
       principal = newInitialValues.principal;
       annualRate = newInitialValues.annualRate;
@@ -171,7 +158,7 @@
         id:
           crypto.randomUUID?.() ??
           `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        name: name || SYSTEMS.find((s) => s.key === system)?.label || "Novo",
+        name: name || SYSTEMS.find((s) => s.key === system)?.label || t("study.defaultName"),
         system,
         extraPayments: [],
       };
@@ -340,7 +327,7 @@
     }}
     role="dialog"
     aria-modal="true"
-    aria-label="Estudo"
+    aria-label={t("study.dialog")}
     tabindex="0"
   >
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -351,14 +338,14 @@
     >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-base font-semibold">
-          {mode === "add" ? "Novo Estudo" : "Editar Estudo"}
+          {mode === "add" ? t("study.new") : t("study.edit")}
         </h2>
         {#if mode === "edit" && editStudy?.id}
           <div class="flex items-center gap-1">
             <button
               class="shrink-0 w-8 h-8 rounded-md border border-input flex items-center justify-center hover:bg-accent transition-colors cursor-pointer"
               onclick={handleCycleColor}
-              aria-label="Mudar cor do estudo"
+              aria-label={t("study.changeColor")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -372,7 +359,7 @@
             <button
               class="shrink-0 w-8 h-8 rounded-md border border-input flex items-center justify-center hover:bg-accent transition-colors cursor-pointer"
               onclick={handleClone}
-              aria-label="Clonar estudo"
+              aria-label={t("study.clone")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -394,7 +381,7 @@
               onclick={() => {
                 if (editStudy?.id) studiesStore.toggleDisabled(editStudy.id);
               }}
-              aria-label={disabled ? "Habilitar estudo" : "Desabilitar estudo"}
+              aria-label={disabled ? t("study.enable") : t("study.disable")}
             >
               {#if disabled}
                 <svg
@@ -434,19 +421,19 @@
 
       <div class="space-y-3">
         <div>
-          <label for="study-name" class="text-sm font-medium">Nome</label>
+          <label for="study-name" class="text-sm font-medium">{t("study.name")}</label>
           <input
             id="study-name"
             bind:this={nameInputEl}
             type="text"
             class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1"
             bind:value={name}
-            placeholder="Nome do estudo"
+            placeholder={t("study.namePlaceholder")}
           />
         </div>
 
         <div>
-          <span class="text-sm font-medium mb-1 block">Sistema</span>
+          <span class="text-sm font-medium mb-1 block">{t("study.system")}</span>
           <div class="flex flex-wrap gap-2">
             {#each SYSTEMS as opt}
               <button
@@ -465,7 +452,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="study-principal" class="text-sm font-medium"
-              >Valor (R$)</label
+              >{t("common.principal")}</label
             >
             <SwipeInput
               id="study-principal"
@@ -480,7 +467,7 @@
           </div>
           <div>
             <label for="study-down" class="text-sm font-medium"
-              >Entrada (R$)</label
+              >{t("common.downPayment")}</label
             >
             <SwipeInput
               id="study-down"
@@ -494,7 +481,7 @@
             />
           </div>
           <div>
-            <label for="study-rate" class="text-sm font-medium">Taxa</label>
+            <label for="study-rate" class="text-sm font-medium">{t("common.rate")}</label>
             <SwipeInput
               id="study-rate"
               decimals={rateMode === "annual" ? 2 : 3}
@@ -509,7 +496,7 @@
           </div>
           <div>
             <label for="study-term" class="text-sm font-medium"
-              >Prazo (meses)</label
+              >{t("common.termMonths")}</label
             >
             <SwipeInput
               id="study-term"
@@ -533,13 +520,13 @@
               style="min-width: 120px;"
               onclick={handleRemove}
             >
-              Remover?
+              {t("common.removeConfirm")}
             </button>
           {:else}
             <button
               class="shrink-0 w-10 h-10 rounded-md border border-destructive text-destructive flex items-center justify-center hover:bg-destructive/10 cursor-pointer"
               onclick={() => (showRemoveConfirm = true)}
-              aria-label="Remover estudo"
+              aria-label={t("study.remove")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -566,7 +553,7 @@
           onclick={handleConfirm}
           disabled={mode === "edit" && !hasChanges}
         >
-          {mode === "add" ? "Adicionar" : "Atualizar"}
+          {mode === "add" ? t("common.add") : t("common.update")}
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@
   import { cn } from "$lib/utils";
   import Button from "./button.svelte";
   import { X, Download } from "@lucide/svelte";
+  import { t } from "$lib/i18n";
 
   type BeforeInstallPromptEvent = {
     prompt: () => Promise<void>;
@@ -59,11 +60,11 @@
   >
     <div class="flex items-center gap-3">
       <Download class="h-5 w-5 text-primary shrink-0" />
-      <p class="text-sm">Instale o app para acesso rápido offline</p>
+      <p class="text-sm">{t("pwa.installMessage")}</p>
     </div>
     <div class="flex items-center gap-2">
-      <Button size="sm" onclick={handleInstall}>Instalar</Button>
-      <Button size="icon" variant="ghost" onclick={dismiss}>
+      <Button size="sm" onclick={handleInstall}>{t("pwa.install")}</Button>
+      <Button size="icon" variant="ghost" onclick={dismiss} ariaLabel={t("pwa.close")}>
         <X class="h-4 w-4" />
       </Button>
     </div>

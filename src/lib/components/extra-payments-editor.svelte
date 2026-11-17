@@ -3,6 +3,7 @@
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
   import Button from "$lib/components/ui/button.svelte";
   import type { ExtraPayment } from "$lib/calculator/types";
+  import { t } from "$lib/i18n";
 
   interface GroupedPayment {
     month: number;
@@ -109,7 +110,7 @@
       <div class="flex-1 min-w-[80px]">
         <label
           for="extra-month-{gp.month}"
-          class="text-xs text-muted-foreground">Mês</label
+          class="text-xs text-muted-foreground">{t("extra.month")}</label
         >
         <SwipeInput
           id="extra-month-{gp.month}"
@@ -123,7 +124,7 @@
       <div class="flex-1 min-w-[100px]">
         <label
           for="extra-reduce-term-{gp.month}"
-          class="text-xs text-muted-foreground">Reduzir prazo (R$)</label
+          class="text-xs text-muted-foreground">{t("extra.reduceTerm")}</label
         >
         <SwipeInput
           id="extra-reduce-term-{gp.month}"
@@ -137,7 +138,7 @@
       <div class="flex-1 min-w-[100px]">
         <label
           for="extra-reduce-installment-{gp.month}"
-          class="text-xs text-muted-foreground">Reduzir parcela (R$)</label
+          class="text-xs text-muted-foreground">{t("extra.reduceInstallment")}</label
         >
         <SwipeInput
           id="extra-reduce-installment-{gp.month}"
@@ -156,6 +157,6 @@
     </div>
   {/each}
   <Button variant="outline" size="sm" onclick={addExtraPayment}
-    >+ Adicionar pagamento extra</Button
+    >+ {t("common.addExtraPayment")}</Button
   >
 </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { t } from "$lib/i18n";
 
   const isDev = import.meta.env.DEV;
 
@@ -75,7 +76,7 @@
     onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
-    aria-label="Anúncio"
+    aria-label={t("ad.dialog")}
     tabindex="0"
   >
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -86,11 +87,10 @@
     >
       <div class="text-center mb-4">
         <h2 class="text-xl font-semibold mb-2">
-          Calculando seu financiamento...
+          {t("ad.calculating")}
         </h2>
         <p class="text-base text-muted-foreground">
-          A publicidade nos ajuda a manter este serviço gratuito para você.
-          Obrigado pela compreensão!
+          {t("ad.message")}
         </p>
       </div>
       <div
@@ -114,7 +114,9 @@
           onclick={handleClose}
           disabled={!canClose}
         >
-          {canClose ? "Fechar e ver resultado" : `Aguarde ${countdown}s`}
+          {canClose
+            ? t("ad.close")
+            : t("ad.wait", { seconds: countdown })}
         </button>
       </div>
     </div>

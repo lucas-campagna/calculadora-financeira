@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { t } from "$lib/i18n";
 
   let {
     slot = "",
@@ -46,6 +47,6 @@
   <div
     class={`ad-placeholder min-h-[90px] flex items-center justify-center bg-muted/30 rounded-md text-sm text-muted-foreground ${className}`}
   >
-    Espaço publicitário
+    {t("ad.placeholder")}
   </div>
 {/if}

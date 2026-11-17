@@ -2,6 +2,7 @@
   import { studiesStore } from "$lib/stores/calculator-store";
   import SwipeInput from "$lib/components/ui/swipe-input.svelte";
   import type { ExtraPayment } from "$lib/calculator/types";
+  import { t } from "$lib/i18n";
 
   let {
     open = $bindable(false),
@@ -242,7 +243,7 @@
     }}
     role="dialog"
     aria-modal="true"
-    aria-label="Pagamento extra"
+    aria-label={t("extra.dialog")}
   >
     <div
       role="document"
@@ -250,7 +251,7 @@
       onclick={(e) => e.stopPropagation()}
     >
       <h2 class="text-base font-semibold mb-3 flex items-center gap-2">
-        <span>{isEdit ? "Editar Pagamento Extra" : "Pagamento Extra"}</span>
+        <span>{isEdit ? t("extra.editTitle") : t("extra.title")}</span>
         {#if studyName}
           {@const currentStudy = $studiesStore.studies.find(
             (s) => s.id === (localTargetStudyId ?? targetStudyId),
@@ -262,7 +263,7 @@
               class="px-2 py-0.5 text-xs font-medium rounded-full text-white cursor-pointer hover:opacity-80 transition-opacity"
               style="background-color: {color};"
               onclick={() => (showStudySelector = !showStudySelector)}
-              aria-label="Selecionar estudo"
+              aria-label={t("extra.selectStudy")}
             >
               {currentStudy?.name ?? studyName}
               <span class="ml-1">▼</span>
@@ -294,11 +295,11 @@
 
       <div class="space-y-4">
         <div>
-          <label for="extra-modal-month" class="text-sm font-medium">Mês</label>
+          <label for="extra-modal-month" class="text-sm font-medium">{t("extra.month")}</label>
           <SwipeInput
             id="extra-modal-month"
             decimals={0}
-            placeholder="Mes"
+            placeholder={t("extra.monthPlaceholder")}
             value={extraMonth}
             onchange={updateMonth}
             min={1}
@@ -310,13 +311,13 @@
 
         <div>
           <label for="extra-modal-reduce-term" class="text-sm font-medium"
-            >Reduzir prazo (R$)</label
+            >{t("extra.reduceTerm")}</label
           >
           <SwipeInput
             this={focusElementOnOpen}
             id="extra-modal-reduce-term"
             decimals={2}
-            placeholder="Ex: 5.000"
+            placeholder={t("common.exampleAmount")}
             value={reduceTermAmount}
             onchange={updateReduceTerm}
             min={0}
@@ -326,19 +327,19 @@
             class="mt-1.5"
           />
           <p class="text-xs text-muted-foreground mt-1">
-            Mantém valor da parcela, reduz prazo
+            {t("extra.reduceTermHint")}
           </p>
         </div>
 
         <div>
           <label
             for="extra-modal-reduce-installment"
-            class="text-sm font-medium">Reduzir parcela (R$)</label
+            class="text-sm font-medium">{t("extra.reduceInstallment")}</label
           >
           <SwipeInput
             id="extra-modal-reduce-installment"
             decimals={2}
-            placeholder="Ex: 5.000"
+            placeholder={t("common.exampleAmount")}
             value={reduceInstallmentAmount}
             onchange={updateReduceInstallment}
             min={0}
@@ -348,7 +349,7 @@
             class="mt-1.5"
           />
           <p class="text-xs text-muted-foreground mt-1">
-            Mantém prazo, reduz valor da parcela
+            {t("extra.reduceInstallmentHint")}
           </p>
         </div>
       </div>
@@ -361,13 +362,13 @@
               style="min-width: 100px;"
               onclick={handleRemove}
             >
-              Remover?
+              {t("common.removeConfirm")}
             </button>
           {:else}
             <button
               class="shrink-0 w-10 h-10 rounded-md border border-destructive text-destructive flex items-center justify-center hover:bg-destructive/10 cursor-pointer"
               onclick={() => (showRemoveConfirm = true)}
-              aria-label="Remover pagamento extra"
+              aria-label={t("extra.remove")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -394,7 +395,7 @@
           onclick={handleSave}
           disabled={!isValid}
         >
-          {isEdit ? "Salvar" : "Adicionar"}
+          {isEdit ? t("extra.save") : t("extra.add")}
         </button>
       </div>
     </div>

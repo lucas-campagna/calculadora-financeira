@@ -1,15 +1,34 @@
 <script lang="ts">
   import "../app.css";
-  import { base } from "$app/paths";
   import AdsenseScript from "$lib/components/ads/adsense-script.svelte";
-  import AdUnit from "$lib/components/ads/ad-unit.svelte";
   import PwaInstallBanner from "$lib/components/ui/pwa-install-banner.svelte";
-  import { headerAdsVisible } from "$lib/stores/ads-visibility-store";
+  import {
+    alternateSeoUrl,
+    getLocale,
+    href,
+    LANGUAGE_LABELS,
+    LOCALES,
+    switchLocaleHref,
+    t,
+  } from "$lib/i18n";
 
   let { children } = $props();
 
-  const isDev = import.meta.env.DEV;
+  $effect(() => {
+    document.documentElement.lang = getLocale() === "en" ? "en" : "pt-BR";
+  });
 </script>
+
+<svelte:head>
+  {#each LOCALES as locale}
+    <link
+      rel="alternate"
+      hreflang={locale === "en" ? "en" : "pt-BR"}
+      href={alternateSeoUrl(locale)}
+    />
+  {/each}
+  <link rel="alternate" hreflang="x-default" href={alternateSeoUrl("pt")} />
+</svelte:head>
 
 <AdsenseScript />
 
@@ -17,7 +36,7 @@
   <header
     class="border-b bg-background sticky top-0 z-40 flex items-center justify-center"
   >
-    <div class="container mx-auto px-4">
+    <div class="container mx-auto px-4 flex items-center justify-between h-10">
       <!-- {#if !isDev && $headerAdsVisible} -->
       <!--   <AdUnit slot="" format="auto" /> -->
       <!-- {:else if !isDev} -->
@@ -31,6 +50,21 @@
       <!--     AdSense (dev mode) -->
       <!--   </div> -->
       <!-- {/if} -->
+      <span class="text-xs font-semibold tracking-tight">CalcFin</span>
+      <nav class="flex items-center gap-1" aria-label={t("language.label")}>
+        {#each LOCALES as locale}
+          <a
+            href={switchLocaleHref(locale)}
+            class="px-2 py-1 rounded text-xs transition-colors {getLocale() ===
+            locale
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:bg-muted'}"
+            aria-current={getLocale() === locale ? "page" : undefined}
+          >
+            {LANGUAGE_LABELS[locale]}
+          </a>
+        {/each}
+      </nav>
     </div>
   </header>
 
@@ -39,20 +73,15 @@
   </main>
 
   <footer class="border-t bg-muted/50 py-6 hidden sm:block">
-    <div
-      class="container mx-auto px-4 text-center text-base text-muted-foreground"
-    >
-      <p>
-        Calculadora de Financiamento — Simulação educacional. Consulte um
-        profissional antes de decisões financeiras.
-      </p>
+    <div class="container mx-auto px-4 text-center text-base text-muted-foreground">
+      <p>{t("footer.disclaimer")}</p>
       <nav class="mt-3 flex justify-center gap-4 text-sm flex-wrap">
-        <a href="{base}/" class="hover:underline">Calculadora</a>
-        <a href="{base}/comparar" class="hover:underline">Comparar</a>
-        <a href="{base}/guias" class="hover:underline">Guias</a>
-        <a href="{base}/faq" class="hover:underline">FAQ</a>
-        <a href="{base}/sobre" class="hover:underline">Sobre</a>
-        <a href="{base}/autor" class="hover:underline">Autor</a>
+        <a href={href("/")} class="hover:underline">{t("nav.calculator")}</a>
+        <a href={href("/comparar")} class="hover:underline">{t("nav.compare")}</a>
+        <a href={href("/guias")} class="hover:underline">{t("nav.guides")}</a>
+        <a href={href("/faq")} class="hover:underline">{t("nav.faq")}</a>
+        <a href={href("/sobre")} class="hover:underline">{t("nav.about")}</a>
+        <a href={href("/autor")} class="hover:underline">{t("nav.author")}</a>
       </nav>
     </div>
   </footer>

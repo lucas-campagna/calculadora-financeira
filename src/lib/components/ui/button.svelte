@@ -7,6 +7,8 @@
     variant = "default" as "default" | "outline" | "ghost" | "destructive",
     size = "default" as "default" | "sm" | "lg" | "icon",
     disabled = false,
+    href = undefined,
+    ariaLabel = undefined,
     onclick,
     children,
   }: {
@@ -15,6 +17,8 @@
     variant?: "default" | "outline" | "ghost" | "destructive";
     size?: "default" | "sm" | "lg" | "icon";
     disabled?: boolean;
+    href?: string;
+    ariaLabel?: string;
     onclick?: (e: MouseEvent) => void;
     children: import("svelte").Snippet;
   } = $props();
@@ -45,6 +49,12 @@
   );
 </script>
 
-<button {type} class={classes} {disabled} {onclick}>
-  {@render children()}
-</button>
+{#if href}
+  <a {href} class={classes} aria-label={ariaLabel} {onclick}>
+    {@render children()}
+  </a>
+{:else}
+  <button {type} class={classes} {disabled} aria-label={ariaLabel} {onclick}>
+    {@render children()}
+  </button>
+{/if}

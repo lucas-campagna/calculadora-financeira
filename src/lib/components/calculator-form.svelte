@@ -1,7 +1,6 @@
 <script lang="ts">
   import { studiesStore } from "$lib/stores/calculator-store";
   import type { FieldKey } from "$lib/stores/calculator-store";
-  import { splitMonths } from "$lib/utils";
   import lockClosedIcon from "$lib/assets/icons/lock-closed.svg?raw";
   import lockOpenIcon from "$lib/assets/icons/lock-open.svg?raw";
   import revertIcon from "$lib/assets/icons/revert.svg?raw";
@@ -12,6 +11,7 @@
   import StudyEditModal from "$lib/components/study-edit-modal.svelte";
   import type { Study } from "$lib/calculator/types";
   import Book from "$lib/components/ui/icons/book.svelte";
+  import { formatTerm, ratePeriod, t } from "$lib/i18n";
 
   let {
     onchange: handleFormChange = () => {},
@@ -129,17 +129,7 @@
     editModalOpen = true;
   }
 
-  let termMonthsLabel = $derived.by(() => {
-    if (effectiveTermMonths === 0) return "";
-    const { years, months } = splitMonths(effectiveTermMonths);
-    if (years === 0) {
-      return months === 1 ? "1 mês" : `${months} meses`;
-    }
-    const yearLabel = years === 1 ? "1 ano" : `${years} anos`;
-    if (months === 0) return yearLabel;
-    const monthLabel = months === 1 ? "1 mês" : `${months} meses`;
-    return `${yearLabel} e ${monthLabel}`;
-  });
+  let termMonthsLabel = $derived(formatTerm(effectiveTermMonths));
 
   let rateMode = $state<"annual" | "monthly">("annual");
 
@@ -161,13 +151,12 @@
     if (effectiveAnnualRate === 0) return "";
     if (rateMode === "annual") {
       const monthly = annualToMonthly(effectiveAnnualRate);
-      return `${monthly.toFixed(3)}% a.m.`;
-    } else {
-      return `${effectiveAnnualRate.toFixed(2)}% a.a.`;
+      return t("form.rateLabelMonthly", { value: monthly.toFixed(3) });
     }
+    return t("form.rateLabelAnnual", { value: effectiveAnnualRate.toFixed(2) });
   });
 
-  let rateModeIcon = $derived(rateMode === "annual" ? "a.a." : "a.m.");
+  let rateModeIcon = $derived(ratePeriod(rateMode));
 
   function toggleRateMode() {
     rateMode = rateMode === "annual" ? "monthly" : "annual";
@@ -213,7 +202,7 @@
     </div>
     <div class="grid grid-cols-2 gap-2">
       <div>
-        <Label for="m-principal" class="text-xs">Valor (R$)</Label>
+        <Label for="m-principal" class="text-xs">{t("form.amount")}</Label>
         <SwipeInput
           id="m-principal"
           decimals={2}
@@ -225,7 +214,7 @@
         />
       </div>
       <div>
-        <Label for="m-downPayment" class="text-xs">Entrada (R$)</Label>
+        <Label for="m-downPayment" class="text-xs">{t("form.downPayment")}</Label>
         <SwipeInput
           id="m-downPayment"
           decimals={2}
@@ -236,7 +225,7 @@
         />
       </div>
       <div>
-        <Label for="m-rate" class="text-xs">Taxa</Label>
+        <Label for="m-rate" class="text-xs">{t("form.rate")}</Label>
         <SwipeInput
           id="m-rate"
           decimals={rateMode === "annual" ? 2 : 3}
@@ -252,7 +241,7 @@
         />
       </div>
       <div>
-        <Label for="m-term" class="text-xs">Prazo (meses)</Label>
+        <Label for="m-term" class="text-xs">{t("form.termMonths")}</Label>
         <SwipeInput
           id="m-term"
           decimals={0}
@@ -271,7 +260,7 @@
         <button
           class="h-12 w-12 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shrink-0"
           onclick={() => triggerInstall()}
-          aria-label="Instalar app"
+          aria-label={t("form.installApp")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -299,7 +288,7 @@
         class="flex-1 h-12 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 cursor-pointer"
         onclick={() => (exportModalOpen = true)}
       >
-        Exportar
+        {t("common.export")}
       </button>
     </div>
   </div>
@@ -311,13 +300,12 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <Label for="principal" class="text-sm"
-          >Valor do Financiamento (R$)</Label
+        <Label for="principal" class="text-sm">{t("form.financingAmount")}</Label
         >
         <SwipeInput
           id="principal"
           decimals={2}
-          placeholder="Ex: 500.000"
+          placeholder={t("form.placeholderPrincipal")}
           value={effectivePrincipal}
           onchange={(v) => updateField("principal", v)}
           min={1}
@@ -327,11 +315,11 @@
       </div>
 
       <div>
-        <Label for="downPayment" class="text-sm">Entrada (R$)</Label>
+        <Label for="downPayment" class="text-sm">{t("form.downPayment")}</Label>
         <SwipeInput
           id="downPayment"
           decimals={2}
-          placeholder="Ex: 100.000"
+          placeholder={t("form.placeholderDownPayment")}
           value={effectiveDownPayment}
           onchange={(v) => updateField("downPayment", v)}
           class="mt-1"
@@ -343,12 +331,12 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <Label for="annualRate" class="text-sm"
-          >Taxa de Juros (% {rateMode === "annual" ? "a.a." : "a.m."})</Label
+          >{t("form.interestRate", { period: ratePeriod(rateMode) })}</Label
         >
         <SwipeInput
           id="annualRate"
           decimals={rateMode === "annual" ? 2 : 3}
-          placeholder="Ex: 10,5"
+          placeholder={t("form.placeholderRate")}
           value={displayRate}
           onchange={(v) =>
             updateField(
@@ -362,7 +350,7 @@
       </div>
 
       <div>
-        <Label for="termMonths" class="text-sm">Prazo (meses)</Label>
+        <Label for="termMonths" class="text-sm">{t("form.termMonths")}</Label>
         <SwipeInput
           id="termMonths"
           decimals={0}

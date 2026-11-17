@@ -8,6 +8,7 @@
   } from "$lib/stores/calculator-store";
   import type { Installment } from "$lib/calculator/types";
   import { SMALL_SCREEN_BREAKPOINT } from "$lib/constants";
+  import { t } from "$lib/i18n";
 
   let {
     onrowclick = (_month: number) => {},
@@ -24,12 +25,12 @@
 
   const FIELDS: {
     key: "payment" | "principal" | "interest" | "balance";
-    label: string;
+    label: "table.payment" | "table.amortization" | "table.interest" | "table.balance";
   }[] = [
-    { key: "payment", label: "Parcela" },
-    { key: "principal", label: "Amort." },
-    { key: "interest", label: "Juros" },
-    { key: "balance", label: "Saldo" },
+    { key: "payment", label: "table.payment" },
+    { key: "principal", label: "table.amortization" },
+    { key: "interest", label: "table.interest" },
+    { key: "balance", label: "table.balance" },
   ];
 
   let isSmallScreen = $derived(
@@ -150,14 +151,16 @@
             : 'bg-muted text-muted-foreground hover:bg-muted/80'}"
           onclick={() => (viewMode = "financing")}
         >
-          {viewMode === "field" && isSmallScreen ? "Financ." : "Financiamento"}
+          {viewMode === "field" && isSmallScreen
+            ? t("table.financingShort")
+            : t("table.financing")}
         </button>
         {#if viewMode === "financing"}
           <button
             class="px-2 py-1 text-xs font-medium transition-colors"
             onclick={() => (viewMode = "field")}
           >
-            Comparar
+            {t("table.compare")}
           </button>
         {:else}
           {#each FIELDS as f}
@@ -168,7 +171,7 @@
                 : 'bg-background'}"
               onclick={() => (selectedField = f.key)}
             >
-              {f.label}
+              {t(f.label)}
             </button>
           {/each}
         {/if}
@@ -179,7 +182,7 @@
             class="px-2 py-1 text-xs font-medium hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed"
             onclick={() => navigateExtraPayment("up")}
             disabled={selectedExtraPaymentIndex <= 0}
-            aria-label="Linha anterior"
+            aria-label={t("table.previousRow")}
           >
             ▲
           </button>
@@ -187,7 +190,7 @@
             class="px-2 py-1 text-xs font-medium hover:bg-muted/80 disabled:opacity-30 disabled:cursor-not-allowed"
             onclick={() => navigateExtraPayment("down")}
             disabled={selectedExtraPaymentIndex >= maxIndex}
-            aria-label="Próxima linha"
+            aria-label={t("table.nextRow")}
           >
             ▼
           </button>
@@ -198,7 +201,7 @@
           class="text-xs text-primary hover:underline py-1"
           onclick={() => (expanded = !expanded)}
         >
-          {expanded ? "▲ Ver resumo" : "▼ Ver tudo"}
+          {expanded ? t("table.showSummary") : t("table.showAll")}
         </button>
       {/if}
     </div>
@@ -210,7 +213,7 @@
     {@render menu($isDesktop)}
     {#if $isMobile}
       <p class="text-xs text-muted-foreground mb-1">
-        Toque em uma parcela para adicionar pagamento extra.
+        {t("table.hint")}
       </p>
     {/if}
 
@@ -224,23 +227,23 @@
           <thead class="sticky top-0 z-10">
             <tr class="border-b bg-muted">
               <th class="px-1 py-1 text-left font-medium bg-muted w-[10%]"
-                >Mês</th
+                >{t("table.month")}</th
               >
               <th class="px-1 py-1 text-right font-medium bg-muted w-[18%]"
-                >Parcela (R$)</th
+                >{t("table.paymentCurrency")}</th
               >
               <th class="px-1 py-1 text-right font-medium bg-muted w-[18%]"
-                >Amort. (R$)</th
+                >{t("table.amortizationCurrency")}</th
               >
               <th class="px-1 py-1 text-right font-medium bg-muted w-[18%]"
-                >Juros (R$)</th
+                >{t("table.interestCurrency")}</th
               >
               <th class="px-1 py-1 text-right font-medium bg-muted w-[18%]"
-                >Saldo (R$)</th
+                >{t("table.balanceCurrency")}</th
               >
               {#if activeStudyResult.installments.some((i: Installment) => i.extraPayment)}
                 <th class="px-1 py-1 text-right font-medium bg-muted w-[18%]"
-                  >Extra (R$)</th
+                  >{t("table.extraCurrency")}</th
                 >
               {/if}
             </tr>
@@ -299,7 +302,7 @@
           <thead class="sticky top-0 z-10">
             <tr class="border-b bg-muted">
               <th class="px-1 py-1 text-left font-medium bg-muted w-[10%]"
-                >Mês</th
+                >{t("table.month")}</th
               >
               {#each $studiesStore.studies as study}
                 <th class="px-1 py-1 text-right font-medium bg-muted"
@@ -349,7 +352,7 @@
     {@render menu($isMobile)}
     {#if $isDesktop}
       <p class="text-xs text-muted-foreground mb-1">
-        Toque em uma parcela para adicionar pagamento extra.
+        {t("table.hint")}
       </p>
     {/if}
   </div>

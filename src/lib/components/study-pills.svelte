@@ -2,6 +2,7 @@
   import { studiesStore } from "$lib/stores/calculator-store";
   import type { Study } from "$lib/calculator/types";
   import { STUDY_COLORS } from "$lib/constants";
+  import { t } from "$lib/i18n";
 
   function getPillClasses(
     isActive: boolean,
@@ -87,7 +88,7 @@
   <button
     class="shrink-0 w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary/10 transition-colors cursor-pointer"
     onclick={onadd}
-    aria-label="Adicionar estudo"
+    aria-label={t("studies.add")}
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -109,7 +110,7 @@
     onclick={() => {
       if (!isRestored) showRestoreConfirm = true;
     }}
-    aria-label="Restaurar estudos"
+    aria-label={t("studies.restore")}
     disabled={isRestored}
   >
     <svg
@@ -138,7 +139,7 @@
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Confirmar restauracao"
+      aria-label={t("studies.restoreDialog")}
       tabindex="0"
     >
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -147,10 +148,9 @@
         class="bg-background p-6 rounded-xl max-w-sm w-full mx-4"
         onclick={(e) => e.stopPropagation()}
       >
-        <h2 class="text-base font-semibold mb-2">Restaurar valores?</h2>
+        <h2 class="text-base font-semibold mb-2">{t("studies.restoreTitle")}</h2>
         <p class="text-sm text-muted-foreground mb-4">
-          Todos os estudos serão resetados para os valores iniciais. Esta ação
-          não pode ser desfeita.
+          {t("studies.restoreBody")}
         </p>
         <div class="flex gap-3">
           <button
@@ -160,7 +160,7 @@
               showRestoreConfirm = false;
             }}
           >
-            Restaurar
+            {t("studies.restoreAction")}
           </button>
         </div>
       </div>

@@ -8,6 +8,7 @@
   import Button from "$lib/components/ui/button.svelte";
   import Book from "$lib/components/ui/icons/book.svelte";
   import { Link } from "@lucide/svelte";
+  import { t } from "$lib/i18n";
 
   let copyFeedback = $state<string | null>(null);
 
@@ -19,12 +20,14 @@
     if (!study || !result) return;
 
     const data = result.installments.map((i) => ({
-      Mes: i.number,
-      Parcela: i.payment.toFixed(2),
-      Amortizacao: i.principal.toFixed(2),
-      Juros: i.interest.toFixed(2),
-      Saldo_Devedor: i.balance.toFixed(2),
-      ...(i.extraPayment ? { Aporte_Extra: i.extraPayment.toFixed(2) } : {}),
+      [t("export.csv.month")]: i.number,
+      [t("export.csv.payment")]: i.payment.toFixed(2),
+      [t("export.csv.amortization")]: i.principal.toFixed(2),
+      [t("export.csv.interest")]: i.interest.toFixed(2),
+      [t("export.csv.balance")]: i.balance.toFixed(2),
+      ...(i.extraPayment
+        ? { [t("export.csv.extra")]: i.extraPayment.toFixed(2) }
+        : {}),
     }));
 
     const csv = papaparse.unparse(data);
@@ -32,7 +35,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `financiamento-${study.name.toLowerCase().replace(/\s+/g, "-")}.csv`;
+    a.download = `${t("export.filenamePrefix")}-${study.name.toLowerCase().replace(/\s+/g, "-")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -46,33 +49,45 @@
     const doc = new jspdf();
 
     doc.setFontSize(18);
-    doc.text(`Simulação - ${study.name}`, 14, 20);
+    doc.text(t("export.pdf.title", { name: study.name }), 14, 20);
 
     doc.setFontSize(10);
-    doc.text(`Valor Total Pago: ${formatCurrency(result.totalPaid)}`, 14, 32);
-    doc.text(`Total de Juros: ${formatCurrency(result.totalInterest)}`, 14, 38);
     doc.text(
-      `Primeira Parcela: ${formatCurrency(result.firstInstallment)}`,
+      `${t("export.pdf.totalPaid")}: ${formatCurrency(result.totalPaid)}`,
+      14,
+      32,
+    );
+    doc.text(
+      `${t("export.pdf.totalInterest")}: ${formatCurrency(result.totalInterest)}`,
+      14,
+      38,
+    );
+    doc.text(
+      `${t("export.pdf.firstInstallment")}: ${formatCurrency(result.firstInstallment)}`,
       14,
       44,
     );
     doc.text(
-      `Última Parcela: ${formatCurrency(result.lastInstallment)}`,
+      `${t("export.pdf.lastInstallment")}: ${formatCurrency(result.lastInstallment)}`,
       14,
       50,
     );
-    doc.text(`Número de Parcelas: ${result.installments.length}`, 14, 56);
+    doc.text(
+      `${t("export.pdf.installments")}: ${result.installments.length}`,
+      14,
+      56,
+    );
 
     doc.setFontSize(12);
-    doc.text("Tabela de Amortização", 14, 66);
+    doc.text(t("export.pdf.amortizationTable"), 14, 66);
 
     let y = 74;
     doc.setFontSize(8);
-    doc.text("Mês", 14, y);
-    doc.text("Parcela", 30, y);
-    doc.text("Amort.", 55, y);
-    doc.text("Juros", 75, y);
-    doc.text("Saldo", 95, y);
+    doc.text(t("table.month"), 14, y);
+    doc.text(t("table.payment"), 30, y);
+    doc.text(t("table.amortization"), 55, y);
+    doc.text(t("table.interest"), 75, y);
+    doc.text(t("table.balance"), 95, y);
     y += 6;
 
     for (const inst of result.installments) {
@@ -89,13 +104,13 @@
     }
 
     doc.save(
-      `financiamento-${study.name.toLowerCase().replace(/\s+/g, "-")}.pdf`,
+      `${t("export.filenamePrefix")}-${study.name.toLowerCase().replace(/\s+/g, "-")}.pdf`,
     );
   }
 
   async function copyLink() {
     const ok = await copyShareLink(get(studiesStore));
-    copyFeedback = ok ? "Link copiado!" : "Erro ao copiar";
+    copyFeedback = ok ? t("common.copied") : t("common.copyError");
     if (ok) {
       setTimeout(() => (copyFeedback = null), 2000);
     }
@@ -112,14 +127,14 @@
     >
     <Button variant="outline" size="default" onclick={copyLink}>
       <Link class="w-4 h-4 mr-1" />
-      Copiar link
+      {t("common.copyLink")}
     </Button>
     {#if $allResultsStore[$studiesStore.activeStudyId]}
       <Button variant="outline" size="default" onclick={exportCSV}>
-        Exportar CSV
+        {t("common.export")} CSV
       </Button>
       <Button variant="outline" size="default" onclick={exportPDF}>
-        Exportar PDF
+        {t("common.export")} PDF
       </Button>
     {/if}
     {#if copyFeedback}

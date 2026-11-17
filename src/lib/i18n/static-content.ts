@@ -1,0 +1,274 @@
+import type { Locale } from './index';
+
+interface StaticSeo {
+  htmlLang: string;
+  description: string;
+  keywords: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogUrl: string;
+  canonical: string;
+  title: string;
+  content: string; // inner HTML of #static-content-wrapper
+}
+
+export const staticSeo: Record<Locale, StaticSeo> = {
+  pt: {
+    htmlLang: 'pt-BR',
+    description:
+      'Calculadora de financiamento gratuita — simule PRICE, SAC, SAM e Americano. Compare sistemas, veja tabela de amortização e exporte resultados.',
+    keywords:
+      'calculadora financiamento, PRICE, SAC, SAM, americano, amortização, simular financiamento',
+    ogTitle: 'Calculadora de Financiamento — PRICE, SAC, SAM, Americano',
+    ogDescription:
+      'Calculadora de financiamento gratuita — simule PRICE, SAC, SAM e Americano. Compare sistemas, veja tabela de amortização e exporte resultados.',
+    ogUrl: 'https://calculadora-financiamento.click/',
+    canonical: 'https://calculadora-financiamento.click/',
+    title: 'Calculadora de Financiamento — PRICE, SAC, SAM, Americano',
+    content: `
+      <main class="max-w-4xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-4">Calculadora de Financiamento</h1>
+        <p class="text-lg text-muted-foreground mb-6">Simule e compare os principais sistemas de amortização para financiamentos no Brasil: PRICE, SAC, SAM e Americano.</p>
+
+        <div class="mb-8">
+          <button
+            id="go-to-app-btn"
+            type="button"
+            class="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors cursor-pointer"
+          >
+            Usar calculadora
+            <svg class="ml-2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">O que são sistemas de amortização?</h2>
+          <p class="mb-3">Sistemas de amortização são métodos matemáticos utilizados para calcular o valor das parcelas de um financiamento e como cada pagamento é dividido entre juros e redução do saldo devedor. No Brasil, os quatro sistemas mais comuns são:</p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li><strong>PRICE (Tabela Price):</strong> Parcelas fixas durante todo o contrato. Nos primeiros meses, a maior parte do pagamento é destinada aos juros; com o tempo, a proporção se inverte e a amortização do principal aumenta.</li>
+            <li><strong>SAC (Sistema de Amortização Constante):</strong> A amortização é igual em todas as parcelas. Como os juros são calculados sobre o saldo devedor restante, as parcelas começam mais altas e diminuem ao longo do tempo.</li>
+            <li><strong>SAM (Sistema de Amortização Mista):</strong> Combinação dos sistemas PRICE e SAC. As parcelas começam em um valor intermediário e tendem a se aproximar do PRICE ao longo do tempo.</li>
+            <li><strong>Sistema Americano:</strong> Pagamento mensal apenas dos juros, com o principal quitado em uma única parcela ao final do contrato (parcela balão).</li>
+          </ul>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">Como usar esta calculadora?</h2>
+          <p class="mb-3">Nossa calculadora educacional permite simular qualquer cenário de financiamento:</p>
+          <ol class="list-decimal pl-6 space-y-2">
+            <li>Informe o valor total a ser financiado (ou o valor do bem menos a entrada)</li>
+            <li>Digite a taxa de juros anual oferecida pela instituição financeira</li>
+            <li>Defina o prazo total em meses (tipicamente 12 a 360 meses para financiamentos de longo prazo)</li>
+            <li>Selecione o sistema de amortização desejado</li>
+            <li>Visualize instantaneamente o valor das parcelas, total de juros e custo total do financiamento</li>
+            <li>Adicione parcelas extras para simular pagamentos antecipados e ver a redução no prazo ou nas parcelas</li>
+          </ol>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">Para quem é esta ferramenta?</h2>
+          <p class="mb-3">Esta calculadora é indicada para:</p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li><strong>Compradores de imóveis:</strong> Simule financiamentos imobiliários e compare o custo total entre diferentes sistemas e instituições</li>
+            <li><strong>Compradores de veículos:</strong> Entenda o impacto da taxa de juros e do prazo no valor final do financiamento</li>
+            <li><strong>Tomadores de crédito pessoal:</strong> Avalie o verdadeiro custo de diferentes linhas de crédito</li>
+            <li><strong>Estudantes de finanças:</strong> Compreenda na prática como funcionam os sistemas de amortização utilizados no mercado brasileiro</li>
+          </ul>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">Exemplo prático: Financiamento de R$ 300.000 em 360 meses</h2>
+          <p class="mb-3">Para um financiamento imobiliário de R$ 300.000 a 10% ao ano em 30 anos:</p>
+          <table class="w-full border-collapse border border-border text-sm mb-3">
+            <thead>
+              <tr class="bg-muted">
+                <th class="border border-border p-2 text-left">Sistema</th>
+                <th class="border border-border p-2 text-right">Parcela mensal</th>
+                <th class="border border-border p-2 text-right">Total de juros</th>
+                <th class="border border-border p-2 text-right">Custo total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-border p-2">PRICE</td>
+                <td class="border border-border p-2 text-right">R$ 2.610</td>
+                <td class="border border-border p-2 text-right">R$ 639.600</td>
+                <td class="border border-border p-2 text-right">R$ 939.600</td>
+              </tr>
+              <tr>
+                <td class="border border-border p-2">SAC</td>
+                <td class="border border-border p-2 text-right">R$ 3.125 → R$ 835</td>
+                <td class="border border-border p-2 text-right">R$ 452.500</td>
+                <td class="border border-border p-2 text-right">R$ 752.500</td>
+              </tr>
+              <tr>
+                <td class="border border-border p-2">SAM</td>
+                <td class="border border-border p-2 text-right">R$ 2.867</td>
+                <td class="border border-border p-2 text-right">R$ 532.100</td>
+                <td class="border border-border p-2 text-right">R$ 832.100</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="text-sm text-muted-foreground">*Valores aproximados para fins educacionais. Taxas e condições reais variam entre instituições.</p>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">Recursos avançados</h2>
+          <ul class="list-disc pl-6 space-y-2">
+            <li><strong>Comparação lado a lado:</strong> Simule até 4 cenários diferentes simultaneamente e compare visualmente</li>
+            <li><strong>Tabela de amortização completa:</strong> Veja mês a mês como cada parcela é dividida entre juros e amortização</li>
+            <li><strong>Parcelas extras:</strong> Simule pagamentos antecipados e veja o impacto no prazo total e nos juros pagos</li>
+            <li><strong>Compartilhamento:</strong> Gere links para compartilhar suas simulações com familiares ou consultores financeiros</li>
+            <li><strong>Exportação:</strong> Exporte os resultados em CSV ou PDF para seus registros</li>
+          </ul>
+        </section>
+
+        <p class="text-sm text-muted-foreground border-t pt-4">Esta é uma ferramenta educacional gratuita. Os resultados são estimativas baseadas nos dados inseridos e não substituem o aconselhamento financeiro profissional. Consulte um consultor financeiro ou um advogado especializado antes de tomar decisões financeiras.</p>
+
+        <div class="mt-8 pt-6 border-t">
+          <button
+            id="go-to-app-btn-end"
+            type="button"
+            class="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors cursor-pointer"
+          >
+            Usar calculadora
+            <svg class="ml-2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </main>
+    `,
+  },
+  en: {
+    htmlLang: 'en',
+    description:
+      'Free loan calculator — simulate PRICE, SAC, SAM, and American. Compare amortization systems, view the amortization schedule, and export results.',
+    keywords:
+      'loan calculator, PRICE, SAC, SAM, American, amortization, simulate loan',
+    ogTitle: 'Loan Calculator — PRICE, SAC, SAM, American',
+    ogDescription:
+      'Free loan calculator — simulate PRICE, SAC, SAM, and American. Compare amortization systems, view the amortization schedule, and export results.',
+    ogUrl: 'https://calculadora-financiamento.click/en/',
+    canonical: 'https://calculadora-financiamento.click/en/',
+    title: 'Loan Calculator — PRICE, SAC, SAM, American',
+    content: `
+      <main class="max-w-4xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-4">Loan Calculator</h1>
+        <p class="text-lg text-muted-foreground mb-6">Simulate and compare the main amortization systems used for loans in Brazil: PRICE, SAC, SAM, and American.</p>
+
+        <div class="mb-8">
+          <button
+            id="go-to-app-btn"
+            type="button"
+            class="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors cursor-pointer"
+          >
+            Use calculator
+            <svg class="ml-2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">What are amortization systems?</h2>
+          <p class="mb-3">Amortization systems are mathematical methods used to calculate the amount of loan installments and how each payment is split between interest and reducing the outstanding balance. In Brazil, the four most common systems are:</p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li><strong>PRICE (Price Table):</strong> Fixed installments throughout the loan term. In the first months, most of the payment goes toward interest; over time, the proportion shifts and more of the principal is amortized.</li>
+            <li><strong>SAC (Constant Amortization System):</strong> The principal repayment is the same in every installment. Since interest is calculated on the remaining outstanding balance, installments start higher and decrease over time.</li>
+            <li><strong>SAM (Mixed Amortization System):</strong> A combination of the PRICE and SAC systems. Installments start at an intermediate amount and tend to approach PRICE over time.</li>
+            <li><strong>American System:</strong> Monthly interest-only payments, with the principal paid off in a single installment at the end of the loan term (balloon payment).</li>
+          </ul>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">How do I use this calculator?</h2>
+          <p class="mb-3">Our educational calculator lets you simulate any loan scenario:</p>
+          <ol class="list-decimal pl-6 space-y-2">
+            <li>Enter the total amount to be financed (or the price of the asset minus the down payment)</li>
+            <li>Enter the annual interest rate offered by the financial institution</li>
+            <li>Set the total term in months (typically 12 to 360 months for long-term loans)</li>
+            <li>Select the desired amortization system</li>
+            <li>Instantly see the installment amount, total interest, and total cost of the loan</li>
+            <li>Add extra payments to simulate early repayments and see the reduction in the term or in the installments</li>
+          </ol>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">Who is this tool for?</h2>
+          <p class="mb-3">This calculator is useful for:</p>
+          <ul class="list-disc pl-6 space-y-2">
+            <li><strong>Homebuyers:</strong> Simulate mortgage loans and compare the total cost across different systems and institutions</li>
+            <li><strong>Car buyers:</strong> Understand how the interest rate and term affect the final cost of the loan</li>
+            <li><strong>Personal loan borrowers:</strong> Evaluate the true cost of different credit lines</li>
+            <li><strong>Finance students:</strong> Learn firsthand how the amortization systems used in the Brazilian market work</li>
+          </ul>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">Practical example: Financing R$ 300.000 over 360 months</h2>
+          <p class="mb-3">For a mortgage of R$ 300.000 at 10% per year over 30 years:</p>
+          <table class="w-full border-collapse border border-border text-sm mb-3">
+            <thead>
+              <tr class="bg-muted">
+                <th class="border border-border p-2 text-left">System</th>
+                <th class="border border-border p-2 text-right">Monthly payment</th>
+                <th class="border border-border p-2 text-right">Total interest</th>
+                <th class="border border-border p-2 text-right">Total cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-border p-2">PRICE</td>
+                <td class="border border-border p-2 text-right">R$ 2.610</td>
+                <td class="border border-border p-2 text-right">R$ 639.600</td>
+                <td class="border border-border p-2 text-right">R$ 939.600</td>
+              </tr>
+              <tr>
+                <td class="border border-border p-2">SAC</td>
+                <td class="border border-border p-2 text-right">R$ 3.125 → R$ 835</td>
+                <td class="border border-border p-2 text-right">R$ 452.500</td>
+                <td class="border border-border p-2 text-right">R$ 752.500</td>
+              </tr>
+              <tr>
+                <td class="border border-border p-2">SAM</td>
+                <td class="border border-border p-2 text-right">R$ 2.867</td>
+                <td class="border border-border p-2 text-right">R$ 532.100</td>
+                <td class="border border-border p-2 text-right">R$ 832.100</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="text-sm text-muted-foreground">*Approximate values for educational purposes. Actual rates and terms vary between institutions.</p>
+        </section>
+
+        <section class="mb-8">
+          <h2 class="text-xl font-semibold mb-3">Advanced features</h2>
+          <ul class="list-disc pl-6 space-y-2">
+            <li><strong>Side-by-side comparison:</strong> Simulate up to 4 different scenarios at once and compare them visually</li>
+            <li><strong>Full amortization schedule:</strong> See month by month how each payment is split between interest and principal</li>
+            <li><strong>Extra payments:</strong> Simulate early repayments and see their impact on the total term and interest paid</li>
+            <li><strong>Sharing:</strong> Generate links to share your simulations with family members or financial advisors</li>
+            <li><strong>Export:</strong> Export results to CSV or PDF for your records</li>
+          </ul>
+        </section>
+
+        <p class="text-sm text-muted-foreground border-t pt-4">This is a free educational tool. Results are estimates based on the data you enter and do not replace professional financial advice. Consult a financial advisor or a specialized lawyer before making financial decisions.</p>
+
+        <div class="mt-8 pt-6 border-t">
+          <button
+            id="go-to-app-btn-end"
+            type="button"
+            class="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors cursor-pointer"
+          >
+            Use calculator
+            <svg class="ml-2 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </main>
+    `,
+  },
+};

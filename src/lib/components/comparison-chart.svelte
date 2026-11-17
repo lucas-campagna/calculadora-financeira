@@ -7,6 +7,7 @@
     isDesktop,
   } from "$lib/stores/calculator-store";
   import type { Installment, ExtraPayment } from "$lib/calculator/types";
+  import { axisLabels, getLocale, t } from "$lib/i18n";
 
   let canvasEl: HTMLCanvasElement = $state(
     undefined as unknown as HTMLCanvasElement,
@@ -68,12 +69,12 @@
 
   const FIELDS: {
     key: "payment" | "principal" | "interest" | "balance";
-    label: string;
+    label: "chart.balance" | "chart.payment" | "chart.amortization" | "chart.interest";
   }[] = [
-    { key: "balance", label: "Saldo" },
-    { key: "payment", label: "Parcela" },
-    { key: "principal", label: "Amort." },
-    { key: "interest", label: "Juros" },
+    { key: "balance", label: "chart.balance" },
+    { key: "payment", label: "chart.payment" },
+    { key: "principal", label: "chart.amortization" },
+    { key: "interest", label: "chart.interest" },
   ];
 
   const COLORS = [
@@ -115,6 +116,7 @@
   }
 
   async function renderChart() {
+    const { month: monthLabel, year: yearLabel } = axisLabels();
     const allStudies = $studiesStore.studies;
     const studies = allStudies.filter((s) => !s.disabled);
     const firstResult = $allResultsStore[studies[0]?.id];
@@ -246,12 +248,12 @@
         ctx.textBaseline = "top";
         const month = Math.round(nearestX);
         let xAxisLabel = "";
-        if (month <= 12) xAxisLabel = `${month}M`;
+        if (month <= 12) xAxisLabel = `${month}${monthLabel}`;
         else {
           const years = Math.floor(month / 12);
           const months = month % 12;
-          if (months === 0) xAxisLabel = `${years}A`;
-          else xAxisLabel = `${years}A ${months}M`;
+          if (months === 0) xAxisLabel = `${years}${yearLabel}`;
+          else xAxisLabel = `${years}${yearLabel} ${months}${monthLabel}`;
         }
         ctx.fillText(xAxisLabel, pointPixelX, yScale.bottom + 10);
 
@@ -327,11 +329,11 @@
               callback: (value: string | number) => {
                 const month = Number(value);
                 if (!Number.isInteger(month)) return "";
-                if (month <= 12) return `${month}M`;
+                if (month <= 12) return `${month}${monthLabel}`;
                 const years = Math.floor(month / 12);
                 const months = month % 12;
-                if (months === 0) return `${years}A`;
-                return `${years}A ${months}M`;
+                if (months === 0) return `${years}${yearLabel}`;
+                return `${years}${yearLabel} ${months}${monthLabel}`;
               },
             },
           },
@@ -498,6 +500,7 @@
 
   $effect(() => {
     void isDark;
+    void getLocale();
     if (
       $studiesStore.studies.length > 0 &&
       canvasEl &&
@@ -563,7 +566,7 @@
               : 'bg-background'}"
             onclick={() => (selectedField = f.key)}
           >
-            {f.label}
+            {t(f.label)}
           </button>
         {/each}
       </div>
@@ -579,17 +582,19 @@
     {@render selectChartType($isDesktop)}
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-xs font-semibold">
-        Evolução {selectedField === "balance"
-          ? "do Saldo"
-          : selectedField === "payment"
-            ? "da Parcela"
-            : selectedField === "principal"
-              ? "da Amortização"
-              : "dos Juros"} (R$)
+        {t(
+          selectedField === "balance"
+            ? "chart.evolution.balance"
+            : selectedField === "payment"
+              ? "chart.evolution.payment"
+              : selectedField === "principal"
+                ? "chart.evolution.principal"
+                : "chart.evolution.interest",
+        )} (R$)
       </h2>
       {#if !hasSelectedData}
         <p class="text-xs text-muted-foreground mt-1">
-          Clique em um ponto do gráfico para adicionar pagamento extra.
+          {t("chart.hint")}
         </p>
       {/if}
     </div>
@@ -597,7 +602,7 @@
       bind:this={chartContainerEl}
       class={fullHeight ? "flex-1 min-h-0" : "h-56 sm:h-80"}
       role="img"
-      aria-label="Gráfico de evolucao do saldo devedor"
+      aria-label={t("chart.aria")}
       style="touch-action: none;"
     >
       <canvas bind:this={canvasEl}></canvas>

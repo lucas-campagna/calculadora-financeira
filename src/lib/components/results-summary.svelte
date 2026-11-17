@@ -1,6 +1,7 @@
 <script lang="ts">
   import { formatCurrency, formatPercent } from "$lib/calculator";
   import { allResultsStore, studiesStore } from "$lib/stores/calculator-store";
+  import { t } from "$lib/i18n";
 
   const COLORS = [
     "bg-blue-500",
@@ -22,7 +23,7 @@
 
 {#if Object.keys($allResultsStore).length > 0}
   <div class="space-y-4">
-    <h2 class="text-base font-semibold">Resultado</h2>
+    <h2 class="text-base font-semibold">{t("results.title")}</h2>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {#each $studiesStore.studies as study, i}
@@ -53,27 +54,27 @@
               <h3 class="text-sm font-bold">{study.name}</h3>
               {#if isDisabled}
                 <span class="text-xs text-muted-foreground ml-auto"
-                  >(desabilitado)</span
+                  >({t("common.disabled")})</span
                 >
               {/if}
             </div>
             <div class="space-y-1 text-sm">
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Total Pago</span>
+                <span class="text-muted-foreground">{t("common.totalPaid")}</span>
                 <span class="font-bold">
                   <span
                     class="text-xs text-muted-foreground/50 mr-1 cursor-help font-normal"
-                    title="Vezes o valor financiado"
+                    title={t("results.multiplierTitle")}
                     >{getMultiplier(result.totalPaid, effectivePrincipal)}</span
                   >{formatCurrency(result.totalPaid)}</span
                 >
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Juros</span>
+                <span class="text-muted-foreground">{t("common.interest")}</span>
                 <span class="font-bold text-destructive"
                   ><span
                     class="text-xs text-muted-foreground/50 mr-1 cursor-help font-normal"
-                    title="Vezes o valor financiado"
+                    title={t("results.multiplierTitle")}
                     >{getMultiplier(
                       result.totalInterest,
                       effectivePrincipal,
@@ -82,19 +83,19 @@
                 >
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">1ª Parcela</span>
+                <span class="text-muted-foreground">{t("common.firstInstallment")}</span>
                 <span class="font-bold"
                   >{formatCurrency(result.firstInstallment)}</span
                 >
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Última Parcela</span>
+                <span class="text-muted-foreground">{t("common.lastInstallment")}</span>
                 <span class="font-bold"
                   >{formatCurrency(result.lastInstallment)}</span
                 >
               </div>
               <div class="flex justify-between">
-                <span class="text-muted-foreground">Parcelas</span>
+                <span class="text-muted-foreground">{t("common.installments")}</span>
                 <span class="font-bold">{result.installments.length}</span>
               </div>
             </div>
