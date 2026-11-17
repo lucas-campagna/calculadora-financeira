@@ -7,6 +7,10 @@ import { VitePWA } from "vite-plugin-pwa";
 const base = process.env.SVELTE_BASE_PATH ?? "";
 
 export default defineConfig({
+  // Absolute deployment base (SvelteKit relativizes `$app/paths` `base` during SSR).
+  define: {
+    __ABS_BASE_PATH__: JSON.stringify(base),
+  },
   plugins: [
     tailwindcss(),
     sveltekit(),

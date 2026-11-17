@@ -1,6 +1,10 @@
 import { building } from "$app/environment";
 import { base } from "$app/paths";
 import { page } from "$app/state";
+
+declare const __ABS_BASE_PATH__: string;
+/** Absolute deployment base. Unlike `base`, this is never relativized by SSR. */
+const ABS_BASE: string = typeof __ABS_BASE_PATH__ === "undefined" ? "" : __ABS_BASE_PATH__;
 import {
   en,
   friendlyStudyNames,
@@ -24,8 +28,8 @@ export { friendlyStudyNames };
 
 /** Strips the deployment base path (e.g. /calculadora-financeira) from a pathname. */
 function stripBase(pathname: string): string {
-  if (base && (pathname === base || pathname.startsWith(`${base}/`))) {
-    return pathname.slice(base.length) || "/";
+  if (ABS_BASE && (pathname === ABS_BASE || pathname.startsWith(`${ABS_BASE}/`))) {
+    return pathname.slice(ABS_BASE.length) || "/";
   }
   return pathname;
 }
